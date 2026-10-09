@@ -48,10 +48,13 @@ export default function Layout({ children }: Readonly<{ children: ReactNode }>) 
   //   52px 图标导轨常驻 + 288px 对话面板（可收起）叠在圆角主表面之上；
   //   主表面从 x=52px 起，与面板重叠——面板浮在表面上，而不是把表面挤开。
   return (
-    <div className="flex h-svh flex-col pr-[4px] pb-[4px]">
+    // Codex 实测竖向几何：顶部 36px 窗口条 + 8px 间距 → 主表面/导轨/面板都从 y=44 起，
+    // 底部留 4px（1280×816 时主表面正好 768 高）。
+    <div className="flex h-svh flex-col pr-[4px] pb-[4px] pt-9">
       <div className="codex-drag-strip" aria-hidden />
       <SidebarProvider
         defaultOpen={defaultOpen}
+        className="min-h-0 flex-1"
         style={
           {
             "--sidebar-width": "18rem",
@@ -66,7 +69,7 @@ export default function Layout({ children }: Readonly<{ children: ReactNode }>) 
         />
         <SidebarInset
           className={cn(
-            "codex-surface ml-[3.25rem]",
+            "codex-surface mt-2 ml-[3.25rem]",
             "[html[data-content-layout=centered]_&>*]:mx-auto",
             "[html[data-content-layout=centered]_&>*]:w-full",
             "[html[data-content-layout=centered]_&>*]:max-w-screen-2xl",

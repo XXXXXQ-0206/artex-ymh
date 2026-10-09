@@ -335,6 +335,9 @@ html[data-font] body {
   --codex-rail: 3.25rem; /* 52px */
   --codex-panel: 18rem; /* 288px */
   --codex-gap: 4px;
+  /* 竖向：参考端顶部 36px 窗口条 + 8px 间距，主表面/导轨/面板都从 y=44 起，
+     底部再留 4px。1280×816 时表面正好 768 高（44 → 812）。 */
+  --codex-shell-top: 2.75rem; /* 44px */
 
   /* ── Codex 设计语言（样式普查值：outputs/codex-style-census/01-codex-chat.json）──
      正文 16px/430；次要文字 13px / 白 49.8%；分组标题 14px/500；小标题 18px/600 白 85%；
@@ -467,7 +470,8 @@ button,
   position: fixed;
   inset-inline: 0;
   top: 0;
-  height: var(--codex-toolbar);
+  /* 参考端顶部窗口条 36px + 8px 间距，共 44px 都可拖 */
+  height: var(--codex-shell-top);
   z-index: 40;
   pointer-events: none;
   -webkit-app-region: drag;
@@ -477,6 +481,12 @@ button,
 .codex-rail {
   width: var(--codex-rail);
   background: var(--background);
+  /* 与参考端 nav[0,44,52,768] 同高：padding 8px 8px 4px */
+  top: var(--codex-shell-top);
+  bottom: var(--codex-gap);
+  height: auto;
+  padding-top: 0.5rem;
+  padding-bottom: 0.25rem;
 }
 
 .codex-rail-item {
@@ -505,7 +515,8 @@ button,
 /* 圆角主表面（Codex 的 _PageSurface_）：卡片底色 + 16px 圆角 + 细边框 */
 .codex-surface {
   /* 实测 16px（不是 rounded-2xl 的 20px）：主表面用的是基准半径，不跟 --radius 阶梯走 */
-  border-radius: 1rem;
+  /* 实测 _PageSurface_ 圆角 = 12px 12px 4px 0（左缘贴着导轨所以是直角） */
+  border-radius: 0.75rem 0.75rem 0.25rem 0;
   border: 1px solid var(--border);
   background: var(--card);
   overflow: hidden;
@@ -554,4 +565,14 @@ html[data-chat-list="on"] [data-slot="sidebar-nav-main"] {
 /* 面板本身的圆角：Codex 实测 12px（shadcn 的 rounded-lg 只有 8px） */
 [data-variant="floating"] [data-sidebar="sidebar"] {
   border-radius: 0.75rem;
+}
+
+/* 对话面板容器与导轨同高（参考端 aside[0,44,340,768]）：fixed 元素要显式给上下边。
+   注意 shadcn 真正的 fixed 容器是 [data-slot=sidebar-container]，
+   [data-slot=sidebar] 只是外层静态 group 包装。 */
+[data-slot="sidebar-container"] {
+  top: var(--codex-shell-top);
+  bottom: var(--codex-gap);
+  height: auto;
+  min-height: 0;
 }
