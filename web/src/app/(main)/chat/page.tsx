@@ -820,8 +820,8 @@ function ChatView({
 
       {/* messages */}
       <ScrollArea type="auto" className="min-h-0 min-w-0 flex-1 [&_[data-slot=scroll-area-viewport]>div]:block!">
-        {/* Codex 实测：转录列 768px 居中，水平内边距 16px，底部 32px */}
-        <div className="mx-auto w-full min-w-0 max-w-[768px] px-4 pt-3 pb-8" ref={contentRef}>
+        {/* Codex 实测：转录列 768px 居中，padding 0 16px 32px（顶部不留白，滚动区内已含） */}
+        <div className="mx-auto w-full min-w-0 max-w-[768px] px-4 pt-0 pb-8" ref={contentRef}>
           {messages.length === 0 && !running ? (
             <div className="text-muted-foreground py-10 text-center text-sm">
               开始和「{agent?.name ?? conv.agent_key}」对话
