@@ -5,6 +5,10 @@ import * as React from "react";
 import { CpuIcon, KeyboardIcon, RadioTowerIcon, SearchIcon, ShieldAlertIcon } from "lucide-react";
 import { toast } from "sonner";
 
+import Link from "next/link";
+
+import { LayoutGridIcon } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -13,6 +17,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { api } from "@/lib/api";
 import { CHAT_SEND_MODE_OPTIONS, type ChatSendMode, setChatSendMode, useChatSendMode } from "@/lib/chat-send-mode";
+import { settingsPanelItems } from "@/navigation/sidebar/sidebar-items";
 import type { Settings } from "@/lib/types";
 
 import { UpdateCard } from "./_components/update-card";
@@ -243,6 +248,29 @@ export default function SystemSettingsPage() {
         <h1 className="text-xl font-semibold tracking-tight">系统配置</h1>
         <p className="text-muted-foreground text-sm">全局运行时开关</p>
       </div>
+
+      {/* 面板：Codex 式外壳把平台面板从侧边栏移到这里（侧边栏只留 agent 相关入口） */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <LayoutGridIcon className="size-4" />
+            面板
+          </CardTitle>
+          <CardDescription>平台功能入口（已从侧边栏移入设置）</CardDescription>
+        </CardHeader>
+        <CardContent className="grid grid-cols-2 gap-2 md:grid-cols-3 lg:grid-cols-4">
+          {settingsPanelItems.map((p) => (
+            <Link
+              key={p.id}
+              href={p.url}
+              className="text-muted-foreground hover:bg-accent hover:text-accent-foreground flex items-center gap-2 rounded-md border px-3 py-2 text-sm transition-colors"
+            >
+              <p.icon className="size-4" />
+              {p.title}
+            </Link>
+          ))}
+        </CardContent>
+      </Card>
 
       {/* 多列而非 grid：网络搜索卡片比其余高数倍，且高度随所选后端变化（brave/tavily
           的 key 输入是条件渲染）。grid 会按最高的一张撑满整行、在旁边留下大片空白，

@@ -18,7 +18,8 @@ export default function Home() {
   const router = useRouter();
 
   React.useEffect(() => {
-    router.replace("/function/tasks");
+    // Codex 式外壳：进站默认落在 agent 对话界面（平台面板全部收进设置）。
+    router.replace("/chat");
   }, [router]);
 
   return null;

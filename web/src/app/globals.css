@@ -94,37 +94,48 @@ These serve as the fallback; there is no separate default.css file. */
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  /* ── Codex Desktop 深色主题复刻 ─────────────────────────────────────────
+     色值直接取自 Codex 官方前端 token（app.asar → webview/assets 的基础样式）：
+       灰阶 dark 档   gray-0 #0d0d0d / gray-50 #131313 / gray-100 #181818
+                      gray-150 #1c1c1c / gray-200 #212121 / gray-250 #282828
+                      gray-300 #303030 / gray-650 #9f9f9f
+       文本           --app-color-text-foreground dark = #dfdfdf
+       强调           blue-300 #339cff（focus ring / primary）/ blue-400 #0285ff
+       语义           red-400 #fa423e / green-300 #40c977 / orange-300 #ff8549
+     边框沿用 Codex 的做法：以文字色为基底的 alpha（12% / 16%），而不是固定灰。
+     ───────────────────────────────────────────────────────────────────── */
+  --radius: 0.5rem;
+  --background: #0d0d0d;
+  --foreground: #dfdfdf;
+  --card: #131313;
+  --card-foreground: #dfdfdf;
+  --popover: #1c1c1c;
+  --popover-foreground: #dfdfdf;
+  --primary: #339cff;
+  --primary-foreground: #0d0d0d;
+  --secondary: #212121;
+  --secondary-foreground: #dfdfdf;
+  --muted: #181818;
+  --muted-foreground: #9f9f9f;
+  --accent: #282828;
+  --accent-foreground: #dfdfdf;
+  --destructive: #fa423e;
+  --border: rgba(223, 223, 223, 0.12);
+  --input: rgba(223, 223, 223, 0.16);
+  --ring: #339cff;
+  --chart-1: #0285ff;
+  --chart-2: #19b79e;
+  --chart-3: #fdcd54;
+  --chart-4: #ab5eff;
+  --chart-5: #fa70ab;
+  --sidebar: #131313;
+  --sidebar-foreground: #dfdfdf;
+  --sidebar-primary: #339cff;
+  --sidebar-primary-foreground: #0d0d0d;
+  --sidebar-accent: #212121;
+  --sidebar-accent-foreground: #dfdfdf;
+  --sidebar-border: rgba(223, 223, 223, 0.12);
+  --sidebar-ring: #339cff;
 }
 
 @layer base {
@@ -281,4 +292,22 @@ html {
     print-color-adjust: exact;
     -webkit-print-color-adjust: exact;
   }
+}
+
+/* ── Codex Desktop 字体栈复刻 ──────────────────────────────────────────────
+   取自 Codex 官方 token：
+     --font-sans-default: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif
+     --font-mono-default: ui-monospace, "SFMono-Regular", "SF Mono", menlo, consolas,
+                          "Liberation Mono", monospace
+   Windows 上解析为 Segoe UI —— 即 Codex Desktop 实际渲染的字体。
+   这里放在文件末尾，用同/更高特异性覆盖上面的 data-font 映射（当前字体注册表
+   处于离线回退状态，各字体选项都指向本地 Geist，因此统一用系统栈更接近 Codex）。
+   ───────────────────────────────────────────────────────────────────────── */
+html {
+  --font-mono: ui-monospace, "SFMono-Regular", "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+}
+
+html body,
+html[data-font] body {
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei UI", "Helvetica Neue", Arial, sans-serif;
 }

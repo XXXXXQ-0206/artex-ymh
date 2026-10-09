@@ -89,11 +89,14 @@ export default function LoginPage() {
   return (
     <div className="flex h-dvh">
       {/* Left panel */}
-      <div className="hidden flex-col items-center justify-center bg-primary p-12 text-center lg:flex lg:w-1/3">
+      {/* Codex 复刻：品牌面板用深色表面 + 极轻蓝色光晕；Codex 只在按钮/焦点上用蓝色，
+          不用整块高饱和底色。 */}
+      <div className="relative hidden flex-col items-center justify-center overflow-hidden bg-card p-12 text-center lg:flex lg:w-1/3">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_35%,rgba(51,156,255,0.10),transparent_62%)]" />
         <div className="relative flex items-center justify-center">
-          <div className="absolute size-80 rounded-full border border-primary-foreground/10" />
-          <div className="absolute size-60 rounded-full border border-primary-foreground/15" />
-          <div className="absolute size-40 rounded-full border border-primary-foreground/20" />
+          <div className="absolute size-80 rounded-full border border-border" />
+          <div className="absolute size-60 rounded-full border border-border" />
+          <div className="absolute size-40 rounded-full border border-border" />
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/logo.png" alt="ARTEX" width={160} height={160} className="relative brightness-0 invert" />
         </div>
