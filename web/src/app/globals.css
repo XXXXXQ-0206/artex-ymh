@@ -336,6 +336,21 @@ html[data-font] body {
   --codex-radius-chip: 9.375px;
   --codex-radius-row: 10px;
   --codex-radius-control: 12.5px;
+  /* 对话框圆角：官方 CSS `--radius-form-dialog: calc(--spacing * 6)` = 24px */
+  --codex-radius-dialog: 1.5rem;
+}
+
+/* 对话框/弹层：Codex 用 24px 圆角（shadcn 默认 rounded-lg=8px） */
+[data-slot="alert-dialog-content"],
+[data-slot="dialog-content"],
+[data-slot="sheet-content"] {
+  border-radius: var(--codex-radius-dialog);
+}
+
+/* 对话框标题：官方 line-height 28px（heading-dialog） */
+[data-slot="alert-dialog-title"],
+[data-slot="dialog-title"] {
+  line-height: 1.75rem;
 }
 
 /* 基准字重：Codex 用 430（不是 400）——"看着像却不像"的主要来源之一 */
