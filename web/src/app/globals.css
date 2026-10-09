@@ -333,6 +333,10 @@ html[data-font] body {
   --codex-fw-semibold: 590;
   --codex-text-secondary: rgba(255, 255, 255, 0.498);
   --codex-text-strong: oklab(0.903646 0.0000412762 0.0000180602 / 0.85);
+  /* 设置页普查（04-codex-settings-view）新增档位：65% 提示文字、13px/500 小节标题 */
+  --codex-text-mid: color(srgb 0.87451 0.87451 0.87451 / 0.65);
+  --codex-text-weak: oklab(0.903646 0.0000412762 0.0000180602 / 0.4);
+  --codex-height-settings-row: 4rem; /* 官方 --height-token-settings-row */
   --codex-radius-chip: 9.375px;
   --codex-radius-row: 10px;
   --codex-radius-control: 12.5px;
@@ -375,6 +379,18 @@ html[data-font] body {
 
 [data-slot="sidebar-menu-sub-button"] {
   color: var(--codex-text-secondary);
+}
+
+/* 设置页：官方行高 token（min-h-[var(--height-token-settings-row)] = 64px）；
+   这里只作用于「带开关的设置行」，避免把普通卡片一起撑高。 */
+[data-slot="card-content"]:has(> [role="switch"]) {
+  min-height: var(--codex-height-settings-row);
+}
+
+/* 设置页小节标题：13px / 500（04 普查值） */
+[data-slot="card-title"] {
+  font-size: 13px;
+  font-weight: var(--codex-fw-medium);
 }
 
 /* 顶部 46px 拖拽区：不拦事件，只用于拖动窗口 */
