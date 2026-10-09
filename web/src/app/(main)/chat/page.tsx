@@ -1379,8 +1379,14 @@ export default function ChatPage() {
           ? createPortal(
               <div className="bg-card flex min-h-0 flex-col overflow-hidden border-r">
           <div className="flex flex-col gap-2 border-b p-2">
-            <Button size="sm" className="w-full" onClick={() => selectConversation(null)}>
-              <PlusIcon /> 新建对话
+            {/* Codex 实测：新聊天是「图标 + 文字」的行，无实心填充（14px / 次要色） */}
+            <Button
+              size="sm"
+              variant="ghost"
+              className="text-muted-foreground hover:text-foreground w-full justify-start font-normal"
+              onClick={() => selectConversation(null)}
+            >
+              <PlusIcon data-icon="inline-start" /> 新建对话
             </Button>
             <Select
               value={agentFilter === null ? "all" : `agent:${agentFilter}`}
