@@ -454,16 +454,19 @@ function DraftChat({
         {agent?.description && <p className="text-muted-foreground max-w-md text-xs">{agent.description}</p>}
       </div>
 
-      <Composer
-        value={input}
-        onChange={setInput}
-        onSend={send}
-        disabled={sending || uploading || !agentKey}
-        placeholder="输入消息，@ 引用记录，Enter 发送"
-        leftSlot={agentPicker}
-        onPickFiles={pickFiles}
-        uploading={uploading}
-      />
+      {/* Codex 实测：输入区与转录同列（768px、水平 16px、底部 16px） */}
+      <div className="sticky bottom-0 mx-auto w-full max-w-[768px] px-4 pb-4">
+        <Composer
+          value={input}
+          onChange={setInput}
+          onSend={send}
+          disabled={sending || uploading || !agentKey}
+          placeholder="输入消息，@ 引用记录，Enter 发送"
+          leftSlot={agentPicker}
+          onPickFiles={pickFiles}
+          uploading={uploading}
+        />
+      </div>
       <LLMProfileRow
         profiles={profiles}
         selected={llmProfileId}
@@ -794,7 +797,8 @@ function ChatView({
 
       {/* messages */}
       <ScrollArea type="auto" className="min-h-0 min-w-0 flex-1 [&_[data-slot=scroll-area-viewport]>div]:block!">
-        <div className="min-w-0 max-w-full px-4 py-3" ref={contentRef}>
+        {/* Codex 实测：转录列 768px 居中，水平内边距 16px，底部 32px */}
+        <div className="mx-auto w-full min-w-0 max-w-[768px] px-4 pt-3 pb-8" ref={contentRef}>
           {messages.length === 0 && !running ? (
             <div className="text-muted-foreground py-10 text-center text-sm">
               开始和「{agent?.name ?? conv.agent_key}」对话
@@ -810,21 +814,24 @@ function ChatView({
         </div>
       </ScrollArea>
 
-      <Composer
-        value={input}
-        onChange={setInput}
-        onSend={send}
-        disabled={running || sending}
-        allowBtw
-        placeholder={running ? "Agent 正在回复，可输入 /btw 提问…" : "输入消息，@ 引用记录，Enter 发送"}
-        running={running}
-        onStop={stop}
-        stopDisabled={stopping}
-        attachments={attachments}
-        onPickFiles={pickFiles}
-        onRemoveAttachment={(path) => setAttachments((p) => p.filter((x) => x.path !== path))}
-        uploading={uploading}
-      />
+      {/* Codex 实测：输入区与转录同列（768px、水平 16px、底部 16px，sticky 贴底） */}
+      <div className="sticky bottom-0 mx-auto w-full max-w-[768px] px-4 pb-4">
+        <Composer
+          value={input}
+          onChange={setInput}
+          onSend={send}
+          disabled={running || sending}
+          allowBtw
+          placeholder={running ? "Agent 正在回复，可输入 /btw 提问…" : "输入消息，@ 引用记录，Enter 发送"}
+          running={running}
+          onStop={stop}
+          stopDisabled={stopping}
+          attachments={attachments}
+          onPickFiles={pickFiles}
+          onRemoveAttachment={(path) => setAttachments((p) => p.filter((x) => x.path !== path))}
+          uploading={uploading}
+        />
+      </div>
       <LLMProfileRow
         profiles={profiles}
         selected={currentProfileId}
