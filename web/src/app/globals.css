@@ -342,6 +342,33 @@ html[data-font] body {
   --codex-radius-control: 12.5px;
   /* 对话框圆角：官方 CSS `--radius-form-dialog: calc(--spacing * 6)` = 24px */
   --codex-radius-dialog: 1.5rem;
+  /* 首页/线程输入区（实测 1280×816：736×98、圆角 22px、底色 rgb(54,54,54)）。
+     rgb(54,54,54) = 表面 #131313 叠 15% 白，所以用 alpha 表达，浅色主题才不会翻车。 */
+  --codex-composer-radius: 22px;
+  --codex-composer-bg: rgba(255, 255, 255, 0.15);
+  --codex-composer-shadow: inset 0 0 1px rgba(255, 255, 255, 0.2);
+}
+
+/* 浅色主题下输入区反过来压黑，保持"比表面深一档"的层次 */
+:root:not(.dark) {
+  --codex-composer-bg: rgba(0, 0, 0, 0.05);
+  --codex-composer-shadow: 0 0 0 1px rgba(0, 0, 0, 0.04);
+}
+
+/* 输入区面板本体（Codex 实测：底色 + 圆角 22px + 内阴影，无边框） */
+.codex-composer {
+  background: var(--codex-composer-bg);
+  box-shadow: var(--codex-composer-shadow);
+  corner-shape: superellipse(1);
+}
+
+/* Codex 实测：交互行/按钮的角形是 superellipse(1.5)（表面是 superellipse(1)）。
+   corner-shape 不是继承属性，必须逐元素写；同一版本 Chromium 下同值 = 同渲染。 */
+button,
+.codex-rail-item,
+[data-sidebar="menu-button"],
+[data-sidebar="menu-sub-button"] {
+  corner-shape: superellipse(1.5);
 }
 
 /* 对话框/弹层：Codex 用 24px 圆角（shadcn 默认 rounded-lg=8px） */
@@ -349,6 +376,7 @@ html[data-font] body {
 [data-slot="dialog-content"],
 [data-slot="sheet-content"] {
   border-radius: var(--codex-radius-dialog);
+  corner-shape: superellipse(1);
 }
 
 /* 对话框标题：官方 line-height 28px（heading-dialog） */
@@ -439,8 +467,8 @@ html[data-font] body {
   border: 1px solid var(--border);
   background: var(--card);
   overflow: hidden;
-  /* Codex 的角是 superellipse(1.5)；支持 corner-shape 的引擎优先用它 */
-  corner-shape: superellipse(1.5);
+  /* 主表面的角形与整份文档一致：superellipse(1)（实测 _MainContentSurface_） */
+  corner-shape: superellipse(1);
 }
 
 /* Codex 复刻：侧栏是"浮在主表面之上"的面板，不占布局宽度。
@@ -454,4 +482,34 @@ html[data-font] body {
    所以隐藏面板里的 NavMain；其它路由仍显示导航。 */
 html[data-chat-list="on"] [data-slot="sidebar-nav-main"] {
   display: none;
+}
+
+/* ── 面板行尺寸（Codex 首页 1280×816 实测）────────────────────────────────
+   列表行：30px 高 / 圆角 12.5px / 内边距 5px 8px / 14px · 430；
+   分组标题：25px 高 / 圆角 10px / 内边距 2px 4px / 14px · 500。
+   shadcn 的菜单行默认 32px / 6-10px 圆角 / 8px 内边距，是"像但不对"的又一来源。
+   只作用于分组内容区，避免把底部的账户行（h-12）一起压扁。 */
+[data-slot="sidebar"] [data-sidebar="group-content"] [data-sidebar="menu-button"] {
+  height: 1.875rem;
+  min-height: 1.875rem;
+  padding: 5px 8px;
+  border-radius: var(--codex-radius-control);
+  font-weight: var(--codex-fw-normal);
+}
+
+[data-slot="sidebar"] [data-sidebar="group-label"] {
+  min-height: 1.5625rem;
+  padding: 2px 4px;
+  border-radius: var(--codex-radius-row);
+  font-weight: var(--codex-fw-medium);
+}
+
+[data-slot="sidebar"] [data-sidebar="menu-sub-button"] {
+  min-height: 1.75rem;
+  border-radius: var(--codex-radius-row);
+}
+
+/* 面板本身的圆角：Codex 实测 12px（shadcn 的 rounded-lg 只有 8px） */
+[data-variant="floating"] [data-sidebar="sidebar"] {
+  border-radius: 0.75rem;
 }

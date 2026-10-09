@@ -161,6 +161,7 @@ function Composer({
   onRemoveAttachment,
   uploading,
   allowBtw,
+  footerSlot,
 }: {
   value: string;
   onChange: (v: string) => void;
@@ -177,6 +178,7 @@ function Composer({
   onRemoveAttachment?: (path: string) => void;
   uploading?: boolean;
   allowBtw?: boolean;
+  footerSlot?: React.ReactNode;
 }) {
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const atts = attachments ?? [];
@@ -188,7 +190,11 @@ function Composer({
     onSend();
   }
   return (
-    <div className="border-t p-3">
+    // Codex 实测：输入区是一块独立的圆角面板（736×92、圆角 22px、底色 #363636 =
+    // 表面叠 15% 白、内阴影 inset 0 0 1px rgba(255,255,255,.2)），
+    // 上 8px / 输入行 44px / 间距 4px / 工具行 28px / 下 8px；
+    // 输入框本身透明融进面板，底部工具行的按钮统一 28px 圆。
+    <div className="codex-composer rounded-[var(--codex-composer-radius)] px-2 pt-2 pb-2 transition-[background-color,box-shadow]">
       {atts.length > 0 && (
         <div className="mb-2 flex flex-wrap gap-1.5">
           {atts.map((a) => (
@@ -214,7 +220,7 @@ function Composer({
           ))}
         </div>
       )}
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="flex flex-wrap items-center gap-1">
         {leftSlot ? <div className="w-full sm:w-auto">{leftSlot}</div> : null}
         {onPickFiles && (
           <>
@@ -234,6 +240,7 @@ function Composer({
             <Button
               size="icon"
               variant="ghost"
+              className="rounded-full"
               onClick={() => fileInputRef.current?.click()}
               disabled={disabled || uploading}
               title="上传文件"
@@ -243,7 +250,7 @@ function Composer({
           </>
         )}
         <MentionTextarea
-          className="max-h-40 min-h-10 min-w-0 flex-1 resize-none"
+          className="max-h-40 min-h-11 min-w-0 flex-1 resize-none border-0 bg-transparent px-2 py-2 shadow-none focus-visible:border-transparent focus-visible:ring-0 dark:bg-transparent"
           rows={1}
           placeholder={placeholder}
           value={value}
@@ -252,19 +259,28 @@ function Composer({
           onKeyDown={onKeyDown}
         />
         {running && allowBtw && isBtwCommand(value) && (
-          <Button size="icon" onClick={onSend} aria-label="发送旁路问题" title="发送旁路问题">
+          <Button size="icon" className="rounded-full" onClick={onSend} aria-label="发送旁路问题" title="发送旁路问题">
             <ArrowUpIcon />
           </Button>
         )}
         {running ? (
           // while a run is in flight the send button becomes a stop button —
           // aborts just this session (the trigger queue keeps going).
-          <Button size="icon" variant="destructive" onClick={onStop} disabled={stopDisabled} title="停止本次运行">
+          <Button
+            size="icon"
+            variant="destructive"
+            className="rounded-full"
+            onClick={onStop}
+            disabled={stopDisabled}
+            title="停止本次运行"
+          >
             <Square className="size-3.5 fill-current" />
           </Button>
         ) : (
           <Button
             size="icon"
+            // Codex 实测：发送键是 28px 浅色圆（底色 = 前景色，箭头反色），不是品牌蓝。
+            className="bg-foreground text-background hover:bg-foreground/90 size-7 rounded-full"
             onClick={onSend}
             disabled={disabled || (!value.trim() && atts.length === 0)}
             title="发送消息"
@@ -274,6 +290,7 @@ function Composer({
           </Button>
         )}
       </div>
+      {footerSlot}
     </div>
   );
 }
@@ -299,7 +316,8 @@ function LLMProfileRow({
   const label = current ? current.name : `默认${activeDefault ? `（${activeDefault.name}）` : ""}`;
 
   return (
-    <div className="flex min-w-0 shrink-0 items-center gap-1 px-1 pt-0.5 pb-1">
+    // Codex 实测：输入区底部工具行 28px 高，里面的按钮一律 9999px 药丸 / 13px。
+    <div className="flex h-7 min-w-0 shrink-0 items-center gap-1 px-1 pt-0.5 pb-1">
       <ZapIcon className="text-muted-foreground/50 size-3 shrink-0" />
       <span className="truncate text-muted-foreground/70 text-xs" title={label}>
         {label}
@@ -309,7 +327,7 @@ function LLMProfileRow({
           <button
             type="button"
             disabled={disabled}
-            className="flex shrink-0 items-center gap-0.5 text-primary text-xs hover:underline disabled:pointer-events-none disabled:opacity-40"
+            className="text-muted-foreground hover:text-foreground flex shrink-0 items-center gap-0.5 rounded-full text-[13px] disabled:pointer-events-none disabled:opacity-40"
           >
             更换
             <ChevronDownIcon className="size-3" />
@@ -447,13 +465,14 @@ function DraftChat({
 
   return (
     <>
-      {/* empty / landing state fills the panel */}
-      <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-2 px-4 text-center">
-        <div className="bg-primary/10 flex size-12 items-center justify-center rounded-full">
-          <Bot className="text-primary size-6" />
-        </div>
-        <div className="text-sm font-medium">开始和「{agent?.name ?? "Agent"}」对话</div>
-        {agent?.description && <p className="text-muted-foreground max-w-md text-xs">{agent.description}</p>}
+      {/* 落地态排版 = Codex 首页实测：内容列 max-w 768px、左右 20px；
+          品牌标 56px / 30% 不透明度，标题 28px / 行高 34px / 字重 400。 */}
+      <div className="mx-auto flex min-h-0 w-full max-w-[768px] flex-1 flex-col items-center justify-center gap-6 px-5 text-center">
+        <Bot className="text-foreground size-14 shrink-0 opacity-30" />
+        <div className="text-[28px] leading-[34px] font-[400]">开始和「{agent?.name ?? "Agent"}」对话</div>
+        {agent?.description && (
+          <p className="text-muted-foreground max-w-md text-[13px] leading-5">{agent.description}</p>
+        )}
       </div>
 
       {/* Codex 实测：输入区与转录同列（768px、水平 16px、底部 16px） */}
@@ -467,14 +486,16 @@ function DraftChat({
           leftSlot={agentPicker}
           onPickFiles={pickFiles}
           uploading={uploading}
+          footerSlot={
+            <LLMProfileRow
+              profiles={profiles}
+              selected={llmProfileId}
+              onChange={setLlmProfileId}
+              disabled={sending || uploading}
+            />
+          }
         />
       </div>
-      <LLMProfileRow
-        profiles={profiles}
-        selected={llmProfileId}
-        onChange={setLlmProfileId}
-        disabled={sending || uploading}
-      />
     </>
   );
 }
@@ -832,15 +853,17 @@ function ChatView({
           onPickFiles={pickFiles}
           onRemoveAttachment={(path) => setAttachments((p) => p.filter((x) => x.path !== path))}
           uploading={uploading}
+          footerSlot={
+            <LLMProfileRow
+              profiles={profiles}
+              selected={currentProfileId}
+              onChange={changeProfile}
+              disabled={running}
+              rightSlot={<TodoPopover seq={latestTodoSeq} fetchDetail={fetchDetail} />}
+            />
+          }
         />
       </div>
-      <LLMProfileRow
-        profiles={profiles}
-        selected={currentProfileId}
-        onChange={changeProfile}
-        disabled={running || sending}
-        rightSlot={<TodoPopover seq={latestTodoSeq} fetchDetail={fetchDetail} />}
-      />
     </SideQuestionWorkspace>
   );
 }
@@ -1370,7 +1393,13 @@ export default function ChatPage() {
   return (
     <div
       data-content-padding="false"
-      className="flex h-[calc(100svh-3rem)] min-w-0 flex-col overflow-hidden p-3 sm:p-4 md:h-[calc(100svh-4rem)] md:p-6"
+      // Codex 实测（首页态）：左侧 288px 面板是「占位」而不是浮层——
+      // 对话列在「主表面 − 面板」的剩余宽度里居中，所以列中心比表面中心右移 144px。
+      // 真会话打开时（Codex 线程视图）列回到整个主表面居中，这里用同一个条件切。
+      className={cn(
+        "flex h-full min-w-0 flex-col overflow-hidden",
+        !selected && "md:pl-[18rem]",
+      )}
     >
       {/* Codex 式：列表已移到外壳面板，页面里只剩对话区单列 */}
       <div className="grid min-h-0 min-w-0 flex-1 grid-cols-1 grid-rows-[minmax(0,1fr)]">
@@ -1538,7 +1567,7 @@ export default function ChatPage() {
           : null}
 
         {/* right: chat view */}
-        <div className="bg-card flex min-w-0 flex-col overflow-hidden rounded-lg border">
+        <div className="flex min-w-0 flex-col overflow-hidden">
           {selected ? (
             <ChatView
               key={selected.id}
