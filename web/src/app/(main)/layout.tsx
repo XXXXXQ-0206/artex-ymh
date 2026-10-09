@@ -4,16 +4,10 @@ import type { ReactNode } from "react";
 import * as React from "react";
 
 import { AppSidebar } from "@/app/(main)/_components/sidebar/app-sidebar";
+import { CodexRail } from "@/app/(main)/_components/shell/codex-rail";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { auth } from "@/lib/auth";
 import { getClientCookie } from "@/lib/cookie.client";
-import {
-  SIDEBAR_COLLAPSIBLE_VALUES,
-  SIDEBAR_VARIANT_VALUES,
-  type SidebarCollapsible,
-  type SidebarVariant,
-} from "@/lib/preferences/layout";
-import { PREFERENCE_DEFAULTS } from "@/lib/preferences/preferences-config";
 import { cn } from "@/lib/utils";
 
 import { MainContent } from "./_components/main-content";
@@ -46,41 +40,43 @@ export default function Layout({ children }: Readonly<{ children: ReactNode }>) 
   }, []);
 
   const defaultOpen = typeof document === "undefined" ? true : getClientCookie("sidebar_state") !== "false";
-  const variant = readPref<SidebarVariant>(
-    "sidebar_variant",
-    SIDEBAR_VARIANT_VALUES,
-    PREFERENCE_DEFAULTS.sidebar_variant,
-  );
-  const collapsible = readPref<SidebarCollapsible>(
-    "sidebar_collapsible",
-    SIDEBAR_COLLAPSIBLE_VALUES,
-    PREFERENCE_DEFAULTS.sidebar_collapsible,
-  );
 
   if (!authed) return null;
 
+  // Codex Desktop 复刻（实测几何）：
+  //   根容器右/下各留 4px；顶部 46px 拖拽条；
+  //   52px 图标导轨常驻 + 288px 对话面板（可收起）叠在圆角主表面之上；
+  //   主表面从 x=52px 起，与面板重叠——面板浮在表面上，而不是把表面挤开。
   return (
-    <SidebarProvider
-      defaultOpen={defaultOpen}
-      style={
-        {
-          "--sidebar-width": "calc(var(--spacing) * 68)",
-        } as React.CSSProperties
-      }
-    >
-      <AppSidebar variant={variant} collapsible={collapsible} />
-      <SidebarInset
-        className={cn(
-          "[html[data-content-layout=centered]_&>*]:mx-auto",
-          "[html[data-content-layout=centered]_&>*]:w-full",
-          "[html[data-content-layout=centered]_&>*]:max-w-screen-2xl",
-          "peer-data-[variant=inset]:border",
-          "[--dashboard-header-height:--spacing(12)]",
-          "min-w-0 overflow-x-hidden",
-        )}
+    <div className="flex h-svh flex-col pr-[4px] pb-[4px]">
+      <div className="codex-drag-strip" aria-hidden />
+      <SidebarProvider
+        defaultOpen={defaultOpen}
+        style={
+          {
+            "--sidebar-width": "18rem",
+          } as React.CSSProperties
+        }
       >
-        <MainContent>{children}</MainContent>
-      </SidebarInset>
-    </SidebarProvider>
+        <CodexRail />
+        <AppSidebar
+          variant="floating"
+          collapsible="offcanvas"
+          className="md:data-[side=left]:!left-[3.25rem]"
+        />
+        <SidebarInset
+          className={cn(
+            "codex-surface ml-[3.25rem]",
+            "[html[data-content-layout=centered]_&>*]:mx-auto",
+            "[html[data-content-layout=centered]_&>*]:w-full",
+            "[html[data-content-layout=centered]_&>*]:max-w-screen-2xl",
+            "[--dashboard-header-height:--spacing(12)]",
+            "min-w-0 overflow-x-hidden",
+          )}
+        >
+          <MainContent>{children}</MainContent>
+        </SidebarInset>
+      </SidebarProvider>
+    </div>
   );
 }

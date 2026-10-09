@@ -311,3 +311,73 @@ html body,
 html[data-font] body {
   --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei UI", "Helvetica Neue", Arial, sans-serif;
 }
+
+/* ── Codex Desktop 外壳几何（实测值，见 outputs/Codex桌面端-实测布局规格.md）────
+   窗口 1280×816 实测：
+     顶部拖拽条 46px；左侧图标导轨 52px；对话面板 288px（合计 340px）；
+     主表面从 x=52px 起，右/下各留 4px；表面圆角 --radius-2xl(16px)。
+   面板浮在主表面之上（表面左偏移只有导轨宽度），而不是把表面挤开。
+   ──────────────────────────────────────────────────────────────────────────── */
+:root {
+  --codex-toolbar: 46px;
+  --codex-rail: 3.25rem; /* 52px */
+  --codex-panel: 18rem; /* 288px */
+  --codex-gap: 4px;
+}
+
+/* 顶部 46px 拖拽区：不拦事件，只用于拖动窗口 */
+.codex-drag-strip {
+  position: fixed;
+  inset-inline: 0;
+  top: 0;
+  height: var(--codex-toolbar);
+  z-index: 40;
+  pointer-events: none;
+  -webkit-app-region: drag;
+}
+
+/* 左侧 52px 图标导轨：底色跟随窗口底色 */
+.codex-rail {
+  width: var(--codex-rail);
+  background: var(--background);
+}
+
+.codex-rail-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 0.5rem;
+  color: var(--muted-foreground);
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.codex-rail-item:hover {
+  background: var(--accent);
+  color: var(--accent-foreground);
+}
+
+.codex-rail-item-active {
+  background: var(--accent);
+  color: var(--foreground);
+}
+
+/* 圆角主表面（Codex 的 _PageSurface_）：卡片底色 + 16px 圆角 + 细边框 */
+.codex-surface {
+  border-radius: var(--radius-2xl);
+  border: 1px solid var(--border);
+  background: var(--card);
+  overflow: hidden;
+  /* Codex 的角是 superellipse(1.5)；支持 corner-shape 的引擎优先用它 */
+  corner-shape: superellipse(1.5);
+}
+
+/* Codex 复刻：侧栏是"浮在主表面之上"的面板，不占布局宽度。
+   shadcn 的 Sidebar 会额外渲染一个占位条（data-slot=sidebar-gap）把主区挤开，
+   这里隐藏它——主表面因此从 x=52px（导轨宽度）开始，面板叠在上面。 */
+[data-slot="sidebar-gap"] {
+  display: none !important;
+}

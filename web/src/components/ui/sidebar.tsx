@@ -26,10 +26,11 @@ import { PanelLeftIcon } from "lucide-react"
 
 const SIDEBAR_COOKIE_NAME = "sidebar_state"
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7
-// Codex Desktop 复刻：侧边栏 274px（Codex 实测宽度），原来是 16rem(256px)
-const SIDEBAR_WIDTH = "17.125rem"
+// Codex Desktop 复刻（实测）：面板 288px（18rem），图标态 52px（3.25rem）；
+// 面板左侧另有常驻 52px 图标导轨（见 codex-rail.tsx），故左面板合计 340px。
+const SIDEBAR_WIDTH = "18rem"
 const SIDEBAR_WIDTH_MOBILE = "18rem"
-const SIDEBAR_WIDTH_ICON = "3rem"
+const SIDEBAR_WIDTH_ICON = "3.25rem"
 const SIDEBAR_KEYBOARD_SHORTCUT = "b"
 
 type SidebarContextProps = {
