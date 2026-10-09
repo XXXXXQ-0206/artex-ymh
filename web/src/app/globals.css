@@ -423,6 +423,58 @@ button,
   corner-shape: superellipse(1);
 }
 
+/* ── 对话框实测规格（Codex 键盘快捷键弹窗，1280×816 量得）──────────────────────
+   role=dialog 容器：600×560，视口居中；圆角 25px（= rounded-3xl 20px × 1.25）；
+   底色 rgb(45 45 45 / .9)；内边距 20px；无 ring/阴影。
+   标题 h2：20px / 600 / 行高 28；关闭键 24×24（图标 16）。
+   搜索框：32px 高、9999px 药丸、底色 #2d2d2d、左右内边距 10px。
+   kbd：48×16、圆角 10px、白 10% 底、12px / 430 / 行高 12、内边距 2px 6px。
+   遮罩：整屏 rgba(0,0,0,.133)，无 backdrop-blur。 */
+[data-slot="dialog-overlay"],
+[data-slot="alert-dialog-overlay"] {
+  background-color: rgb(0 0 0 / 0.133);
+  backdrop-filter: none;
+}
+
+[data-slot="dialog-content"],
+[data-slot="alert-dialog-content"] {
+  background-color: rgb(45 45 45 / 0.9);
+  padding: 20px;
+  box-shadow: none;
+  --tw-ring-shadow: 0 0 #0000;
+}
+
+[data-slot="dialog-content"] {
+  border-radius: 25px;
+  max-width: min(600px, calc(100vw - 2rem));
+}
+
+[data-slot="dialog-title"],
+[data-slot="alert-dialog-title"] {
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 28px;
+  letter-spacing: -0.36px;
+}
+
+[data-slot="dialog-description"],
+[data-slot="alert-dialog-description"] {
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--codex-text-mid);
+}
+
+[data-slot="kbd"] {
+  height: 1rem;
+  min-width: 0;
+  padding: 2px 6px;
+  border-radius: var(--codex-radius-row);
+  background-color: rgb(255 255 255 / 0.1);
+  font-size: 12px;
+  font-weight: var(--codex-fw-normal);
+  line-height: 12px;
+}
+
 /* 对话框标题：官方 line-height 28px（heading-dialog） */
 [data-slot="alert-dialog-title"],
 [data-slot="dialog-title"] {
