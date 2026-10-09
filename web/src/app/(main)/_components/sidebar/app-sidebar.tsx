@@ -52,9 +52,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={sidebarItems} />
-        {/* <NavDocuments items={data.documents} /> */}
-        {/* <NavSecondary items={data.navSecondary} className="mt-auto" /> */}
+        {/* Codex 式外壳：面板主体是「对话列表」（由 /chat 页 portal 渲染进来）；
+            导航已经在 52px 导轨上，故 chat 路由下隐藏这里的 NavMain（见 globals.css 的
+            html[data-chat-list="on"] 规则），其余路由仍用它。 */}
+        <div id="chat-conversations-slot" className="flex min-h-0 min-w-0 flex-1 flex-col" />
+        <div data-slot="sidebar-nav-main">
+          <NavMain items={sidebarItems} />
+        </div>
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={currentUser} />

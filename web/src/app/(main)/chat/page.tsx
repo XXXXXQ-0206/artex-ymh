@@ -2,6 +2,8 @@
 
 import * as React from "react";
 
+import { createPortal } from "react-dom";
+
 import {
   ArrowUpIcon,
   Bot,
@@ -1050,6 +1052,19 @@ function AgentGroupHeader({
 }
 
 export default function ChatPage() {
+  // Codex 式外壳：对话列表渲染进 288px 面板的插槽（portal），页面里不再有第二列。
+  const [listSlot, setListSlot] = React.useState<HTMLElement | null>(null);
+  React.useEffect(() => {
+    const find = () => setListSlot(document.getElementById("chat-conversations-slot"));
+    find();
+    const timer = window.setInterval(find, 400);
+    document.documentElement.dataset.chatList = "on";
+    return () => {
+      window.clearInterval(timer);
+      delete document.documentElement.dataset.chatList;
+    };
+  }, []);
+
   const [agents, setAgents] = React.useState<Agent[]>([]);
   const [profiles, setProfiles] = React.useState<LLMProfile[]>([]);
   const [convs, setConvs] = React.useState<Conversation[]>([]);
@@ -1357,9 +1372,12 @@ export default function ChatPage() {
       data-content-padding="false"
       className="flex h-[calc(100svh-3rem)] min-w-0 flex-col overflow-hidden p-3 sm:p-4 md:h-[calc(100svh-4rem)] md:p-6"
     >
-      <div className="grid min-h-0 min-w-0 flex-1 grid-cols-1 grid-rows-[minmax(10rem,15rem)_minmax(0,1fr)] gap-3 md:grid-cols-[18rem_minmax(0,1fr)] md:grid-rows-[minmax(0,1fr)] md:gap-4">
+      {/* Codex 式：列表已移到外壳面板，页面里只剩对话区单列 */}
+      <div className="grid min-h-0 min-w-0 flex-1 grid-cols-1 grid-rows-[minmax(0,1fr)]">
         {/* left: conversation list */}
-        <div className="bg-card flex flex-col overflow-hidden rounded-lg border">
+        {listSlot
+          ? createPortal(
+              <div className="bg-card flex min-h-0 flex-col overflow-hidden border-r">
           <div className="flex flex-col gap-2 border-b p-2">
             <Button size="sm" className="w-full" onClick={() => selectConversation(null)}>
               <PlusIcon /> 新建对话
@@ -1508,7 +1526,10 @@ export default function ChatPage() {
               )}
             </div>
           </ScrollArea>
-        </div>
+              </div>,
+              listSlot,
+            )
+          : null}
 
         {/* right: chat view */}
         <div className="bg-card flex min-w-0 flex-col overflow-hidden rounded-lg border">

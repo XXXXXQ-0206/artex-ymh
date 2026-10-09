@@ -418,3 +418,9 @@ html[data-font] body {
 [data-slot="sidebar-gap"] {
   display: none !important;
 }
+
+/* /chat 路由下面板主体是对话列表（portal 渲染），导航交给 52px 导轨，
+   所以隐藏面板里的 NavMain；其它路由仍显示导航。 */
+html[data-chat-list="on"] [data-slot="sidebar-nav-main"] {
+  display: none;
+}
