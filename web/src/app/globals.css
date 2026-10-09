@@ -475,6 +475,78 @@ button,
   line-height: 12px;
 }
 
+/* ── 设置页实测规格（Codex 设置页本体，1280×816 量得）──────────────────────────
+   内容列 728px 居中（表面 340..1276，列 439..1167）；
+   h1「常规」28px / 500 / 行高 34；分区标题 14px / 500；
+   卡片 bg rgb(35 35 35)、圆角 20px、无边框无阴影、内边距 16px；
+   行：高 64px（官方 --height-token-settings-row: 4rem）、
+       行标签 13px / 500 / 行高 18、说明 12px / 430 / 白 65%、
+       右侧控件靠右（控件圆角 12.5px）。
+   选择器全部挂在 [data-codex-settings] 下，只影响设置页。 */
+[data-codex-settings] [data-slot="card"] {
+  background-color: rgb(35 35 35);
+  border: 0;
+  box-shadow: none;
+  border-radius: 20px;
+  padding: 16px;
+  gap: 0;
+}
+
+[data-codex-settings] [data-slot="card-header"] {
+  padding: 0 0 4px;
+  gap: 2px;
+}
+
+[data-codex-settings] [data-slot="card-title"] {
+  font-size: 13px;
+  font-weight: var(--codex-fw-medium);
+  line-height: 18px;
+  letter-spacing: 0;
+  gap: 6px;
+}
+
+[data-codex-settings] [data-slot="card-title"] svg {
+  width: 14px;
+  height: 14px;
+}
+
+[data-codex-settings] [data-slot="card-description"] {
+  font-size: 12px;
+  font-weight: var(--codex-fw-normal);
+  line-height: 16px;
+  color: var(--codex-text-mid);
+}
+
+[data-codex-settings] [data-slot="card-content"] {
+  padding: 0;
+}
+
+/* 卡片里的「一行一个开关/选择」按 Codex 的 64px 行排版：行高 64、行间 1px 分隔线、
+   最后一行不留线。用直接子元素选择器，避免影响卡片里的网格/表格内容。 */
+[data-codex-settings] [data-slot="card-content"] > div.flex {
+  min-height: var(--codex-height-settings-row);
+  border-bottom: 1px solid rgb(255 255 255 / 0.08);
+  padding-top: 12px;
+  padding-bottom: 12px;
+}
+
+[data-codex-settings] [data-slot="card-content"] > div.flex:last-child {
+  border-bottom: 0;
+}
+
+/* 行内文案：Codex 行标签 13px/500，右侧说明 12px/430 白 65% */
+[data-codex-settings] [data-slot="card-content"] > div.flex > :first-child,
+[data-codex-settings] [data-slot="card-content"] > div.flex label {
+  font-size: 13px;
+  font-weight: var(--codex-fw-medium);
+}
+
+[data-codex-settings] [data-slot="card-content"] > div.flex p,
+[data-codex-settings] [data-slot="card-content"] > div.flex .text-muted-foreground {
+  font-size: 12px;
+  line-height: 16px;
+}
+
 /* 对话框标题：官方 line-height 28px（heading-dialog） */
 [data-slot="alert-dialog-title"],
 [data-slot="dialog-title"] {
@@ -586,6 +658,29 @@ button,
 /* /chat 路由下面板主体是对话列表（portal 渲染），导航交给 52px 导轨，
    所以隐藏面板里的 NavMain；其它路由仍显示导航。 */
 html[data-chat-list="on"] [data-slot="sidebar-nav-main"] {
+  display: none;
+}
+
+/* /system/settings 路由下，面板换成 Codex 式「设置导航」（搜索 + 分组 + 条目） */
+[data-slot="sidebar-settings-nav"] {
+  display: none;
+}
+
+html[data-settings-nav="on"] [data-slot="sidebar-settings-nav"] {
+  display: flex;
+}
+
+html[data-settings-nav="on"] [data-slot="sidebar-nav-main"] {
+  display: none;
+}
+
+/* 设置页里：面板头换成导航自带的「← 设置」标题行，空着的对话插槽也要收掉，
+   否则它 flex-1 会把设置导航推到面板下半部（Codex 实测：搜索框在 y=96）。 */
+html[data-settings-nav="on"] [data-slot="sidebar-header"] {
+  display: none;
+}
+
+html[data-settings-nav="on"] #chat-conversations-slot {
   display: none;
 }
 

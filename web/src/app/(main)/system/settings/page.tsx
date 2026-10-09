@@ -23,6 +23,14 @@ import type { Settings } from "@/lib/types";
 import { UpdateCard } from "./_components/update-card";
 
 export default function SystemSettingsPage() {
+  // 面板换成 Codex 式设置导航（见 globals.css 的 html[data-settings-nav="on"] 规则）
+  React.useEffect(() => {
+    document.documentElement.dataset.settingsNav = "on";
+    return () => {
+      delete document.documentElement.dataset.settingsNav;
+    };
+  }, []);
+
   const [trafficCapture, setTrafficCapture] = React.useState(false);
   const [agentTrafficBinding, setAgentTrafficBinding] = React.useState(false);
   const [webSearch, setWebSearch] = React.useState(false);
@@ -243,14 +251,16 @@ export default function SystemSettingsPage() {
   const braveNeedsKey = webSearch && backend === "brave-free" && !braveKeySet;
 
   return (
-    <div className="flex flex-1 flex-col gap-4 md:gap-6">
+    // Codex 设置页实测：内容列 728px 居中；标题 28px/500；
+    // 分区标题 14px/500；卡片 #232323 / 圆角 20px；行高 64px。（详见 globals.css）
+    <div data-codex-settings className="mx-auto flex w-full max-w-[728px] flex-1 flex-col gap-6">
       <div>
-        <h1 className="text-xl font-semibold tracking-tight">系统配置</h1>
-        <p className="text-muted-foreground text-sm">全局运行时开关</p>
+        <h1 className="text-[28px] leading-[34px] font-medium tracking-[-0.36px]">系统配置</h1>
+        <p className="text-muted-foreground mt-1 text-[13px] leading-[18px]">全局运行时开关</p>
       </div>
 
       {/* 面板：Codex 式外壳把平台面板从侧边栏移到这里（侧边栏只留 agent 相关入口） */}
-      <Card>
+      <Card id="panel" className="scroll-mt-6">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
             <LayoutGridIcon className="size-4" />
@@ -276,10 +286,11 @@ export default function SystemSettingsPage() {
           的 key 输入是条件渲染）。grid 会按最高的一张撑满整行、在旁边留下大片空白，
           多列则自动按内容高度平衡填充。卡片间距靠 mb 而非 gap——多列布局下
           column-gap 只管列间距，行间距要由子元素自己给。 */}
-      <div className="columns-1 gap-4 md:gap-6 lg:columns-2">
-        <UpdateCard />
+      {/* Codex 设置页是单列；多列 masonry 是 ARTEX 自己的排版，这里收掉 */}
+      <div className="flex flex-col gap-6">
+        <div id="update" className="scroll-mt-6"><UpdateCard /></div>
 
-        <Card className="mb-4 break-inside-avoid md:mb-6">
+        <Card id="traffic" className="scroll-mt-6">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
               <RadioTowerIcon className="size-4" />
@@ -306,7 +317,7 @@ export default function SystemSettingsPage() {
           </CardContent>
         </Card>
 
-        <Card className="mb-4 break-inside-avoid md:mb-6">
+        <Card id="auto-bind" className="scroll-mt-6">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
               <RadioTowerIcon className="size-4" />
@@ -334,7 +345,7 @@ export default function SystemSettingsPage() {
           </CardContent>
         </Card>
 
-        <Card className="mb-4 break-inside-avoid md:mb-6">
+        <Card id="proxy" className="scroll-mt-6">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
               <RadioTowerIcon className="size-4" />
@@ -375,7 +386,7 @@ export default function SystemSettingsPage() {
           </CardContent>
         </Card>
 
-        <Card className="mb-4 break-inside-avoid md:mb-6">
+        <Card id="constraints" className="scroll-mt-6">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
               <ShieldAlertIcon className="size-4" />
@@ -415,7 +426,7 @@ export default function SystemSettingsPage() {
           </CardContent>
         </Card>
 
-        <Card className="mb-4 break-inside-avoid md:mb-6">
+        <Card id="websearch" className="scroll-mt-6">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
               <SearchIcon className="size-4" />
@@ -601,7 +612,7 @@ export default function SystemSettingsPage() {
           </CardContent>
         </Card>
 
-        <Card className="mb-4 break-inside-avoid md:mb-6">
+        <Card id="python" className="scroll-mt-6">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
               <RadioTowerIcon className="size-4" />
@@ -631,7 +642,7 @@ export default function SystemSettingsPage() {
           </CardContent>
         </Card>
 
-        <Card className="mb-4 break-inside-avoid md:mb-6">
+        <Card id="concurrency" className="scroll-mt-6">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
               <CpuIcon className="size-4" />
@@ -660,7 +671,7 @@ export default function SystemSettingsPage() {
           </CardContent>
         </Card>
 
-        <Card className="mb-4 break-inside-avoid md:mb-6">
+        <Card id="sendkey" className="scroll-mt-6">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
               <KeyboardIcon className="size-4" />
