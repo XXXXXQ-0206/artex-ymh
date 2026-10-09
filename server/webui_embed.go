@@ -36,12 +36,29 @@ func (s *Server) webuiHandler() http.Handler {
 		// 3) <p>.html
 		// 4) SPA 兜底 → index.html（交给客户端路由）
 		for _, cand := range []string{p, p + "/index.html", p + ".html"} {
+			setWebUICacheHeaders(w, cand)
 			if serveFileIfExists(w, r, root, cand) {
 				return
 			}
 		}
+		setWebUICacheHeaders(w, "index.html")
 		http.ServeFileFS(w, r, root, "index.html")
 	})
+}
+
+// setWebUICacheHeaders 给内嵌前端补缓存策略（embed.FS 的文件 ModTime 为零，
+// http.ServeFileFS 既不发 Last-Modified 也不发 ETag，等于把缓存决策交给浏览器的
+// 启发式缓存 —— 后果是 HTML 可能长期不更新，重建前端后用户仍加载旧文档）。
+//
+//   - _next/static/**：文件名带内容哈希 → 长缓存 + immutable
+//   - 其余（HTML、favicon、icon.png…）：no-cache，每次带条件请求回源校验，
+//     保证升级后立刻拿到新外壳
+func setWebUICacheHeaders(w http.ResponseWriter, name string) {
+	if strings.HasPrefix(name, "_next/static/") {
+		w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
+		return
+	}
+	w.Header().Set("Cache-Control", "no-cache")
 }
 
 // serveFileIfExists serves name from fsys when it exists as a regular file.

@@ -359,6 +359,17 @@ export const api = {
       accepted: true;
       request_id: string;
     }>(`/tasks/${taskId}/intents/${intentId}/messages`, { message, request_id: requestId }),
+  // 实时纠偏（任务级、不打断）：把一句话排进正在跑的意图，worker 下一次工具调用前
+  // 生效——工具调用被拦下、消息交给模型，模型据此重新规划。区别于 sendWorkerMessage
+  // （需要先暂停该意图，属于"打断后重新交代"）。
+  taskSteerStatus: (taskId: string) =>
+    get<{ running: { intent_id: number; pending: number }[]; steerable: boolean }>(`/tasks/${taskId}/steer`),
+  steerTask: (taskId: string, message: string, intentId?: number) =>
+    post<{
+      ok: boolean;
+      delivered: { intent_id: number; pending: number }[];
+      skipped: number[] | null;
+    }>(`/tasks/${taskId}/steer`, { message, intent_id: intentId ?? 0 }),
   taskLLMResolution: (id: string) => get<TaskLLMResolutions>(`/tasks/${id}/llm/resolution`),
   // 重跑一条没跑成功的意图(blocked/exhausted/stopped)：置回 open，worker 会重新认领、从头再跑。
   rerunIntent: (taskId: string, intentId: string) =>

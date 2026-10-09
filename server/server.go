@@ -772,6 +772,8 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("GET /api/tasks/{id}/llm/resolution", s.taskLLMResolutionHandler)
 	mux.HandleFunc("POST /api/tasks/{id}/intents/{iid}/control", s.controlIntent)
 	mux.HandleFunc("POST /api/tasks/{id}/intents/{iid}/messages", s.sendWorkerMessage)
+	mux.HandleFunc("GET /api/tasks/{id}/steer", s.taskSteerStatus)  // 能不能插话：在跑的意图 + 排队数
+	mux.HandleFunc("POST /api/tasks/{id}/steer", s.taskSteer)       // 不打断地插一句话（worker 下一步工具调用前生效）
 	mux.HandleFunc("POST /api/tasks/{id}/intents/{iid}/rerun", s.rerunIntent)    // 重跑单条 blocked/exhausted/stopped 意图
 	mux.HandleFunc("POST /api/tasks/{id}/intents/rerun-blocked", s.rerunBlocked) // 批量重跑本任务全部 blocked 意图
 	mux.HandleFunc("POST /api/active", s.setActive)

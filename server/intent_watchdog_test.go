@@ -65,7 +65,7 @@ func TestKillWorkAsCarriesMainagentCause(t *testing.T) {
 	e := NewEngine(nil)
 	execCtx := e.execContextFor(context.Background(), "t1")
 	workCtx, workCancel := context.WithCancelCause(execCtx)
-	e.registerWork(42, workCancel)
+	e.registerWork(42, "t1", workCancel)
 	if err := e.KillWorkAs(42, agent.AbortKilledByMainagent); err != nil {
 		t.Fatal(err)
 	}
@@ -77,7 +77,7 @@ func TestKillWorkAsCarriesMainagentCause(t *testing.T) {
 	}
 	// planner 路径仍是原原因。
 	workCtx2, workCancel2 := context.WithCancelCause(execCtx)
-	e.registerWork(43, workCancel2)
+	e.registerWork(43, "t1", workCancel2)
 	if err := e.KillWork(43); err != nil {
 		t.Fatal(err)
 	}

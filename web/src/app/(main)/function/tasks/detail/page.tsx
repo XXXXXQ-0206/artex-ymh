@@ -5,7 +5,16 @@ import * as React from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 
-import { ArchiveIcon, ArrowLeftIcon, BrainIcon, CheckIcon, CircleAlertIcon, PauseIcon, PlayIcon } from "lucide-react";
+import {
+  ArchiveIcon,
+  ArrowLeftIcon,
+  BrainIcon,
+  CheckIcon,
+  CircleAlertIcon,
+  MessageSquareIcon,
+  PauseIcon,
+  PlayIcon,
+} from "lucide-react";
 import { toast } from "sonner";
 
 import { StatusBadge } from "@/components/status-badge";
@@ -35,6 +44,7 @@ import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Spinner } from "@/components/ui/spinner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Textarea } from "@/components/ui/textarea";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { api } from "@/lib/api";
 import type { LLMProfile, Task } from "@/lib/types";
@@ -66,6 +76,111 @@ function taskProfileIDs(task: Task): string[] {
     return task.llm_profile_ids.map(String);
   }
   return task.llm_profile_id ? [String(task.llm_profile_id)] : [];
+}
+
+/**
+ * 任务级「插话」：不打断正在跑的 worker，把一句话排进 engine 的 steerBox ——
+ * worker 下一次工具调用前取走它，那次调用被拦下、改由模型按这句话重新规划。
+ *
+ * 与「会话」页的暂停后再发消息互补：那个是打断重来，这个是边走边纠偏；
+ * 操作员面对的是任务，所以默认广播到该任务当前所有在跑的意图。
+ */
+function TaskSteerControl({ task, terminal }: { task: Task; terminal: boolean }) {
+  const [open, setOpen] = React.useState(false);
+  const [message, setMessage] = React.useState("");
+  const [sending, setSending] = React.useState(false);
+  const [running, setRunning] = React.useState<{ intent_id: number; pending: number }[]>([]);
+
+  const refresh = React.useCallback(async () => {
+    try {
+      const res = await api.taskSteerStatus(task.id);
+      setRunning(res.running ?? []);
+    } catch {
+      setRunning([]);
+    }
+  }, [task.id]);
+
+  React.useEffect(() => {
+    if (!open || terminal) return;
+    void refresh();
+    const timer = window.setInterval(() => void refresh(), 5000);
+    return () => window.clearInterval(timer);
+  }, [open, terminal, refresh]);
+
+  const send = async () => {
+    const text = message.trim();
+    if (!text || sending) return;
+    setSending(true);
+    try {
+      const res = await api.steerTask(task.id, text);
+      const n = res.delivered?.length ?? 0;
+      toast.success(`已送达 ${n} 个正在执行的意图，下一步工具调用前生效`);
+      setMessage("");
+      void refresh();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "插话失败");
+    } finally {
+      setSending(false);
+    }
+  };
+
+  const runningLabel =
+    running.length > 0
+      ? running.map((r) => `#${r.intent_id}${r.pending > 0 ? `（排队 ${r.pending}）` : ""}`).join("、")
+      : "无";
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <PopoverTrigger asChild>
+            <Button size="sm" variant="outline" disabled={terminal} aria-label="对正在跑的任务说一句">
+              <MessageSquareIcon data-icon="inline-start" />
+              插话
+              {running.length > 0 ? (
+                <span className="ml-1 rounded bg-primary/15 px-1 text-xs text-primary">{running.length}</span>
+              ) : null}
+            </Button>
+          </PopoverTrigger>
+        </TooltipTrigger>
+        <TooltipContent>
+          {terminal ? "任务已结束，无法插话" : "不打断任务，直接对正在执行的 worker 说一句"}
+        </TooltipContent>
+      </Tooltip>
+      <PopoverContent align="start" className="w-96">
+        <PopoverHeader>
+          <PopoverTitle>对正在跑的任务说一句</PopoverTitle>
+          <PopoverDescription>
+            不打断当前执行：消息在 worker 下一次工具调用前塞进去，那次调用被拦下，改由模型按你的话重新规划。
+            想先打断这一轮再重新交代，请到「会话」页暂停该意图后再发消息。
+          </PopoverDescription>
+        </PopoverHeader>
+        <div className="mt-3 space-y-2">
+          <div className="text-xs text-muted-foreground">
+            正在执行：{runningLabel}
+            {!terminal && running.length === 0 ? "（可能在规划、已暂停或已结束）" : ""}
+          </div>
+          <Textarea
+            rows={3}
+            value={message}
+            disabled={terminal}
+            placeholder="例如：别再扩大扫描面了，回到登录接口把越权那条路走透"
+            onChange={(e) => setMessage(e.target.value)}
+            onKeyDown={(e) => {
+              if ((e.metaKey || e.ctrlKey) && e.key === "Enter") void send();
+            }}
+          />
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-muted-foreground">Ctrl / ⌘ + Enter 发送</span>
+            <Button size="sm" onClick={() => void send()} disabled={terminal || sending || !message.trim()}>
+              {sending ? <Spinner /> : null}
+              发送
+            </Button>
+          </div>
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
 }
 
 function TaskLLMControl({ task, profiles, onUpdated }: { task: Task; profiles: LLMProfile[]; onUpdated: () => void }) {
@@ -364,6 +479,7 @@ function TaskDetailInner() {
           </code>
           <Separator orientation="vertical" className="mx-1 hidden h-4 sm:block" />
           <TaskLLMControl task={task} profiles={profiles} onUpdated={load} />
+          <TaskSteerControl task={task} terminal={terminal} />
           <StatusBadge domain={terminal ? "task" : "engine"} value={terminal ? task.status : engineMode} dot />
           {canArchive ? (
             <AlertDialog>

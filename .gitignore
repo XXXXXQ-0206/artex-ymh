@@ -58,3 +58,21 @@ Thumbs.db
 /bench/
 /Dockerfile.bench
 /Dockerfile.bench.v2
+
+# ---- 本机部署产物（嵌入式运行时 / 桌面端 / 启动器）----
+# 编译好的单二进制（Windows 下带 .exe）
+/artex.exe
+# 便携版 PostgreSQL（~850 MB，装机时解压出来的）
+/pgsql/
+# 托盘启动器（源码保留，构建产物不提交）
+/launcher/bin/
+/launcher/obj/
+/launcher/dist/
+# Electron 桌面端（源码保留；node_modules 与打包产物不提交）
+/desktop/node_modules/
+/desktop/build/
+/desktop/dist/
+/desktop/dist-tmp/
+# 运行时杂项
+/ligolo-ng.yaml
+/.sock.lock

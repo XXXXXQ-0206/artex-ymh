@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"sort"
 	"strconv"
 	"strings"
 	"sync"
@@ -133,7 +134,7 @@ type Engine struct {
 	// id). The worker's PreToolUse hook drains it before its next tool call and hands
 	// the message to the model (blocking that call) so it re-plans — no kill needed.
 	steerMu  sync.Mutex
-	steerBox map[int64][]string
+	steerBox map[int64][]steerMsg
 
 	plannerRound sync.Map // taskID -> int, planner round counter (for UI round separators)
 
@@ -168,6 +169,22 @@ type workExecution struct {
 	cancel context.CancelCauseFunc
 	done   chan error
 	action string // user action: pause | cancel
+	// taskID 让「人工对任务说一句」能广播到该任务当前所有在跑的意图
+	// （见 RunningIntentsForTask）：操作员在界面上看到的是任务，不是意图 id。
+	taskID string
+}
+
+// 实时纠偏的来源，只影响注入给模型的文案措辞。
+const (
+	steerFromPlanner  = "planner"
+	steerFromOperator = "operator"
+)
+
+// steerMsg 是排队中的一条实时纠偏：worker 在下一次工具调用前取走它，那次调用
+// 被拦下、消息交给模型，模型据此重新规划（不 kill 任务）。
+type steerMsg struct {
+	text string
+	from string // steerFromPlanner | steerFromOperator
 }
 
 // nextPlannerRound returns the next planner round number for a task (1-based).
@@ -402,14 +419,16 @@ func (e *Engine) touch(taskID string) { e.lastAct.Store(taskID, time.Now().Unix(
 func NewEngine(m *Manager) *Engine {
 	return &Engine{m: m, debounce: 800 * time.Millisecond, bc: NewBroadcaster(),
 		execCancel: map[string]context.CancelCauseFunc{}, execCtx: map[string]context.Context{},
-		work: map[int64]*workExecution{}, steerBox: map[int64][]string{},
+		work: map[int64]*workExecution{}, steerBox: map[int64][]steerMsg{},
 		runtimes: map[string]*taskRuntime{}}
 }
 
-// registerWork records the cancel for the work currently running intentID.
-func (e *Engine) registerWork(intentID int64, cancel context.CancelCauseFunc) {
+// registerWork records the cancel for the work currently running intentID, and
+// remembers which task it belongs to so the operator can steer the whole task
+// without knowing intent ids.
+func (e *Engine) registerWork(intentID int64, taskID string, cancel context.CancelCauseFunc) {
 	e.workMu.Lock()
-	e.work[intentID] = &workExecution{cancel: cancel, done: make(chan error, 1)}
+	e.work[intentID] = &workExecution{cancel: cancel, done: make(chan error, 1), taskID: taskID}
 	e.workMu.Unlock()
 }
 
@@ -504,6 +523,13 @@ func transitionIntentState(store *db.ExplorationStore, intentID int64, expected,
 // planner's steer_work tool). The worker delivers it before its next tool call and
 // re-plans — no kill. Errors if no work is currently running that intent.
 func (e *Engine) SteerWork(intentID int64, msg string) error {
+	return e.SteerWorkFrom(intentID, msg, steerFromPlanner)
+}
+
+// SteerWorkFrom 与 SteerWork 语义相同，额外记录指令来源：规划者的 steer_work 工具
+// （steerFromPlanner）或操作员在任务页直接插话（steerFromOperator，见 taskSteer）。
+// 不中断任务：worker 的下一次工具调用会被拦下，消息交给模型，由它重新规划。
+func (e *Engine) SteerWorkFrom(intentID int64, msg, from string) error {
 	if strings.TrimSpace(msg) == "" {
 		return fmt.Errorf("纠偏消息不能为空")
 	}
@@ -513,19 +539,44 @@ func (e *Engine) SteerWork(intentID int64, msg string) error {
 	if !running {
 		return fmt.Errorf("意图 %d 当前没有运行中的 work（可能已结束或未被领取）", intentID)
 	}
+	if from != steerFromOperator {
+		from = steerFromPlanner
+	}
 	e.steerMu.Lock()
-	e.steerBox[intentID] = append(e.steerBox[intentID], msg)
+	e.steerBox[intentID] = append(e.steerBox[intentID], steerMsg{text: msg, from: from})
 	e.steerMu.Unlock()
 	return nil
 }
 
+// RunningIntentsForTask 返回该任务当前真正在跑的意图 id（升序）。人工插话用它决定
+// 广播目标：操作员看到的是任务，不是意图。
+func (e *Engine) RunningIntentsForTask(taskID string) []int64 {
+	e.workMu.Lock()
+	defer e.workMu.Unlock()
+	out := make([]int64, 0, len(e.work))
+	for id, w := range e.work {
+		if w != nil && w.taskID == taskID {
+			out = append(out, id)
+		}
+	}
+	sort.Slice(out, func(i, j int) bool { return out[i] < out[j] })
+	return out
+}
+
+// PendingSteers 返回某意图上还没被 worker 取走的纠偏条数（界面用于显示"已排队"）。
+func (e *Engine) PendingSteers(intentID int64) int {
+	e.steerMu.Lock()
+	defer e.steerMu.Unlock()
+	return len(e.steerBox[intentID])
+}
+
 // drainSteer pops the oldest queued steering message for intentID (FIFO), if any.
-func (e *Engine) drainSteer(intentID int64) (string, bool) {
+func (e *Engine) drainSteer(intentID int64) (steerMsg, bool) {
 	e.steerMu.Lock()
 	defer e.steerMu.Unlock()
 	q := e.steerBox[intentID]
 	if len(q) == 0 {
-		return "", false
+		return steerMsg{}, false
 	}
 	msg := q[0]
 	if len(q) == 1 {
@@ -544,7 +595,7 @@ func (e *Engine) drainSteer(intentID int64) (string, bool) {
 // chains L1,CHAINS-INTEGRATION-DESIGN.md §3)。
 type steerHooks struct {
 	inner harness.HookRunner
-	drain func() (string, bool)
+	drain func() (steerMsg, bool)
 	// nudges 是本条意图已注入的空转续跑次数，上限 limit。指针:harness 持有的是
 	// steerHooks 的值拷贝，计数必须共享同一份。
 	nudges *atomic.Int64
@@ -599,8 +650,12 @@ func isThinkingOnlyTurn(messages []llm.Message) bool {
 
 func (h steerHooks) PreToolUse(ctx context.Context, name string, input []byte) (bool, string, []byte) {
 	if msg, ok := h.drain(); ok {
-		return true, "【规划者实时纠偏】" + msg +
-			"\n（这是规划者对本意图的即时指令；本次工具调用未执行，请据此调整下一步。若与你当前打算冲突，以此为准。）", nil
+		who := "规划者"
+		if msg.from == steerFromOperator {
+			who = "操作员"
+		}
+		return true, "【" + who + "实时纠偏】" + msg.text +
+			"\n（这是" + who + "对本意图的即时指令；本次工具调用未执行，请据此调整下一步。若与你当前打算冲突，以此为准。）", nil
 	}
 	// 停滞检测的干预消息排在规划者纠偏之后:都是"先别动手、听完再说",规划者的
 	// 指令优先级更高。消息自带完整上下文(签名/次数/未执行说明),无需再加前缀。
@@ -1048,7 +1103,7 @@ func (e *Engine) runIntent(ctx context.Context, t *Task, name string, worker *ag
 	}
 	// per-work child context so the planner's kill_work can stop just this work.
 	workCtx, workCancel := context.WithCancelCause(ectx)
-	e.registerWork(intent.ID, workCancel)
+	e.registerWork(intent.ID, t.ID, workCancel)
 	// wrap the guard hooks so steer_work can inject a mid-run course-correction
 	// for THIS intent (drained before the worker's next tool call).
 	iid := intent.ID
@@ -1063,7 +1118,7 @@ func (e *Engine) runIntent(ctx context.Context, t *Task, name string, worker *ag
 	// 重跑一轮不该把额度清零重来。
 	hooks := steerHooks{
 		inner:  t.Guard.Hooks(),
-		drain:  func() (string, bool) { return e.drainSteer(iid) },
+		drain:  func() (steerMsg, bool) { return e.drainSteer(iid) },
 		nudges: &atomic.Int64{},
 		limit:  e.emptyTurnNudgeLimit(),
 		label:  label,
