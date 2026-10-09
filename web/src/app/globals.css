@@ -116,7 +116,8 @@ These serve as the fallback; there is no separate default.css file. */
   --secondary: #212121;
   --secondary-foreground: #dfdfdf;
   --muted: #181818;
-  --muted-foreground: #9f9f9f;
+  /* Codex 普查：次要文字统一「白 49.8%」（按背景合成），而不是灰阶 hex */
+  --muted-foreground: rgba(255, 255, 255, 0.498);
   --accent: #282828;
   --accent-foreground: #dfdfdf;
   --destructive: #fa423e;
@@ -323,6 +324,42 @@ html[data-font] body {
   --codex-rail: 3.25rem; /* 52px */
   --codex-panel: 18rem; /* 288px */
   --codex-gap: 4px;
+
+  /* ── Codex 设计语言（样式普查值：outputs/codex-style-census/01-codex-chat.json）──
+     正文 16px/430；次要文字 13px / 白 49.8%；分组标题 14px/500；小标题 18px/600 白 85%；
+     圆角：小组件与胶囊 9.375px、列表行 10px、次级控件 12.5px、药丸 9999px。 */
+  --codex-fw-normal: 430;
+  --codex-fw-medium: 500;
+  --codex-fw-semibold: 590;
+  --codex-text-secondary: rgba(255, 255, 255, 0.498);
+  --codex-text-strong: oklab(0.903646 0.0000412762 0.0000180602 / 0.85);
+  --codex-radius-chip: 9.375px;
+  --codex-radius-row: 10px;
+  --codex-radius-control: 12.5px;
+}
+
+/* 基准字重：Codex 用 430（不是 400）——"看着像却不像"的主要来源之一 */
+.dark body {
+  font-weight: var(--codex-fw-normal);
+}
+
+/* 侧栏分组标题：14px / 500 / 白 49.8% */
+[data-slot="sidebar-group-label"] {
+  font-size: 14px;
+  font-weight: var(--codex-fw-medium);
+  color: var(--codex-text-secondary);
+}
+
+/* 列表行与行内按钮：圆角 10px、14px、基准字重 */
+[data-slot="sidebar-menu-button"],
+[data-slot="sidebar-menu-sub-button"] {
+  border-radius: var(--codex-radius-row);
+  font-size: 14px;
+  font-weight: var(--codex-fw-normal);
+}
+
+[data-slot="sidebar-menu-sub-button"] {
+  color: var(--codex-text-secondary);
 }
 
 /* 顶部 46px 拖拽区：不拦事件，只用于拖动窗口 */
@@ -346,9 +383,9 @@ html[data-font] body {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 2.25rem;
-  height: 2.25rem;
-  border-radius: 0.5rem;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: var(--codex-radius-chip);
   color: var(--muted-foreground);
   transition:
     background-color 0.15s ease,
