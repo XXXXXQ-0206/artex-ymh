@@ -1393,13 +1393,10 @@ export default function ChatPage() {
   return (
     <div
       data-content-padding="false"
-      // Codex 实测（首页态）：左侧 288px 面板是「占位」而不是浮层——
-      // 对话列在「主表面 − 面板」的剩余宽度里居中，所以列中心比表面中心右移 144px。
-      // 真会话打开时（Codex 线程视图）列回到整个主表面居中，这里用同一个条件切。
-      className={cn(
-        "flex h-full min-w-0 flex-col overflow-hidden",
-        !selected && "md:pl-[18rem]",
-      )}
+      // Codex 实测（1280×816）：首页态与会话态的对话列**都在 x=424**（= 面板右缘 340 + 84），
+      // 即两种状态下内容都让开 288px 面板；转录列 768 宽 / padding 0 16px 32px，
+      // 输入区同列 / padding 0 16px 16px。让开面板这件事统一由 MainContent 负责。
+      className="flex h-full min-w-0 flex-col overflow-hidden"
     >
       {/* Codex 式：列表已移到外壳面板，页面里只剩对话区单列 */}
       <div className="grid min-h-0 min-w-0 flex-1 grid-cols-1 grid-rows-[minmax(0,1fr)]">

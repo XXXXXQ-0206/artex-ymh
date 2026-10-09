@@ -36,10 +36,13 @@ export function MainContent({ children }: { children: ReactNode }) {
 
   // 左侧 288px 面板是「浮」在主表面之上的，不占布局宽度（Codex 实测几何）。
   // 所以主内容必须自己让开这段宽度，否则每页左侧 288px 会被面板盖住。
-  // /chat 例外：它在落地态/会话态各自决定缩不缩（Codex 首页缩、线程视图不缩）。
   const panelOpen = open && !isMobile;
-  const isChatRoute = pathname === "/chat" || pathname?.startsWith("/chat/");
-  const padForPanel = panelOpen && !isChatRoute ? "md:pl-[18rem]" : undefined;
+  // 注意：带 data-content-padding=false 的页面（如 /chat）会被 `md:has-data-[...]:p-0` 把
+  // 内边距整体清零，而它的变体数比 `md:pl-*` 多、在 Tailwind 里排在后面 —— 所以
+  // 让开面板这件事必须两种形态都写一遍，否则 chat 路由上会被 p-0 吃掉。
+  const padForPanel = panelOpen
+    ? "md:pl-[18rem] md:has-data-[content-padding=false]:pl-[18rem]"
+    : undefined;
 
   useEffect(() => {
     api
