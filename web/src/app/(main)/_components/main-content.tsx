@@ -5,7 +5,7 @@ import { type ReactNode, useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 
 import { Separator } from "@/components/ui/separator";
-import { SidebarTrigger } from "@/components/ui/sidebar";
+import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { api } from "@/lib/api";
 import { cn } from "@/lib/utils";
@@ -31,7 +31,15 @@ function isFullBleed(pathname: string) {
 export function MainContent({ children }: { children: ReactNode }) {
   const currentUser = useCurrentUser();
   const pathname = usePathname();
+  const { open, isMobile } = useSidebar();
   const [version, setVersion] = useState("");
+
+  // 左侧 288px 面板是「浮」在主表面之上的，不占布局宽度（Codex 实测几何）。
+  // 所以主内容必须自己让开这段宽度，否则每页左侧 288px 会被面板盖住。
+  // /chat 例外：它在落地态/会话态各自决定缩不缩（Codex 首页缩、线程视图不缩）。
+  const panelOpen = open && !isMobile;
+  const isChatRoute = pathname === "/chat" || pathname?.startsWith("/chat/");
+  const padForPanel = panelOpen && !isChatRoute ? "md:pl-[18rem]" : undefined;
 
   useEffect(() => {
     api
@@ -72,7 +80,12 @@ export function MainContent({ children }: { children: ReactNode }) {
           </div>
         </div>
       </header>
-      <div className="min-h-0 min-w-0 flex-1 overflow-x-hidden p-4 has-data-[content-padding=false]:p-0 md:p-6 md:has-data-[content-padding=false]:p-0">
+      <div
+        className={cn(
+          "min-h-0 min-w-0 flex-1 overflow-x-hidden p-4 has-data-[content-padding=false]:p-0 md:p-6 md:has-data-[content-padding=false]:p-0",
+          padForPanel,
+        )}
+      >
         {children}
       </div>
     </>
