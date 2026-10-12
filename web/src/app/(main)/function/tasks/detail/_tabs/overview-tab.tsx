@@ -23,9 +23,12 @@ import {
 import { toast } from "sonner";
 
 import { StatusBadge } from "@/components/status-badge";
-import { Button } from "@/components/ui/button";
+import {
+  Button,
+  Input,
+} from "@/codex-ui/codex/ui";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
 import { Progress } from "@/components/ui/progress";
 import { api } from "@/lib/api";
@@ -504,7 +507,7 @@ export function OverviewTab({ taskId }: { taskId: string }) {
           {/* 新增表单 */}
           <div className="flex flex-wrap items-center gap-2">
             <Input
-              className="h-7 min-w-56 flex-1 text-sm"
+              className="min-w-56 flex-1"
               placeholder="新增目标，如『拿到管理员账号的越权访问』"
               value={goalText}
               onChange={(e) => setGoalText(e.target.value)}
@@ -514,7 +517,7 @@ export function OverviewTab({ taskId }: { taskId: string }) {
               disabled={goalBusy}
             />
             <Input
-              className="h-7 w-32 text-sm"
+              className="w-32"
               placeholder="漏洞类(可选)"
               value={goalVuln}
               onChange={(e) => setGoalVuln(e.target.value)}
@@ -535,7 +538,7 @@ export function OverviewTab({ taskId }: { taskId: string }) {
                 editingGoalId === g.id ? (
                   <div key={g.id} className="flex flex-wrap items-center gap-2 rounded-md border px-2.5 py-1.5">
                     <Input
-                      className="h-7 min-w-56 flex-1 text-sm"
+                      className="min-w-56 flex-1"
                       value={editText}
                       onChange={(e) => setEditText(e.target.value)}
                       onKeyDown={(e) => {
@@ -546,7 +549,7 @@ export function OverviewTab({ taskId }: { taskId: string }) {
                       autoFocus
                     />
                     <Input
-                      className="h-7 w-32 text-sm"
+                      className="w-32"
                       placeholder="漏洞类(可选)"
                       value={editVuln}
                       onChange={(e) => setEditVuln(e.target.value)}
@@ -556,19 +559,17 @@ export function OverviewTab({ taskId }: { taskId: string }) {
                       }}
                       disabled={goalBusy}
                     />
-                    <Button
-                      size="sm"
+                    <Button size="xs" uniform
                       variant="ghost"
-                      className="h-6 shrink-0 px-1.5"
+                      className="shrink-0"
                       disabled={goalBusy || !editText.trim()}
                       onClick={() => void saveEditGoal(g)}
                     >
                       <CheckIcon className="size-3.5 text-emerald-500" />
                     </Button>
-                    <Button
-                      size="sm"
+                    <Button size="xs" uniform
                       variant="ghost"
-                      className="h-6 shrink-0 px-1.5"
+                      className="shrink-0"
                       disabled={goalBusy}
                       onClick={cancelEditGoal}
                     >
@@ -584,19 +585,17 @@ export function OverviewTab({ taskId }: { taskId: string }) {
                         {g.vulnclass}
                       </span>
                     )}
-                    <Button
-                      size="sm"
+                    <Button size="xs" uniform
                       variant="ghost"
-                      className="h-6 shrink-0 px-1.5"
+                      className="shrink-0"
                       disabled={goalBusy}
                       onClick={() => startEditGoal(g)}
                     >
                       <PencilIcon className="size-3.5" />
                     </Button>
-                    <Button
-                      size="sm"
+                    <Button size="xs" uniform
                       variant="ghost"
-                      className="h-6 shrink-0 px-1.5"
+                      className="shrink-0"
                       disabled={goalBusy}
                       onClick={() => void removeGoal(g)}
                     >
@@ -635,7 +634,7 @@ export function OverviewTab({ taskId }: { taskId: string }) {
               <NativeSelectOption value="allow">允许</NativeSelectOption>
             </NativeSelect>
             <Input
-              className="h-7 min-w-56 flex-1 text-sm"
+              className="min-w-56 flex-1"
               placeholder="一条操作约束，如『仅测当前端口，不扫其他端口』"
               value={conText}
               onChange={(e) => setConText(e.target.value)}
@@ -669,7 +668,7 @@ export function OverviewTab({ taskId }: { taskId: string }) {
                       <NativeSelectOption value="allow">允许</NativeSelectOption>
                     </NativeSelect>
                     <Input
-                      className="h-7 min-w-56 flex-1 text-sm"
+                      className="min-w-56 flex-1"
                       value={editConText}
                       onChange={(e) => setEditConText(e.target.value)}
                       onKeyDown={(e) => {
@@ -679,19 +678,17 @@ export function OverviewTab({ taskId }: { taskId: string }) {
                       disabled={conBusy}
                       autoFocus
                     />
-                    <Button
-                      size="sm"
+                    <Button size="xs" uniform
                       variant="ghost"
-                      className="h-6 shrink-0 px-1.5"
+                      className="shrink-0"
                       disabled={conBusy || !editConText.trim()}
                       onClick={() => void saveEditConstraint(c)}
                     >
                       <CheckIcon className="size-3.5 text-emerald-500" />
                     </Button>
-                    <Button
-                      size="sm"
+                    <Button size="xs" uniform
                       variant="ghost"
-                      className="h-6 shrink-0 px-1.5"
+                      className="shrink-0"
                       disabled={conBusy}
                       onClick={cancelEditConstraint}
                     >
@@ -710,19 +707,17 @@ export function OverviewTab({ taskId }: { taskId: string }) {
                       {c.kind === "allow" ? "允许" : "禁止"}
                     </span>
                     <span className="min-w-0 flex-1 break-words">{c.text}</span>
-                    <Button
-                      size="sm"
+                    <Button size="xs" uniform
                       variant="ghost"
-                      className="h-6 shrink-0 px-1.5"
+                      className="shrink-0"
                       disabled={conBusy}
                       onClick={() => startEditConstraint(c)}
                     >
                       <PencilIcon className="size-3.5" />
                     </Button>
-                    <Button
-                      size="sm"
+                    <Button size="xs" uniform
                       variant="ghost"
-                      className="h-6 shrink-0 px-1.5"
+                      className="shrink-0"
                       disabled={conBusy}
                       onClick={() => void removeConstraint(c)}
                     >
@@ -868,19 +863,17 @@ export function OverviewTab({ taskId }: { taskId: string }) {
                 <span className="text-muted-foreground shrink-0 text-xs">
                   最近 {row.last_seen ? new Date(row.last_seen).toLocaleString("zh-CN") : "—"}
                 </span>
-                <Button
-                  size="sm"
+                <Button size="xs" uniform
                   variant="outline"
-                  className="h-7 shrink-0"
+                  className="shrink-0"
                   disabled={deciding.has(row.id)}
                   onClick={() => void decideScope(row, "approve")}
                 >
                   批准扩 scope
                 </Button>
-                <Button
-                  size="sm"
+                <Button size="xs" uniform
                   variant="ghost"
-                  className="h-7 shrink-0"
+                  className="shrink-0"
                   disabled={deciding.has(row.id)}
                   onClick={() => void decideScope(row, "dismiss")}
                 >
@@ -918,7 +911,7 @@ export function OverviewTab({ taskId }: { taskId: string }) {
               <NativeSelectOption value="company">公司</NativeSelectOption>
             </NativeSelect>
             <Input
-              className="h-7 w-56 text-sm"
+              className="w-56"
               placeholder={
                 scopeKind === "company"
                   ? "公司名或 id"
@@ -958,10 +951,9 @@ export function OverviewTab({ taskId }: { taskId: string }) {
                   <span className="min-w-0 flex-1 truncate font-mono text-xs">{scopeValue(row)}</span>
                   <span className="text-muted-foreground shrink-0 text-xs">{SCOPE_SOURCE_LABELS[row.source]}</span>
                   {row.task_id.toString() === taskId ? (
-                    <Button
-                      size="sm"
+                    <Button size="xs" uniform
                       variant="ghost"
-                      className="h-6 shrink-0 px-1.5"
+                      className="shrink-0"
                       onClick={() => void removeScope(row)}
                     >
                       <Trash2Icon className="size-3.5 text-red-500" />
@@ -1105,10 +1097,9 @@ export function OverviewTab({ taskId }: { taskId: string }) {
               <div key={i.id} className="flex items-center gap-2 text-sm">
                 <StatusBadge domain="intent" value={i.state} />
                 <span className="min-w-0 flex-1 truncate">{i.payload}</span>
-                <Button
-                  size="sm"
+                <Button size="xs" uniform
                   variant="ghost"
-                  className="h-7 shrink-0 px-2 text-xs"
+                  className="shrink-0 px-2 text-xs"
                   disabled={rerunning.has(i.id)}
                   onClick={() => void rerunOne(i.id)}
                 >

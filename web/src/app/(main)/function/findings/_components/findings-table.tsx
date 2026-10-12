@@ -12,7 +12,7 @@ import {
   RotateCcwIcon,
   ShieldAlertIcon,
   Trash2Icon,
-} from "lucide-react";
+  } from "lucide-react";
 
 import { CopyButton } from "@/components/copy-button";
 import { Markdown } from "@/components/markdown";
@@ -22,20 +22,33 @@ import {
   AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Spinner } from "@/components/ui/spinner";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+  Badge,
+  Button,
+  Checkbox,
+  Input,
+  Label,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+  Spinner,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/codex-ui/codex/ui";
+
+
+
+
+
+
+
+
 import { statusMeta } from "@/lib/status";
 import type { ActiveFindingRetest, Finding, FindingStatus, Severity } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -213,7 +226,7 @@ export function FindingsTable({
                       <span className="truncate font-medium">{f.name || f.vulnclass || "未分类"}</span>
                     )}
                     <span className="truncate text-xs text-muted-foreground">{f.summary}</span>
-                    <Badge variant="outline">流量证据 {f.traffic_count ?? 0} 条</Badge>
+                    <Badge>流量证据 {f.traffic_count ?? 0} 条</Badge>
                   </div>
                 </TableCell>
                 <TableCell>
@@ -239,7 +252,7 @@ export function FindingsTable({
                 <TableCell onClick={(e) => e.stopPropagation()}>
                   {f.finding_id ? (
                     <Select value={f.status} onValueChange={(v) => onStatusChange(f, v as FindingStatus)}>
-                      <SelectTrigger size="sm" className="h-7 w-full border-none px-1 shadow-none focus-visible:ring-0">
+                      <SelectTrigger className="w-full">
                         <StatusBadge domain="finding" value={f.status} dot />
                       </SelectTrigger>
                       <SelectContent position="popper" align="end">
@@ -275,20 +288,20 @@ export function FindingsTable({
                     {retest ? (
                       <Button asChild size="sm" variant="ghost">
                         <Link href={`/chat?c=${retest.conversation_id}`} title="查看正在进行的复测会话">
-                          <Spinner data-icon="inline-start" />
+                          <Spinner />
                           复测中
                         </Link>
                       </Button>
                     ) : null}
                     {!retest && f.finding_id && !f.inherited ? (
                       <Button size="sm" variant="ghost" onClick={() => onRetest(f)} title="在独立会话中复测该漏洞">
-                        <RotateCcwIcon data-icon="inline-start" />
+                        <RotateCcwIcon />
                         复测
                       </Button>
                     ) : null}
                     {f.finding_id && f.task_id && (
                       <Button size="sm" variant="ghost" onClick={() => onDeepen(f)}>
-                        <FlaskConicalIcon data-icon="inline-start" />
+                        <FlaskConicalIcon />
                         深入
                       </Button>
                     )}
@@ -296,30 +309,40 @@ export function FindingsTable({
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
                           <Button
-                            size="icon"
+                            size="md" uniform
                             variant="ghost"
-                            className="size-7 text-muted-foreground hover:text-destructive"
+                            className="text-muted-foreground hover:text-destructive"
                             aria-label="删除漏洞"
                           >
                             <Trash2Icon className="size-4" />
                           </Button>
                         </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>确认删除该漏洞？</AlertDialogTitle>
-                            <AlertDialogDescription className="break-words">
+                        <AlertDialogContent
+                          title="确认删除该漏洞？"
+                          description={
+                            <>
                               「
                               <span className="break-all">
                                 {f.name || f.vulnclass || f.summary || `#${f.finding_id}`}
                               </span>
                               」将被永久删除， 同时从发现列表、任务发现 Tab 与探索图中移除，此操作不可撤销。
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>取消</AlertDialogCancel>
-                            <AlertDialogAction onClick={() => onDelete(f)}>删除</AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
+                            </>
+                          }
+                          footer={
+                            <>
+                              <AlertDialogCancel asChild>
+                                <Button size="sm" variant="ghost">
+                                  取消
+                                </Button>
+                              </AlertDialogCancel>
+                              <AlertDialogAction asChild>
+                                <Button color="danger" size="sm" variant="solid" onClick={() => onDelete(f)}>
+                                  删除
+                                </Button>
+                              </AlertDialogAction>
+                            </>
+                          }
+                        />
                       </AlertDialog>
                     )}
                   </div>
@@ -356,7 +379,7 @@ export function FindingsTable({
                               value={edit.severity}
                               onValueChange={(v) => onEditChange((s) => (s ? { ...s, severity: v as Severity } : s))}
                             >
-                              <SelectTrigger size="sm" className="w-28">
+                              <SelectTrigger className="w-28">
                                 <SelectValue />
                               </SelectTrigger>
                               <SelectContent>

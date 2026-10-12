@@ -25,27 +25,26 @@ import {
   AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
-import { Button } from "@/components/ui/button";
-import {
+  Button,
   Popover,
   PopoverContent,
-  PopoverDescription,
-  PopoverHeader,
-  PopoverTitle,
   PopoverTrigger,
-} from "@/components/ui/popover";
-import { Separator } from "@/components/ui/separator";
+  Separator,
+  Spinner,
+  Textarea,
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/codex-ui/codex/ui";
+
+
+
 import { SidebarTrigger } from "@/components/ui/sidebar";
-import { Spinner } from "@/components/ui/spinner";
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Textarea } from "@/components/ui/textarea";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+
+
 import { api } from "@/lib/api";
 import type { LLMProfile, Task } from "@/lib/types";
 
@@ -135,7 +134,7 @@ function TaskSteerControl({ task, terminal }: { task: Task; terminal: boolean })
         <TooltipTrigger asChild>
           <PopoverTrigger asChild>
             <Button size="sm" variant="outline" disabled={terminal} aria-label="对正在跑的任务说一句">
-              <MessageSquareIcon data-icon="inline-start" />
+              <MessageSquareIcon />
               插话
               {running.length > 0 ? (
                 <span className="ml-1 rounded bg-primary/15 px-1 text-xs text-primary">{running.length}</span>
@@ -148,13 +147,13 @@ function TaskSteerControl({ task, terminal }: { task: Task; terminal: boolean })
         </TooltipContent>
       </Tooltip>
       <PopoverContent align="start" className="w-96">
-        <PopoverHeader>
-          <PopoverTitle>对正在跑的任务说一句</PopoverTitle>
-          <PopoverDescription>
+        <div className="flex flex-col gap-1">
+          <div className="font-medium">对正在跑的任务说一句</div>
+          <p className="text-muted-foreground text-xs">
             不打断当前执行：消息在 worker 下一次工具调用前塞进去，那次调用被拦下，改由模型按你的话重新规划。
             想先打断这一轮再重新交代，请到「会话」页暂停该意图后再发消息。
-          </PopoverDescription>
-        </PopoverHeader>
+          </p>
+        </div>
         <div className="mt-3 space-y-2">
           <div className="text-xs text-muted-foreground">
             正在执行：{runningLabel}
@@ -265,20 +264,21 @@ function TaskLLMControl({ task, profiles, onUpdated }: { task: Task; profiles: L
       <PopoverTrigger asChild>
         <Button
           size="sm"
-          variant={exhausted ? "destructive" : "outline"}
+          color={exhausted ? "danger" : "primary"}
+          variant={exhausted ? "soft" : "outline"}
           aria-label="查看或切换任务 LLM 配置"
           title={currentTitle}
         >
-          <BrainIcon data-icon="inline-start" />
+          <BrainIcon />
           <span className="hidden max-w-36 truncate lg:inline">{currentLabel}</span>
           {backupCount > 0 && <span className="hidden text-muted-foreground xl:inline">+{backupCount}</span>}
         </Button>
       </PopoverTrigger>
       <PopoverContent ref={popoverContentRef} align="start" className="w-[min(28rem,calc(100vw-2rem))] gap-4 p-4">
-        <PopoverHeader>
-          <PopoverTitle>任务 LLM 配置链</PopoverTitle>
-          <PopoverDescription>{editorDescription}</PopoverDescription>
-        </PopoverHeader>
+        <div className="flex flex-col gap-1">
+          <div className="font-medium">任务 LLM 配置链</div>
+          <p className="text-muted-foreground text-xs">{editorDescription}</p>
+        </div>
 
         {exhausted && (
           <Alert variant="destructive">
@@ -306,7 +306,7 @@ function TaskLLMControl({ task, profiles, onUpdated }: { task: Task; profiles: L
             关闭
           </Button>
           <Button type="button" size="sm" onClick={save} disabled={saving}>
-            {saving && <Spinner data-icon="inline-start" />}
+            {saving && <Spinner />}
             {saveLabel}
           </Button>
         </div>
@@ -437,21 +437,21 @@ function TaskDetailInner() {
     archiveDisabledReason = `任务被未归档任务 #${task.archive_blocked_by_task_id} 直接继承，请先归档依赖任务`;
   }
   const engineMode = paused ? "paused" : (task.engine_mode ?? "idle");
-  let controlVariant: "default" | "secondary" | "outline" = "outline";
-  let controlIcon = <PauseIcon data-icon="inline-start" />;
+  let controlVariant: "solid" | "soft" | "outline" = "outline";
+  let controlIcon = <PauseIcon />;
   let controlLabel = "暂停";
   if (terminal) {
-    controlVariant = "secondary";
-    controlIcon = <CheckIcon data-icon="inline-start" />;
+    controlVariant = "soft";
+    controlIcon = <CheckIcon />;
     controlLabel = completed ? "已完成" : "已结束";
   } else if (paused) {
-    controlVariant = "default";
-    controlIcon = <PlayIcon data-icon="inline-start" />;
+    controlVariant = "solid";
+    controlIcon = <PlayIcon />;
     controlLabel = "恢复";
   }
   const archiveTrigger = (
     <Button
-      size="icon-sm"
+      size="md" uniform
       variant="ghost"
       disabled={!canArchive || archiving}
       aria-label={canArchive ? "归档任务" : archiveDisabledReason}
@@ -466,7 +466,7 @@ function TaskDetailInner() {
       <header className="sticky top-0 z-10 flex flex-col gap-2 border-b bg-background/95 px-4 py-2.5 backdrop-blur lg:px-6">
         <div className="flex items-center gap-2">
           <SidebarTrigger className="-ml-1" />
-          <Button asChild variant="ghost" size="icon" className="size-7">
+          <Button asChild variant="ghost" size="md" uniform className="">
             <Link href="/function/tasks">
               <ArrowLeftIcon />
             </Link>
@@ -484,19 +484,24 @@ function TaskDetailInner() {
           {canArchive ? (
             <AlertDialog>
               <AlertDialogTrigger asChild>{archiveTrigger}</AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>归档任务 #{task.id}？</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    任务图谱、关联记录、独占资产与流量、工作文件和 LLM
-                    历史将压缩到冷存储。归档完成后可在任务列表的“已归档”页还原。
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>取消</AlertDialogCancel>
-                  <AlertDialogAction onClick={() => void archiveTask()}>确认归档</AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
+              <AlertDialogContent
+                title={`归档任务 #${task.id}？`}
+                description="任务图谱、关联记录、独占资产与流量、工作文件和 LLM 历史将压缩到冷存储。归档完成后可在任务列表的“已归档”页还原。"
+                footer={
+                  <>
+                    <AlertDialogCancel asChild>
+                      <Button size="sm" variant="ghost">
+                        取消
+                      </Button>
+                    </AlertDialogCancel>
+                    <AlertDialogAction asChild>
+                      <Button size="sm" variant="solid" onClick={() => void archiveTask()}>
+                        确认归档
+                      </Button>
+                    </AlertDialogAction>
+                  </>
+                }
+              />
             </AlertDialog>
           ) : (
             <Tooltip>

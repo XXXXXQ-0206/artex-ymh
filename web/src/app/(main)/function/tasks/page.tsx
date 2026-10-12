@@ -53,16 +53,48 @@ import {
   AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+  Badge,
+  Button,
+  Checkbox,
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogTrigger,
+  Input,
+  Label,
+  ScrollArea,
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+  Sheet,
+  SheetClose,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+  Spinner,
+  Switch,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+  Textarea,
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/codex-ui/codex/ui";
+
+
 import { Card, CardContent } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
+
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import {
   Combobox,
@@ -75,16 +107,7 @@ import {
   ComboboxList,
   ComboboxValue,
 } from "@/components/ui/combobox";
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
 import {
   Field,
@@ -95,29 +118,20 @@ import {
   FieldLegend,
   FieldSet,
 } from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
+
 import { Item, ItemActions, ItemContent, ItemDescription, ItemGroup, ItemMedia, ItemTitle } from "@/components/ui/item";
-import { Label } from "@/components/ui/label";
+
 import { Progress } from "@/components/ui/progress";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import {
-  Sheet,
-  SheetClose,
-  SheetContent,
-  SheetDescription,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
-import { Spinner } from "@/components/ui/spinner";
-import { Switch } from "@/components/ui/switch";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+
+
+
+
+
+
 import { PageListPortal } from "@/app/(main)/_components/sidebar/page-list";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Textarea } from "@/components/ui/textarea";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+
+
 import { api } from "@/lib/api";
 import { getLocalStorageValue, setLocalStorageValue } from "@/lib/local-storage.client";
 import { type SortDirection, useStoredSortPreference } from "@/lib/sort-preference";
@@ -882,9 +896,9 @@ export default function TasksPage() {
                       onClick={() => void controlSelectedTasks("pause", pausableTaskIDs)}
                     >
                       {batchControlling === "pause" ? (
-                        <Spinner data-icon="inline-start" />
+                        <Spinner />
                       ) : (
-                        <PauseIcon data-icon="inline-start" />
+                        <PauseIcon />
                       )}
                       暂停 {pausableTaskIDs.length}
                     </Button>
@@ -897,9 +911,9 @@ export default function TasksPage() {
                       onClick={() => void controlSelectedTasks("resume", resumableTaskIDs)}
                     >
                       {batchControlling === "resume" ? (
-                        <Spinner data-icon="inline-start" />
+                        <Spinner />
                       ) : (
-                        <PlayIcon data-icon="inline-start" />
+                        <PlayIcon />
                       )}
                       继续 {resumableTaskIDs.length}
                     </Button>
@@ -910,7 +924,7 @@ export default function TasksPage() {
                       onConfirm={archiveSelectedTasks}
                       trigger={
                         <Button size="sm" variant="outline">
-                          <ArchiveIcon data-icon="inline-start" />
+                          <ArchiveIcon />
                           归档 {archivableTaskIDs.length}
                         </Button>
                       }
@@ -1134,13 +1148,23 @@ function ConcurrencySettingsDialog() {
           <SlidersHorizontalIcon /> 并发设置
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>任务并发限制</DialogTitle>
-          <DialogDescription>
-            限制同时运行的任务数量。达到上限后，新任务会按创建顺序排队并在空位出现时自动启动。
-          </DialogDescription>
-        </DialogHeader>
+      <DialogContent
+        className="sm:max-w-md"
+        title="任务并发限制"
+        description="限制同时运行的任务数量。达到上限后，新任务会按创建顺序排队并在空位出现时自动启动。"
+        footer={
+          <>
+            <DialogClose asChild>
+              <Button size="sm" variant="outline">
+                取消
+              </Button>
+            </DialogClose>
+            <Button disabled={loading || saving} size="sm" variant="solid" onClick={save}>
+              {saving && <Loader2Icon className="animate-spin" />} 保存
+            </Button>
+          </>
+        }
+      >
         <div className="grid gap-5 py-2">
           <div className="flex items-center justify-between gap-4">
             <div className="grid gap-1">
@@ -1164,14 +1188,6 @@ function ConcurrencySettingsDialog() {
             </div>
           )}
         </div>
-        <DialogFooter>
-          <DialogClose asChild>
-            <Button variant="outline">取消</Button>
-          </DialogClose>
-          <Button onClick={save} disabled={loading || saving}>
-            {saving && <Loader2Icon className="animate-spin" />} 保存
-          </Button>
-        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
@@ -1284,7 +1300,7 @@ const TaskRow = React.memo(function TaskRow({
       </TableCell>
       <TableCell className="sticky right-0 z-10 bg-card text-right shadow-[-1px_0_0_0_hsl(var(--border))] group-hover:bg-muted/50">
         <div className="flex items-center justify-end gap-0.5">
-          <Button size="icon" variant="ghost" asChild aria-label="查看任务详情" title="查看任务详情">
+          <Button size="md" uniform variant="ghost" asChild aria-label="查看任务详情" title="查看任务详情">
             <Link href={`/function/tasks/detail?id=${encodeURIComponent(task.id)}`}>
               <EyeIcon />
             </Link>
@@ -1346,7 +1362,7 @@ function TaskNameEditor({ task, onRename }: { task: Task; onRename: (task: Task,
           autoFocus
           disabled={saving}
           aria-label={`任务 #${task.id} 名称`}
-          className="h-7 min-w-28 max-w-48 px-2 font-medium"
+          className="min-w-28 max-w-48 px-2 font-medium"
           onFocus={(event) => event.currentTarget.select()}
           onChange={(event) => setName(event.target.value)}
           onBlur={() => void finishEditing()}
@@ -1378,7 +1394,7 @@ function TaskNameEditor({ task, onRename }: { task: Task; onRename: (task: Task,
       <Button
         type="button"
         variant="ghost"
-        size="icon-xs"
+        size="md" uniform
         className="shrink-0 opacity-100 transition-opacity [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-focus-within:opacity-100 [@media(hover:hover)]:group-hover:opacity-100"
         aria-label={`重命名任务 #${task.id}`}
         title="重命名"
@@ -1407,7 +1423,7 @@ function TaskPinAction({ task, onTogglePinned }: { task: Task; onTogglePinned: (
     <Button
       type="button"
       variant="ghost"
-      size="icon"
+      size="md" uniform
       disabled={pinning}
       aria-label={pinned ? `取消置顶任务 #${task.id}` : `置顶任务 #${task.id}`}
       title={pinned ? "取消置顶" : "置顶"}
@@ -1446,7 +1462,7 @@ function TaskControlButton({
   const label = action === "resume" ? "继续任务" : "暂停任务";
   return (
     <Button
-      size="icon"
+      size="md" uniform
       variant="ghost"
       aria-label={label}
       title={action ? label : "该状态不可暂停或继续"}
@@ -1489,33 +1505,43 @@ function ArchiveConfirmDialog({
   return (
     <AlertDialog open={open} onOpenChange={(next) => !pending && setOpen(next)}>
       <AlertDialogTrigger asChild>{trigger}</AlertDialogTrigger>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>{count === 1 ? "归档任务" : `归档 ${count} 个任务`}</AlertDialogTitle>
-          <AlertDialogDescription className="[overflow-wrap:anywhere]">
+      <AlertDialogContent
+        title={count === 1 ? "归档任务" : `归档 ${count} 个任务`}
+        description={
+          <span className="[overflow-wrap:anywhere]">
             归档会停止任务调度，将图谱、LLM 历史、文件以及独占资产和流量压缩到本地冷存储。归档完成后可从“已归档”中还原。
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel disabled={pending}>取消</AlertDialogCancel>
-          <AlertDialogAction
-            disabled={pending}
-            onClick={async (event) => {
-              event.preventDefault();
-              setPending(true);
-              try {
-                await onConfirm();
-                setOpen(false);
-              } finally {
-                setPending(false);
-              }
-            }}
-          >
-            {pending && <Spinner data-icon="inline-start" />}
-            确认归档
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
+          </span>
+        }
+        footer={
+          <>
+            <AlertDialogCancel asChild>
+              <Button disabled={pending} size="sm" variant="ghost">
+                取消
+              </Button>
+            </AlertDialogCancel>
+            <AlertDialogAction asChild>
+              <Button
+                disabled={pending}
+                size="sm"
+                variant="solid"
+                onClick={async (event) => {
+                  event.preventDefault();
+                  setPending(true);
+                  try {
+                    await onConfirm();
+                    setOpen(false);
+                  } finally {
+                    setPending(false);
+                  }
+                }}
+              >
+                {pending && <Spinner size="sm" />}
+                确认归档
+              </Button>
+            </AlertDialogAction>
+          </>
+        }
+      />
     </AlertDialog>
   );
 }
@@ -1523,7 +1549,7 @@ function ArchiveConfirmDialog({
 function TaskArchiveAction({ task, onArchive }: { task: Task; onArchive: (task: Task) => Promise<void> }) {
   const reason = archiveBlockReason(task);
   const trigger = (
-    <Button size="icon" variant="ghost" disabled={Boolean(reason)} aria-label={`归档任务 #${task.id}`}>
+    <Button size="md" uniform variant="ghost" disabled={Boolean(reason)} aria-label={`归档任务 #${task.id}`}>
       <ArchiveIcon />
     </Button>
   );
@@ -1568,11 +1594,11 @@ function archiveStateLabel(state: TaskArchiveState): string {
 }
 
 function ArchiveStateBadge({ state }: { state: TaskArchiveState }) {
-  let variant: "default" | "secondary" | "destructive" | "outline" = "outline";
-  if (state === "ready") variant = "secondary";
-  if (ARCHIVE_PROCESSING_STATES.has(state)) variant = "default";
-  if (ARCHIVE_FAILED_STATES.has(state)) variant = "destructive";
-  return <Badge variant={variant}>{archiveStateLabel(state)}</Badge>;
+  let tone: "neutral" | "muted" | "danger" = "muted";
+  if (state === "ready") tone = "neutral";
+  if (ARCHIVE_PROCESSING_STATES.has(state)) tone = "neutral";
+  if (ARCHIVE_FAILED_STATES.has(state)) tone = "danger";
+  return <Badge tone={tone}>{archiveStateLabel(state)}</Badge>;
 }
 
 function formatArchiveBytes(bytes: number): string {
@@ -1616,34 +1642,44 @@ function ArchiveDeleteDialog({
   return (
     <AlertDialog open={open} onOpenChange={(next) => !pending && setOpen(next)}>
       <AlertDialogTrigger asChild>{trigger}</AlertDialogTrigger>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>永久删除 {archives.length} 个任务归档？</AlertDialogTitle>
-          <AlertDialogDescription className="[overflow-wrap:anywhere]">
+      <AlertDialogContent
+        title={`永久删除 ${archives.length} 个任务归档？`}
+        description={
+          <span className="[overflow-wrap:anywhere]">
             将永久删除约 {formatArchiveBytes(bytes)} 的归档包及 {rows.toLocaleString()} 条关联数据快照。此操作不可恢复。
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel disabled={pending}>取消</AlertDialogCancel>
-          <AlertDialogAction
-            variant="destructive"
-            disabled={pending}
-            onClick={async (event) => {
-              event.preventDefault();
-              setPending(true);
-              try {
-                await onConfirm();
-                setOpen(false);
-              } finally {
-                setPending(false);
-              }
-            }}
-          >
-            {pending && <Spinner data-icon="inline-start" />}
-            永久删除
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
+          </span>
+        }
+        footer={
+          <>
+            <AlertDialogCancel asChild>
+              <Button disabled={pending} size="sm" variant="ghost">
+                取消
+              </Button>
+            </AlertDialogCancel>
+            <AlertDialogAction asChild>
+              <Button
+                color="danger"
+                disabled={pending}
+                size="sm"
+                variant="solid"
+                onClick={async (event) => {
+                  event.preventDefault();
+                  setPending(true);
+                  try {
+                    await onConfirm();
+                    setOpen(false);
+                  } finally {
+                    setPending(false);
+                  }
+                }}
+              >
+                {pending && <Spinner size="sm" />}
+                永久删除
+              </Button>
+            </AlertDialogAction>
+          </>
+        }
+      />
     </AlertDialog>
   );
 }
@@ -1836,7 +1872,7 @@ function TaskArchivesPanel({ onChanged }: { onChanged: () => void }) {
               <span className="text-xs tabular-nums">已选 {selectedArchives.length} 个</span>
               {restorable.length > 0 && (
                 <Button size="sm" variant="outline" onClick={() => void restoreMany(restorable)}>
-                  <Undo2Icon data-icon="inline-start" />
+                  <Undo2Icon />
                   还原 {restorable.length}
                 </Button>
               )}
@@ -1845,8 +1881,8 @@ function TaskArchivesPanel({ onChanged }: { onChanged: () => void }) {
                   archives={deletable}
                   onConfirm={() => deleteMany(deletable)}
                   trigger={
-                    <Button size="sm" variant="destructive">
-                      <Trash2Icon data-icon="inline-start" />
+                    <Button color="danger" size="sm" variant="soft">
+                      <Trash2Icon />
                       永久删除 {deletable.length}
                     </Button>
                   }
@@ -1959,7 +1995,7 @@ function TaskArchivesPanel({ onChanged }: { onChanged: () => void }) {
                       <div className="flex justify-end gap-0.5">
                         {ARCHIVE_FAILED_STATES.has(archive.state) && (
                           <Button
-                            size="icon"
+                            size="md" uniform
                             variant="ghost"
                             onClick={() => void retry(archive)}
                             aria-label="重试归档操作"
@@ -1970,7 +2006,7 @@ function TaskArchivesPanel({ onChanged }: { onChanged: () => void }) {
                         )}
                         {canRestore && (
                           <Button
-                            size="icon"
+                            size="md" uniform
                             variant="ghost"
                             onClick={() => void restoreMany([archive])}
                             aria-label="还原任务"
@@ -1984,7 +2020,7 @@ function TaskArchivesPanel({ onChanged }: { onChanged: () => void }) {
                             archives={[archive]}
                             onConfirm={() => deleteMany([archive])}
                             trigger={
-                              <Button size="icon" variant="ghost" aria-label="永久删除归档" title="永久删除">
+                              <Button size="md" uniform variant="ghost" aria-label="永久删除归档" title="永久删除">
                                 <Trash2Icon />
                               </Button>
                             }
@@ -2170,14 +2206,14 @@ function DeleteTaskDialog({
   return (
     <AlertDialog open={open} onOpenChange={handleOpenChange}>
       <AlertDialogTrigger asChild>
-        <Button size="icon" variant="outline" aria-label="删除任务">
+        <Button size="md" uniform variant="outline" aria-label="删除任务">
           <Trash2Icon className="text-destructive" />
         </Button>
       </AlertDialogTrigger>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>确认删除任务 #{task.id}？</AlertDialogTitle>
-          <AlertDialogDescription className="break-words">
+      <AlertDialogContent
+        title={`确认删除任务 #${task.id}？`}
+        description={
+          <span className="break-words">
             {task.description ? (
               <>
                 「
@@ -2190,24 +2226,33 @@ function DeleteTaskDialog({
               "该任务"
             )}
             的执行记录与探索链路将被永久删除。
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <DeleteOptionFields idPrefix={task.id} options={options} onOptionsChange={setOptions} disabled={deleting} />
-        <AlertDialogFooter>
-          <AlertDialogCancel disabled={deleting}>取消</AlertDialogCancel>
-          <AlertDialogAction
-            variant="destructive"
-            disabled={deleting}
-            onClick={(event) => {
-              event.preventDefault();
-              void handleDelete();
-            }}
-          >
-            {deleting && <Spinner data-icon="inline-start" />}
-            {deleting ? "删除中" : "删除"}
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
+          </span>
+        }
+        footer={
+          <>
+            <AlertDialogCancel asChild>
+              <Button disabled={deleting} size="sm" variant="ghost">
+                取消
+              </Button>
+            </AlertDialogCancel>
+            <AlertDialogAction asChild>
+              <Button
+                color="danger"
+                disabled={deleting}
+                size="sm"
+                variant="solid"
+                onClick={(event) => {
+                  event.preventDefault();
+                  void handleDelete();
+                }}
+              >
+            {deleting && <Spinner size="sm" />}
+                {deleting ? "删除中" : "删除"}
+              </Button>
+            </AlertDialogAction>
+          </>
+        }
+      />
     </AlertDialog>
   );
 }
@@ -2242,14 +2287,33 @@ function MoveTasksCategoryDialog({
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         <Button size="sm" variant="outline">
-          <FolderInputIcon data-icon="inline-start" /> 修改分类
+          <FolderInputIcon /> 修改分类
         </Button>
       </DialogTrigger>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>修改所选 {count} 个任务的分类</DialogTitle>
-          <DialogDescription>目标分类对所选任务统一生效；选「未分类」会把它们移出当前分类。</DialogDescription>
-        </DialogHeader>
+      <DialogContent
+        title={`修改所选 ${count} 个任务的分类`}
+        description="目标分类对所选任务统一生效；选「未分类」会把它们移出当前分类。"
+        footer={
+          <>
+            <DialogClose asChild>
+              <Button disabled={moving} size="sm" variant="outline">
+                取消
+              </Button>
+            </DialogClose>
+            <Button
+              disabled={moving}
+              size="sm"
+              variant="solid"
+              onClick={() => {
+                void onMove(target === UNCATEGORIZED_VALUE ? undefined : Number(target)).then(() => setOpen(false));
+              }}
+            >
+              {moving && <Spinner size="sm" />}
+              移动
+            </Button>
+          </>
+        }
+      >
         <Field>
           <FieldLabel htmlFor="bulk-category">目标分类</FieldLabel>
           <Select value={target} onValueChange={setTarget} disabled={moving}>
@@ -2269,22 +2333,6 @@ function MoveTasksCategoryDialog({
           </Select>
           {categories.length === 0 && <FieldDescription>还没有任何分类，先用「分类管理」创建一个。</FieldDescription>}
         </Field>
-        <DialogFooter>
-          <DialogClose asChild>
-            <Button variant="outline" disabled={moving}>
-              取消
-            </Button>
-          </DialogClose>
-          <Button
-            disabled={moving}
-            onClick={() => {
-              void onMove(target === UNCATEGORIZED_VALUE ? undefined : Number(target)).then(() => setOpen(false));
-            }}
-          >
-            {moving && <Spinner data-icon="inline-start" />}
-            移动
-          </Button>
-        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
@@ -2329,13 +2377,35 @@ function BulkDeleteTasksDialog({
           <Trash2Icon className="text-destructive" /> 删除所选 {ids.length}
         </Button>
       </AlertDialogTrigger>
-      <AlertDialogContent className="max-h-[85vh] overflow-y-auto">
-        <AlertDialogHeader>
-          <AlertDialogTitle>确认删除所选 {ids.length} 个任务？</AlertDialogTitle>
-          <AlertDialogDescription>
-            这些任务的执行记录与探索链路将被永久删除，下方清理选项对所选任务统一生效。
-          </AlertDialogDescription>
-        </AlertDialogHeader>
+      <AlertDialogContent
+        className="max-h-[85vh] overflow-y-auto"
+        title={`确认删除所选 ${ids.length} 个任务？`}
+        description="这些任务的执行记录与探索链路将被永久删除，下方清理选项对所选任务统一生效。"
+        footer={
+          <>
+            <AlertDialogCancel asChild>
+              <Button disabled={deleting} size="sm" variant="ghost">
+                取消
+              </Button>
+            </AlertDialogCancel>
+            <AlertDialogAction asChild>
+              <Button
+                color="danger"
+                disabled={deleting}
+                size="sm"
+                variant="solid"
+                onClick={(event) => {
+                  event.preventDefault();
+                  void handleDelete();
+                }}
+              >
+                {deleting && <Spinner size="sm" />}
+                {deleting ? `删除中 ${done}/${ids.length}` : `删除 ${ids.length} 个任务`}
+              </Button>
+            </AlertDialogAction>
+          </>
+        }
+      >
         <div className="text-muted-foreground flex flex-wrap gap-1 text-xs">
           {ids.slice(0, 30).map((id) => (
             <code key={id} className="bg-muted rounded px-1.5 py-0.5 font-mono">
@@ -2345,20 +2415,6 @@ function BulkDeleteTasksDialog({
           {ids.length > 30 && <span className="self-center">…等 {ids.length} 个</span>}
         </div>
         <DeleteOptionFields idPrefix="bulk" options={options} onOptionsChange={setOptions} disabled={deleting} />
-        <AlertDialogFooter>
-          <AlertDialogCancel disabled={deleting}>取消</AlertDialogCancel>
-          <AlertDialogAction
-            variant="destructive"
-            disabled={deleting}
-            onClick={(event) => {
-              event.preventDefault();
-              void handleDelete();
-            }}
-          >
-            {deleting && <Spinner data-icon="inline-start" />}
-            {deleting ? `删除中 ${done}/${ids.length}` : `删除 ${ids.length} 个任务`}
-          </AlertDialogAction>
-        </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
   );
@@ -2693,7 +2749,7 @@ function DraggableCategoryTask({ task, disabled, moving }: { task: Task; disable
         ) : (
           <Button
             type="button"
-            size="icon-xs"
+            size="md" uniform
             variant="ghost"
             className="touch-none cursor-grab active:cursor-grabbing"
             disabled={disabled}
@@ -2900,7 +2956,7 @@ function CategoryManagementSheet({
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetTrigger asChild>
           <Button size="sm" variant="outline">
-            <TagsIcon data-icon="inline-start" />
+            <TagsIcon />
             分类管理
           </Button>
         </SheetTrigger>
@@ -2918,7 +2974,7 @@ function CategoryManagementSheet({
             <div className="grid min-h-0 overflow-y-auto lg:grid-cols-[15rem_minmax(0,1fr)] lg:overflow-hidden">
               <div className="flex min-h-0 flex-col border-b p-3 lg:border-r lg:border-b-0">
                 <Button type="button" variant="outline" className="w-full" onClick={startNew}>
-                  <PlusIcon data-icon="inline-start" />
+                  <PlusIcon />
                   新建分类
                 </Button>
                 <ScrollArea className="mt-2 max-h-44 lg:max-h-none lg:flex-1">
@@ -3008,13 +3064,14 @@ function CategoryManagementSheet({
           <SheetFooter className="border-t px-6 py-4 sm:flex-row sm:items-center">
             {selectedCategory && (
               <Button
-                type="button"
-                variant="destructive"
                 className="sm:mr-auto"
+                color="danger"
                 disabled={saving || deleting}
+                size="sm"
+                variant="soft"
                 onClick={() => setDeleteOpen(true)}
               >
-                <Trash2Icon data-icon="inline-start" />
+                <Trash2Icon />
                 删除分类
               </Button>
             )}
@@ -3027,7 +3084,7 @@ function CategoryManagementSheet({
                 disabled={!draftName.trim() || saving || deleting}
                 onClick={() => void saveCategory()}
               >
-                {saving ? <Spinner data-icon="inline-start" /> : <SaveIcon data-icon="inline-start" />}
+                {saving ? <Spinner /> : <SaveIcon />}
                 {saveLabel}
               </Button>
             )}
@@ -3035,28 +3092,34 @@ function CategoryManagementSheet({
         </SheetContent>
       </Sheet>
       <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>删除分类「{selectedCategory?.name || "未命名分类"}」？</AlertDialogTitle>
-            <AlertDialogDescription>
-              分类删除后，其中 {selectedCategory?.task_count ?? 0} 个任务会自动移入“未分类”，任务数据不会被删除。
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={deleting}>取消</AlertDialogCancel>
-            <AlertDialogAction
-              variant="destructive"
-              disabled={deleting}
-              onClick={(event) => {
-                event.preventDefault();
-                void deleteCategory();
-              }}
-            >
-              {deleting && <Spinner data-icon="inline-start" />}
-              {deleting ? "删除中" : "删除"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
+        <AlertDialogContent
+          title={`删除分类「${selectedCategory?.name || "未命名分类"}」？`}
+          description={`分类删除后，其中 ${selectedCategory?.task_count ?? 0} 个任务会自动移入“未分类”，任务数据不会被删除。`}
+          footer={
+            <>
+              <AlertDialogCancel asChild>
+                <Button disabled={deleting} size="sm" variant="ghost">
+                  取消
+                </Button>
+              </AlertDialogCancel>
+              <AlertDialogAction asChild>
+                <Button
+                  color="danger"
+                  disabled={deleting}
+                  size="sm"
+                  variant="solid"
+                  onClick={(event) => {
+                    event.preventDefault();
+                    void deleteCategory();
+                  }}
+                >
+                  {deleting && <Spinner size="sm" />}
+                  {deleting ? "删除中" : "删除"}
+                </Button>
+              </AlertDialogAction>
+            </>
+          }
+        />
       </AlertDialog>
     </>
   );
@@ -3396,7 +3459,7 @@ function CreateTaskSheet({
             <Button variant="outline">取消</Button>
           </SheetClose>
           <Button onClick={createTask} disabled={creating || uploading}>
-            {creating && <Spinner data-icon="inline-start" />}
+            {creating && <Spinner />}
             {creating ? "创建中" : "创建"}
           </Button>
         </SheetFooter>

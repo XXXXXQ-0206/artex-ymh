@@ -24,12 +24,15 @@ import {
   WifiOffIcon,
   XIcon,
   ZapOffIcon,
-} from "lucide-react";
+  } from "lucide-react";
 import { toast } from "sonner";
 
-import { ApprovalExecutionFocus, useApprovalFocus, useApprovalHistory } from "@/components/approval-execution-focus";
+import { ApprovalExecutionFocus,
+  useApprovalFocus,
+  useApprovalHistory } from "@/components/approval-execution-focus";
 import { MentionTextarea } from "@/components/mention-textarea";
-import { SideQuestionButton, SideQuestionWorkspace } from "@/components/side-question-workspace";
+import { SideQuestionButton,
+  SideQuestionWorkspace } from "@/components/side-question-workspace";
 import { TodoPopover } from "@/components/todo-popover";
 import { Transcript } from "@/components/transcript";
 import {
@@ -37,18 +40,23 @@ import {
   AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+  Badge,
+  Button,
+  ScrollArea,
+  Spinner,
+  Textarea,
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/codex-ui/codex/ui";
+
+
 import { InputGroup, InputGroupAddon, InputGroupButton } from "@/components/ui/input-group";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Spinner } from "@/components/ui/spinner";
-import { Textarea } from "@/components/ui/textarea";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+
+
+
+
 import { useSideQuestions } from "@/hooks/use-side-questions";
 import { api, sseUrl } from "@/lib/api";
 import { shouldSubmitOnKey, useChatSendMode } from "@/lib/chat-send-mode";
@@ -213,7 +221,7 @@ const TokenMetrics = React.forwardRef<
       {values.map((value, index) => (
         <React.Fragment key={names[index]}>
           <span>{names[index]}</span>
-          <Badge variant="secondary" className="h-5 px-1.5 font-mono tabular-nums">
+          <Badge className="h-5 px-1.5 font-mono tabular-nums">
             {fmtTokens(value)}
           </Badge>
         </React.Fragment>
@@ -390,7 +398,7 @@ function SessionItem({
           </span>
         )}
         {s.inherited && s.source_task_id && (
-          <Badge variant="outline" className="shrink-0">
+          <Badge className="shrink-0">
             来源 #{s.source_task_id}
           </Badge>
         )}
@@ -400,7 +408,7 @@ function SessionItem({
           {displayTitle}
         </span>
         {deleted && (
-          <Badge variant="outline" className="shrink-0 border-destructive/40 text-destructive">
+          <Badge className="shrink-0 border-destructive/40 text-destructive">
             已删除
           </Badge>
         )}
@@ -422,7 +430,7 @@ function SessionItem({
           <Button
             type="button"
             variant="ghost"
-            size="icon-xs"
+            size="md" uniform
             onClick={onCancel}
             disabled={controlling}
             title="删除该意图（需填写原因，可选假删除/真删除）"
@@ -455,7 +463,7 @@ function WorkerAssetBadge({ assets }: { assets: IntentAsset[] }) {
   return (
     <Tooltip>
       <TooltipTrigger asChild>
-        <Badge variant="outline" className="max-w-60 shrink-0 font-normal" title={firstRawLabel}>
+        <Badge className="max-w-60 shrink-0 font-normal" title={firstRawLabel}>
           <span className="truncate">当前资产：{firstLabel}</span>
           {displayAssets.length > 1 && <span className="shrink-0 tabular-nums">+{displayAssets.length - 1}</span>}
         </Badge>
@@ -1783,7 +1791,6 @@ export function SessionsTab({ taskId }: { taskId: string }) {
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Badge
-                      variant="outline"
                       className="max-w-28 shrink-0 font-normal"
                       aria-label={
                         activeResolution.available ? `当前配置：${resolutionLabel(activeResolution)}` : "模型不可用"
@@ -1803,7 +1810,7 @@ export function SessionsTab({ taskId }: { taskId: string }) {
               )}
               {activeAssets && activeAssets.length > 0 && <WorkerAssetBadge assets={activeAssets} />}
               {active.inherited && active.source_task_id && (
-                <Badge variant="outline">来源任务 #{active.source_task_id} · 只读历史</Badge>
+                <Badge>来源任务 #{active.source_task_id} · 只读历史</Badge>
               )}
               {active.live && (
                 <span className="inline-flex items-center gap-1 rounded bg-blue-500/15 px-1.5 py-0.5 text-[10px] font-medium text-blue-600 dark:text-blue-400">
@@ -1907,10 +1914,10 @@ export function SessionsTab({ taskId }: { taskId: string }) {
                   <div className="flex items-center gap-2 pl-9 text-xs text-red-500">
                     <CircleXIcon className="size-3.5" />
                     加载失败：{activeState.error}
-                    <Button
-                      size="sm"
+                    <Button uniform
+                      size="xs"
                       variant="ghost"
-                      className="h-6 px-2 text-xs"
+                      className="px-2 text-xs"
                       onClick={() => loadSession(activeKey)}
                     >
                       重试
@@ -2135,24 +2142,45 @@ export function SessionsTab({ taskId }: { taskId: string }) {
             }
           }}
         >
-          <AlertDialogContent className="max-w-[min(32rem,calc(100vw-2rem))]">
-            <AlertDialogHeader>
-              <AlertDialogTitle>删除 Worker #{cancelIntent?.intent_id}？</AlertDialogTitle>
-              <AlertDialogDescription className="break-words whitespace-normal">
-                {deleteMode === "hard" ? (
-                  <>
-                    <strong>真删除</strong>会物理移除该意图，以及<strong>仅由它支撑</strong>
-                    的下游节点（级联到叶子，避免留下孤立数据）；共享节点、目标和任务根事实会保留。
-                    <strong>此操作不可恢复。</strong>规划者会收到删除通知并据此重新规划。
-                  </>
-                ) : (
-                  <>
-                    <strong>假删除</strong>会把该意图置为「已删除」并记录删除原因，意图节点、执行记录、
-                    已登记的事实和漏洞<strong>都会保留</strong>。规划者会收到「该意图由用户删除 + 原因」并据此重新规划。
-                  </>
-                )}
-              </AlertDialogDescription>
-            </AlertDialogHeader>
+          <AlertDialogContent
+            className="max-w-[min(32rem,calc(100vw-2rem))]"
+            title={`删除 Worker #${cancelIntent?.intent_id}？`}
+            footer={
+              <>
+                <AlertDialogCancel asChild>
+                  <Button size="sm" variant="ghost">
+                    返回
+                  </Button>
+                </AlertDialogCancel>
+                <AlertDialogAction asChild>
+                  <Button
+                    color="danger"
+                    disabled={!cancelIntent || controllingIntent !== null || !cancelReason.trim()}
+                    size="sm"
+                    variant="solid"
+                    onClick={() => cancelIntent && void controlWorker(cancelIntent, "cancel", cancelReason, deleteMode)}
+                  >
+                    {controllingIntent ? <Loader2Icon className="animate-spin" /> : <Trash2Icon />}
+                    {deleteMode === "hard" ? "彻底删除" : "确认删除"}
+                  </Button>
+                </AlertDialogAction>
+              </>
+            }
+          >
+            <p className="break-words whitespace-normal">
+              {deleteMode === "hard" ? (
+                <>
+                  <strong>真删除</strong>会物理移除该意图，以及<strong>仅由它支撑</strong>
+                  的下游节点（级联到叶子，避免留下孤立数据）；共享节点、目标和任务根事实会保留。
+                  <strong>此操作不可恢复。</strong>规划者会收到删除通知并据此重新规划。
+                </>
+              ) : (
+                <>
+                  <strong>假删除</strong>会把该意图置为「已删除」并记录删除原因，意图节点、执行记录、
+                  已登记的事实和漏洞<strong>都会保留</strong>。规划者会收到「该意图由用户删除 + 原因」并据此重新规划。
+                </>
+              )}
+            </p>
             <div className="grid gap-3 py-1">
               <div className="grid grid-cols-2 gap-2">
                 <button
@@ -2192,35 +2220,29 @@ export function SessionsTab({ taskId }: { taskId: string }) {
                 />
               </div>
             </div>
-            <AlertDialogFooter>
-              <AlertDialogCancel>返回</AlertDialogCancel>
-              <AlertDialogAction
-                variant="destructive"
-                disabled={!cancelIntent || controllingIntent !== null || !cancelReason.trim()}
-                onClick={() => cancelIntent && void controlWorker(cancelIntent, "cancel", cancelReason, deleteMode)}
-              >
-                {controllingIntent ? <Loader2Icon className="animate-spin" /> : <Trash2Icon />}
-                {deleteMode === "hard" ? "彻底删除" : "确认删除"}
-              </AlertDialogAction>
-            </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
 
         <AlertDialog open={confirmNewMain} onOpenChange={(open) => !open && setConfirmNewMain(false)}>
-          <AlertDialogContent className="max-w-[min(32rem,calc(100vw-2rem))]">
-            <AlertDialogHeader>
-              <AlertDialogTitle>开启新会话？</AlertDialogTitle>
-              <AlertDialogDescription className="break-words whitespace-normal">
-                当前会话会被归档（可随时切回），主 Agent 将以干净的上下文继续。任务的图谱、资产、目标不受影响。
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel disabled={creatingMain}>取消</AlertDialogCancel>
-              <AlertDialogAction disabled={creatingMain} onClick={() => void createMainSession()}>
-                {creatingMain ? "开启中…" : "开启新会话"}
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
+          <AlertDialogContent
+            className="max-w-[min(32rem,calc(100vw-2rem))]"
+            title="开启新会话？"
+            description="当前会话会被归档（可随时切回），主 Agent 将以干净的上下文继续。任务的图谱、资产、目标不受影响。"
+            footer={
+              <>
+                <AlertDialogCancel asChild>
+                  <Button disabled={creatingMain} size="sm" variant="ghost">
+                    取消
+                  </Button>
+                </AlertDialogCancel>
+                <AlertDialogAction asChild>
+                  <Button disabled={creatingMain} size="sm" variant="solid" onClick={() => void createMainSession()}>
+                    {creatingMain ? "开启中…" : "开启新会话"}
+                  </Button>
+                </AlertDialogAction>
+              </>
+            }
+          />
         </AlertDialog>
       </div>
     </TooltipProvider>

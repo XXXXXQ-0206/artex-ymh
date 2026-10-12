@@ -14,16 +14,19 @@ import {
   Waypoints,
 } from "lucide-react";
 
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import {
+  Badge,
+  Button,
+  ScrollArea,
   Sheet,
   SheetContent,
   SheetHeader,
   SheetTitle,
-} from "@/components/ui/sheet";
+} from "@/codex-ui/codex/ui";
+
+import { Card, CardContent } from "@/components/ui/card";
+
+
 import { api } from "@/lib/api";
 import type { CoverageAssetRef, CoverageAssetRefs, CoverageGraphEdge, CoverageGraphNode } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -283,7 +286,7 @@ function RefList({ title, items }: { title: string; items: CoverageAssetRef[] })
             {r.state && <span className="shrink-0 text-muted-foreground">{r.state}</span>}
             <span className="min-w-32 flex-1 break-words text-foreground">{r.summary || "—"}</span>
             {r.inherited && r.source_task_id && (
-              <Badge variant="outline" className="shrink-0">
+              <Badge className="shrink-0">
                 来源 #{r.source_task_id} · 只读
               </Badge>
             )}
@@ -656,7 +659,7 @@ function GraphInner({ taskId, coverageEnabled = true }: { taskId: string; covera
           ) : (
             <span className="text-muted-foreground">{loading ? "加载中…" : "暂无范围内资产（先锚定任务范围）"}</span>
           )}
-          <Button variant="ghost" size="icon" className="size-6" onClick={fetchGraph} title="刷新">
+          <Button variant="ghost" size="md" uniform className="" onClick={fetchGraph} title="刷新">
             <RefreshCw className={cn("size-3.5", loading && "animate-spin")} />
           </Button>
         </div>

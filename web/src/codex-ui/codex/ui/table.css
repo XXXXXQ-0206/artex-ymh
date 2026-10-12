@@ -1,0 +1,111 @@
+/* ============================================================================
+ * Table —— 官方 **没有** 数据表格组件（壳 src/ui/** 无此件；官方 CSS 里也没有
+ *   _Table_ 之类的 CSS module）。官方**唯一的表格实现**是 markdown 表格：
+ *   web/src/codex-ui/styles/markdown.css 的 ._TableContainer_176oq_2 / ._Table_176oq_2 /
+ *   ._TableScroller_176oq_2 / ._TableStickyHeader_176oq_2 / ._TableHeaderCell_176oq_2 /
+ *   ._TableCell_176oq_2 / ._TableRow_176oq_2（官方原文，逐字 vendored）。
+ *   另有 composer 内联表格同族：misc-components.css:270-277。
+ *
+ * 本文件 = 把上面那些规则**逐条直译**到本仓 token 上（token 出处标注在每条旁），
+ *   不新增任何魔法数值。对应关系：
+ *     official --markdown-space      = calc(--markdown-font-size / 4)
+ *                                    = calc(--font-text-md-size / 4) = 16px/4 = 4px
+ *     official --text-primary        = currentColor  → --color-text
+ *     official --border-medium       = --color-border-strong（markdown.css:62 原文映射）
+ *     official --border-light        = --color-border-subtle（同上）
+ *     official _Table_ height         = --control-size-lg（2.25rem = 36px）
+ *     official _Table_               = font-variant-numeric: tabular-nums
+ *     official _TableStickyHeader_   = background --color-surface; position sticky top 0
+ *   + 两个官方 token 的通用态：行 hover = --color-background-primary-ghost-hover、
+ *     行 selected = --color-background-primary-soft-alpha（与官方菜单/列表选中同一族 token）。
+ * ========================================================================== */
+
+.cx-table-container {
+  --cx-table-space: calc(var(--markdown-space, calc(var(--font-text-md-size) / 4)));
+  position: relative;
+  width: 100%;
+  min-width: 100%;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.cx-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  table-layout: auto;
+  text-align: start;
+  font-variant-numeric: tabular-nums;
+  font-size: var(--font-text-sm-size);
+  line-height: var(--font-text-sm-line-height);
+  color: var(--color-text);
+  caption-side: bottom;
+}
+
+.cx-table[data-sticky-header="true"] .cx-table__head {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--color-surface);
+}
+
+.cx-table__header-cell {
+  height: var(--control-size-lg);
+  border-bottom: 1px solid var(--color-border-strong);
+  padding-block: calc(var(--cx-table-space) * 2);
+  padding-inline-end: calc(var(--cx-table-space) * 6);
+  color: var(--color-text);
+  font-size: var(--font-text-sm-size);
+  font-weight: var(--font-weight-semibold);
+  line-height: calc(var(--cx-table-space) * 4);
+  text-align: start;
+  vertical-align: top;
+  white-space: normal;
+}
+
+.cx-table__header-cell:last-child {
+  padding-inline-end: calc(var(--cx-table-space) * 10);
+}
+
+.cx-table__cell {
+  max-height: var(--control-size-lg);
+  padding-block: calc(var(--cx-table-space) * 2.5);
+  padding-inline-end: calc(var(--cx-table-space) * 6);
+  text-align: start;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.cx-table__cell:last-child {
+  padding-inline-end: 0;
+}
+
+.cx-table__row:not(:last-child) .cx-table__cell {
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.cx-table__row[data-interactive="true"] {
+  transition-duration: var(--transition-duration-basic);
+  transition-property: background-color;
+  transition-timing-function: var(--transition-ease-basic);
+}
+
+.cx-table__row[data-interactive="true"]:hover {
+  background-color: var(--color-background-primary-ghost-hover);
+}
+
+.cx-table__row[data-selected="true"] {
+  background-color: var(--color-background-primary-soft-alpha);
+}
+
+.cx-table__footer {
+  border-top: 1px solid var(--color-border-strong);
+  font-weight: var(--font-weight-medium);
+}
+
+.cx-table__caption {
+  margin-top: calc(var(--spacing) * 4);
+  color: var(--color-text-secondary);
+  font-size: var(--font-text-sm-size);
+  line-height: var(--font-text-sm-line-height);
+}

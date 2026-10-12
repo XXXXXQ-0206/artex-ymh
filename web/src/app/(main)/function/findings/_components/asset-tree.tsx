@@ -16,9 +16,12 @@ import {
   SmartphoneIcon,
 } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
+import {
+  Button,
+  ScrollArea,
+} from "@/codex-ui/codex/ui";
 import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group";
-import { ScrollArea } from "@/components/ui/scroll-area";
+
 import type { FindingAssetKind, FindingAssetNode } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -274,9 +277,9 @@ export function AssetTree({
         </InputGroup>
         {onRefresh && (
           <Button
-            size="icon"
+            size="md" uniform
             variant="ghost"
-            className="size-8 shrink-0 text-muted-foreground"
+            className="shrink-0 text-muted-foreground"
             onClick={onRefresh}
             disabled={loading}
             aria-label="刷新资产树"

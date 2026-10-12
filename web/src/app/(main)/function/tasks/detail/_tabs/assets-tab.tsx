@@ -14,7 +14,7 @@ import {
   PlusIcon,
   SmartphoneIcon,
   Trash2Icon,
-} from "lucide-react";
+  } from "lucide-react";
 import { toast } from "sonner";
 
 import { AssetDslSearch } from "@/components/asset-dsl-search";
@@ -24,20 +24,40 @@ import {
   AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+  Badge,
+  Button,
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+  Spinner,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/codex-ui/codex/ui";
+
+
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { Spinner } from "@/components/ui/spinner";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+
+
+
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+
 import { api } from "@/lib/api";
 import { parseCompanyScopeText } from "@/lib/company-scope";
 import { taskAssetSourceLabel } from "@/lib/task-assets";
@@ -123,7 +143,7 @@ function Chips({ items, mono }: { items: string[]; mono?: boolean }) {
   return (
     <div className="flex flex-wrap gap-1">
       {clean.map((item) => (
-        <Badge key={item} variant="outline" className={cn(mono && "font-mono")}>
+        <Badge key={item} className={cn(mono && "font-mono")}>
           {item}
         </Badge>
       ))}
@@ -137,7 +157,7 @@ function SourceCell({ asset }: { asset: Asset }) {
   return (
     <Tooltip>
       <TooltipTrigger asChild>
-        <Badge variant="outline" className="max-w-28 shrink-0 font-normal">
+        <Badge className="max-w-28 shrink-0 font-normal">
           <span className="truncate">{taskAssetSourceLabel(source)}</span>
         </Badge>
       </TooltipTrigger>
@@ -220,7 +240,7 @@ function AssetCard({
               onPage(0);
             }}
           >
-            <SelectTrigger size="sm" className="w-24">
+            <SelectTrigger className="w-24">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -240,7 +260,7 @@ function AssetCard({
             <div className="ml-auto flex items-center gap-2">
               <Button
                 variant="outline"
-                size="icon-sm"
+                size="md" uniform
                 disabled={page <= 0}
                 onClick={() => onPage(Math.max(0, page - 1))}
                 aria-label="上一页"
@@ -252,7 +272,7 @@ function AssetCard({
               </span>
               <Button
                 variant="outline"
-                size="icon-sm"
+                size="md" uniform
                 disabled={page + 1 >= pageCount}
                 onClick={() => onPage(Math.min(pageCount - 1, page + 1))}
                 aria-label="下一页"
@@ -330,7 +350,7 @@ function AddTaskAssetsSheet({
             onClick={() => void attach()}
             disabled={saving || parsedScope.rules.length === 0 || parsedScope.errors.length > 0}
           >
-            {saving ? <Spinner data-icon="inline-start" /> : <PlusIcon data-icon="inline-start" />}
+            {saving ? <Spinner /> : <PlusIcon />}
             登记 {parsedScope.rules.length > 0 ? parsedScope.rules.length : ""} 条
           </Button>
         </SheetFooter>
@@ -451,7 +471,7 @@ export function AssetsTab({ taskId }: { taskId: string }) {
   const removeButton = (asset: Asset) => (
     <Button
       variant="ghost"
-      size="icon-sm"
+      size="md" uniform
       onClick={() => setRemoveTarget(asset)}
       aria-label={`将资产 ${assetLabel(asset)} 移出任务`}
       title="移出任务"
@@ -481,7 +501,7 @@ export function AssetsTab({ taskId }: { taskId: string }) {
           <p className="text-muted-foreground text-xs">当前任务共关联 {totalAll} 项资产</p>
         </div>
         <Button size="sm" onClick={() => setAddOpen(true)}>
-          <PlusIcon data-icon="inline-start" />
+          <PlusIcon />
           新增测试资产
         </Button>
       </div>
@@ -495,7 +515,7 @@ export function AssetsTab({ taskId }: { taskId: string }) {
           <TabsList className="w-max">
             {TABS.map((item) => (
               <TabsTrigger key={item.key} value={item.key}>
-                <item.icon data-icon="inline-start" />
+                <item.icon />
                 {item.label}
                 <span className="text-muted-foreground tabular-nums">{counts[item.key] ?? 0}</span>
               </TabsTrigger>
@@ -678,29 +698,39 @@ export function AssetsTab({ taskId }: { taskId: string }) {
       <AddTaskAssetsSheet onAttached={refresh} onOpenChange={setAddOpen} open={addOpen} taskId={taskId} />
 
       <AlertDialog open={Boolean(removeTarget)} onOpenChange={(open) => !open && !removing && setRemoveTarget(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>移出当前任务？</AlertDialogTitle>
-            <AlertDialogDescription className="[overflow-wrap:anywhere]">
+        <AlertDialogContent
+          title="移出当前任务？"
+          description={
+            <span className="[overflow-wrap:anywhere]">
               {removeTarget ? `将“${assetLabel(removeTarget)}”从当前任务的测试资产中移出。` : ""}
               全局资产、关联流量和历史黑板锚点会继续保留。
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={removing}>取消</AlertDialogCancel>
-            <AlertDialogAction
-              variant="destructive"
-              disabled={removing}
-              onClick={(event) => {
-                event.preventDefault();
-                void remove();
-              }}
-            >
-              {removing ? <Spinner data-icon="inline-start" /> : <Trash2Icon data-icon="inline-start" />}
-              {removing ? "移出中" : "确认移出"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
+            </span>
+          }
+          footer={
+            <>
+              <AlertDialogCancel asChild>
+                <Button disabled={removing} size="sm" variant="ghost">
+                  取消
+                </Button>
+              </AlertDialogCancel>
+              <AlertDialogAction asChild>
+                <Button
+                  color="danger"
+                  disabled={removing}
+                  size="sm"
+                  variant="solid"
+                  onClick={(event) => {
+                    event.preventDefault();
+                    void remove();
+                  }}
+                >
+                  {removing ? <Spinner size="sm" /> : <Trash2Icon />}
+                  {removing ? "移出中" : "确认移出"}
+                </Button>
+              </AlertDialogAction>
+            </>
+          }
+        />
       </AlertDialog>
     </div>
   );

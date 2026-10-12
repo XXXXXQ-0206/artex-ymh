@@ -20,23 +20,29 @@ import { toast } from "sonner";
 import { FindingRetestDialog } from "@/components/finding-retest-dialog";
 import { StatusBadge } from "@/components/status-badge";
 import { TablePagination } from "@/components/table-pagination";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
+  Button,
   Dialog,
   DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  RadioGroup,
+  RadioItem,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+  Spinner,
+  Textarea,
+} from "@/codex-ui/codex/ui";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+
 import { Field, FieldDescription, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Spinner } from "@/components/ui/spinner";
+
+
+
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Textarea } from "@/components/ui/textarea";
+
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { api } from "@/lib/api";
 import { getLocalStorageValue, setLocalStorageValue } from "@/lib/local-storage.client";
@@ -903,7 +909,7 @@ export default function FindingsPage() {
           </ToggleGroup>
 
           <Select value={status} onValueChange={(v) => setStatus(v as "all" | FindingStatus)}>
-            <SelectTrigger size="sm" className="w-32">
+            <SelectTrigger className="w-32">
               <SelectValue placeholder="状态" />
             </SelectTrigger>
             <SelectContent>
@@ -917,7 +923,7 @@ export default function FindingsPage() {
           </Select>
 
           <Select value={vulnclass} onValueChange={setVulnclass}>
-            <SelectTrigger size="sm" className="w-40">
+            <SelectTrigger className="w-40">
               <SelectValue placeholder="漏洞类型" />
             </SelectTrigger>
             <SelectContent>
@@ -931,7 +937,7 @@ export default function FindingsPage() {
           </Select>
 
           <Select value={task} onValueChange={setTask}>
-            <SelectTrigger size="sm" className="w-48">
+            <SelectTrigger className="w-48">
               <SelectValue placeholder="任务" />
             </SelectTrigger>
             <SelectContent>
@@ -958,7 +964,7 @@ export default function FindingsPage() {
           </Select>
 
           <Select value={sort} onValueChange={(v) => setSort(v as "severity" | "time")}>
-            <SelectTrigger size="sm" className="w-36">
+            <SelectTrigger className="w-36">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -1091,7 +1097,7 @@ export default function FindingsPage() {
                           {fmtTime(group.last_found_at)}
                         </span>
                         {group.task_id !== null && (
-                          <Button size="icon-sm" variant="ghost" asChild>
+                          <Button size="md" uniform variant="ghost" asChild>
                             <Link
                               href={`/function/tasks/detail?id=${group.task_id}`}
                               aria-label={`查看任务 #${group.task_id}`}
@@ -1175,14 +1181,39 @@ export default function FindingsPage() {
           setDeepenDescription("");
         }}
       >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>深入利用漏洞</DialogTitle>
-            <DialogDescription className="break-words">
+        <DialogContent
+          title="深入利用漏洞"
+          description={
+            <>
               将在原任务 #{deepenFinding?.task_id} 中创建优先级 10 的 Worker 意图，基于当前漏洞开展二次验证：
               {deepenFinding?.name || deepenFinding?.vulnclass || deepenFinding?.summary}
-            </DialogDescription>
-          </DialogHeader>
+            </>
+          }
+          footer={
+            <>
+              <Button
+                disabled={deepening}
+                size="sm"
+                variant="outline"
+                onClick={() => {
+                  setDeepenFinding(null);
+                  setDeepenDescription("");
+                }}
+              >
+                取消
+              </Button>
+              <Button
+                disabled={deepening || !deepenDescription.trim()}
+                size="sm"
+                variant="solid"
+                onClick={submitDeepen}
+              >
+                {deepening && <Spinner size="sm" />}
+                创建深入意图
+              </Button>
+            </>
+          }
+        >
           <FieldGroup>
             <Field>
               <FieldLabel htmlFor="finding-deepen-description">利用描述</FieldLabel>
@@ -1200,80 +1231,69 @@ export default function FindingsPage() {
               </FieldDescription>
             </Field>
           </FieldGroup>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => {
-                setDeepenFinding(null);
-                setDeepenDescription("");
-              }}
-              disabled={deepening}
-            >
-              取消
-            </Button>
-            <Button onClick={submitDeepen} disabled={deepening || !deepenDescription.trim()}>
-              {deepening && <Spinner data-icon="inline-start" />}
-              创建深入意图
-            </Button>
-          </DialogFooter>
         </DialogContent>
       </Dialog>
 
       <Dialog open={exportOpen} onOpenChange={setExportOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>导出发现</DialogTitle>
-            <DialogDescription>选择导出范围与格式,生成后浏览器会自动下载。</DialogDescription>
-          </DialogHeader>
+        <DialogContent
+          title="导出发现"
+          description="选择导出范围与格式,生成后浏览器会自动下载。"
+          footer={
+            <>
+              <Button disabled={exporting} size="sm" variant="outline" onClick={() => setExportOpen(false)}>
+                取消
+              </Button>
+              <Button
+                disabled={exporting || (exportScope === "selected" && selectedIds.size === 0)}
+                size="sm"
+                variant="solid"
+                onClick={doExport}
+              >
+                <DownloadIcon /> {exporting ? "导出中…" : "导出"}
+              </Button>
+            </>
+          }
+        >
 
           <div className="flex flex-col gap-5 py-1">
             <div className="flex flex-col gap-2">
               <span className="text-xs text-muted-foreground">导出范围</span>
               <RadioGroup value={exportScope} onValueChange={(v) => setExportScope(v as typeof exportScope)}>
-                <label htmlFor="export-scope-filtered" className="flex items-center gap-2 text-sm">
-                  <RadioGroupItem id="export-scope-filtered" value="filtered" /> 导出当前筛选结果（共 {filteredTotal}{" "}
-                  条）
-                </label>
-                <label htmlFor="export-scope-all" className="flex items-center gap-2 text-sm">
-                  <RadioGroupItem id="export-scope-all" value="all" /> 导出全部
-                </label>
-                <label
-                  htmlFor="export-scope-selected"
-                  className={cn("flex items-center gap-2 text-sm", selectedIds.size === 0 && "text-muted-foreground")}
-                >
-                  <RadioGroupItem id="export-scope-selected" value="selected" disabled={selectedIds.size === 0} />
-                  导出勾选的 {selectedIds.size} 条
-                </label>
+                <RadioItem
+                  id="export-scope-filtered"
+                  label={`导出当前筛选结果（共 ${filteredTotal} 条）`}
+                  value="filtered"
+                />
+                <RadioItem id="export-scope-all" label="导出全部" value="all" />
+                <RadioItem
+                  className={cn(selectedIds.size === 0 && "text-muted-foreground")}
+                  disabled={selectedIds.size === 0}
+                  id="export-scope-selected"
+                  label={`导出勾选的 ${selectedIds.size} 条`}
+                  value="selected"
+                />
               </RadioGroup>
             </div>
 
             <div className="flex flex-col gap-2">
               <span className="text-xs text-muted-foreground">导出格式</span>
               <RadioGroup value={exportFormat} onValueChange={(v) => setExportFormat(v as typeof exportFormat)}>
-                <label htmlFor="export-format-md-single" className="flex items-center gap-2 text-sm">
-                  <RadioGroupItem id="export-format-md-single" value="md-single" /> Markdown 汇总报告（单个 .md 文件）
-                </label>
-                <label htmlFor="export-format-md-zip" className="flex items-center gap-2 text-sm">
-                  <RadioGroupItem id="export-format-md-zip" value="md-zip" /> Markdown 分文件（一漏洞一 .md,打包 .zip）
-                </label>
-                <label htmlFor="export-format-csv" className="flex items-center gap-2 text-sm">
-                  <RadioGroupItem id="export-format-csv" value="csv" /> CSV 表格（.csv）
-                </label>
-                <label htmlFor="export-format-json" className="flex items-center gap-2 text-sm">
-                  <RadioGroupItem id="export-format-json" value="json" /> JSON（.json）
-                </label>
+                <RadioItem
+                  id="export-format-md-single"
+                  label="Markdown 汇总报告（单个 .md 文件）"
+                  value="md-single"
+                />
+                <RadioItem
+                  id="export-format-md-zip"
+                  label="Markdown 分文件（一漏洞一 .md,打包 .zip）"
+                  value="md-zip"
+                />
+                <RadioItem id="export-format-csv" label="CSV 表格（.csv）" value="csv" />
+                <RadioItem id="export-format-json" label="JSON（.json）" value="json" />
               </RadioGroup>
             </div>
           </div>
 
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setExportOpen(false)} disabled={exporting}>
-              取消
-            </Button>
-            <Button onClick={doExport} disabled={exporting || (exportScope === "selected" && selectedIds.size === 0)}>
-              <DownloadIcon /> {exporting ? "导出中…" : "导出"}
-            </Button>
-          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

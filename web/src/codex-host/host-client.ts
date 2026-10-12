@@ -36,6 +36,13 @@ import {
 /** Router bursts (pushState + replaceState + popstate) must collapse into one route report. */
 /** localStorage key the console stores its access token under (src/lib/auth.ts: TOKEN_KEY). */
 const DEFAULT_TOKEN_KEY = "artex_token";
+/**
+ * 令牌心跳间隔。为什么要心跳：外壳会用这个 token 直连 ARTEX API（/tasks 等原生页面），
+ * 而 access token 有 2 小时时效、且控制台会在 401 时用 refresh cookie 换新 —— 只在 `ready`
+ * 时推一次，外壳手里就会是旧值（真机实测：外壳拿到 401）。心跳让「换了新 token」在 10s 内
+ * 传到外壳，外壳的查询钩子据此自动重取。
+ */
+const TOKEN_HEARTBEAT_MS = 10_000;
 
 const DEFAULT_ROUTE_DEBOUNCE_MS = 150;
 
@@ -129,6 +136,11 @@ export function createCodexHostClient(options: CodexHostClientOptions = {}): Cod
   let runtimeWindow: Window | undefined;
   let routeTimer: ReturnType<typeof setTimeout> | undefined;
   let lastRouteToken = "";
+  /** 令牌心跳定时器（见 TOKEN_HEARTBEAT_MS）：让外壳在令牌刷新后 10s 内拿到新值。 */
+  // 用窗口自己的定时器类型（DOM 的 setInterval 返回 number；Node 的类型不同，不能混用）。
+  let tokenTimer: ReturnType<Window["setInterval"]> | undefined;
+  /** 上一次推给外壳的 token：心跳只在值变化时才发，避免每 10s 都 postMessage。 */
+  let lastPostedToken: string | null = null;
   let lastErrorAt = 0;
   let forwardingError = false;
   let originalPushState: History["pushState"] | undefined;
@@ -171,6 +183,11 @@ export function createCodexHostClient(options: CodexHostClientOptions = {}): Cod
     // Right after `ready`, hand the shell the access token it needs to call the API itself
     // (see protocol.ts `token`). Empty string means "not logged in" — the shell must not guess.
     postToken();
+    // 心跳用 win 上的定时器；没有定时器的宿主（部分测试替身/极端环境）就静默跳过，
+    // 不让「心跳」这种增强能力把桥本身弄挂。
+    if (tokenTimer === undefined && typeof win.setInterval === "function") {
+      tokenTimer = win.setInterval(postToken, TOKEN_HEARTBEAT_MS);
+    }
   }
 
   function dispose(): void {
@@ -186,6 +203,10 @@ export function createCodexHostClient(options: CodexHostClientOptions = {}): Cod
       clearTimeout(routeTimer);
       routeTimer = undefined;
     }
+    if (tokenTimer !== undefined) {
+      runtimeWindow?.clearInterval(tokenTimer);
+      tokenTimer = undefined;
+    }
     runtimeWindow = undefined;
     started = false;
     active = false;
@@ -198,7 +219,11 @@ export function createCodexHostClient(options: CodexHostClientOptions = {}): Cod
 
   /** Hands the shell the current access token; safe to call any time (login, logout, refresh). */
   function postToken(): boolean {
-    return post(CODEX_HOST_TYPES.token, { token: readToken() ?? "" });
+    const token = readToken() ?? "";
+    // 心跳会反复调用它：只在值真的变了时才发，避免无意义的 postMessage。
+    if (token === lastPostedToken) return true;
+    lastPostedToken = token;
+    return post(CODEX_HOST_TYPES.token, { token });
   }
 
   function readToken(): string | null {

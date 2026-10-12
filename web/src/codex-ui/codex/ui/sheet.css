@@ -1,0 +1,219 @@
+/* ============================================================================
+ * Sheet（侧边抽屉）—— 官方 **没有** 独立 Sheet/Drawer 组件：
+ *   壳 src/ui/** 无此件；官方 CSS 里 `sheet` 只出现在 `--modal-sheet-fade-shadow`
+ *   （overlays.css:102 的 `[data-backdrop=fade] ._Modal_ovjjw_2`）与移动断点写法里。
+ *   官方**唯一**有完整 CSS 的浮层面板是 Modal（raw/ovjjw.css，SPEC-OVERLAYS §13）：
+ *     桌面（≥48rem）._Modal_ovjjw_2 { max-width: var(--modal-max-width,450px);
+ *       border-radius: var(--modal-radius); box-shadow: var(--modal-backdrop-dim-shadow) }
+ *     移动（<48rem）._Modal_ovjjw_2 { width:100%; max-height:92%; border-bottom-radius:0;
+ *       position:absolute; bottom:0; left:0; background: var(--color-surface-elevated) }
+ *     ._ModalBackdrop_ovjjw_2 { background-color: var(--modal-backdrop-background) }
+ *     [data-backdrop=fade] 遮罩 { backdrop-filter: var(--modal-backdrop-fade-filter) }
+ *     _Header_ 50 高 / 0 20px / 下边框 1px --color-border；_Body_ 16px 20px；
+ *     _Footer_ 16px 20px + justify-end；标题 18px / semibold；描述 --color-text-secondary / 14px。
+ *
+ * 本件 = 把上面这套官方 Modal 几何**直译**成四边抽屉（side=right/left/top/bottom），
+ *   数值全部取官方 token（--modal-* / --dialog-* / --color-* / --font-*），无魔法值。
+ *   z-index 与官方弹层阶梯一致：遮罩 45 / 面板 46（= 复制层 .cx-dialog__overlay / __content）。
+ * ========================================================================== */
+
+.cx-sheet__overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 45;
+  background-color: var(--modal-backdrop-background);
+}
+
+.cx-sheet__overlay[data-backdrop="fade"] {
+  background-color: var(--modal-backdrop-fade-background);
+  backdrop-filter: var(--modal-backdrop-fade-filter);
+}
+
+.cx-sheet__overlay[data-state="open"] {
+  animation: cx-dialog-overlay-in 0.6s var(--cubic-enter);
+}
+
+.cx-sheet__overlay[data-state="closed"] {
+  animation: cx-dialog-overlay-out 0.4s var(--cubic-exit) forwards;
+}
+
+.cx-sheet__content {
+  position: fixed;
+  z-index: 46;
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--spacing) * 4);
+  width: 100%;
+  max-width: var(--modal-max-width, var(--dialog-max-width, 450px));
+  overflow: hidden;
+  border: 0;
+  border-radius: var(--modal-radius, var(--dialog-radius, var(--radius-xl)));
+  corner-shape: var(--menu-corner-shape);
+  background-color: var(--color-surface-elevated);
+  box-shadow: var(--modal-backdrop-dim-shadow, var(--shadow));
+  color: var(--color-text);
+  font-size: var(--font-text-sm-size);
+  line-height: var(--font-text-sm-line-height);
+  outline: none;
+}
+
+/* 四边定位 + 官方移动档写法的直译（贴边侧的两角收平 + 官方 sheet 阴影） */
+.cx-sheet__content[data-side="right"] {
+  top: 0;
+  right: 0;
+  bottom: 0;
+  height: 100%;
+  border-start-end-radius: 0;
+  border-end-end-radius: 0;
+  box-shadow: var(--modal-sheet-fade-shadow, var(--modal-backdrop-dim-shadow, var(--shadow)));
+}
+
+.cx-sheet__content[data-side="left"] {
+  top: 0;
+  left: 0;
+  bottom: 0;
+  height: 100%;
+  border-start-start-radius: 0;
+  border-end-start-radius: 0;
+  box-shadow: var(--modal-sheet-fade-shadow, var(--modal-backdrop-dim-shadow, var(--shadow)));
+}
+
+.cx-sheet__content[data-side="bottom"] {
+  right: 0;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  max-width: 100%;
+  max-height: 92%;
+  border-start-start-radius: var(--modal-radius, var(--dialog-radius, var(--radius-xl)));
+  border-start-end-radius: var(--modal-radius, var(--dialog-radius, var(--radius-xl)));
+  border-end-start-radius: 0;
+  border-end-end-radius: 0;
+  box-shadow: var(--modal-sheet-fade-shadow, var(--modal-backdrop-dim-shadow, var(--shadow)));
+}
+
+.cx-sheet__content[data-side="top"] {
+  top: 0;
+  right: 0;
+  left: 0;
+  width: 100%;
+  max-width: 100%;
+  max-height: 92%;
+  border-end-start-radius: 0;
+  border-end-end-radius: 0;
+  box-shadow: var(--modal-sheet-fade-shadow, var(--modal-backdrop-dim-shadow, var(--shadow)));
+}
+
+/* 官方进入/退出：面板 .6s 进 / .3s 出（--modal-enter-duration / --modal-exit-duration），
+ * 位移从 --modal-out-y（20px）起、**没有缩放**（SPEC-OVERLAYS §13.3）。 */
+@keyframes cx-sheet-in-right {
+  from {
+    opacity: var(--modal-out-opacity, 0);
+    transform: translateX(var(--modal-out-y, 20px));
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes cx-sheet-in-left {
+  from {
+    opacity: var(--modal-out-opacity, 0);
+    transform: translateX(calc(var(--modal-out-y, 20px) * -1));
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes cx-sheet-in-bottom {
+  from {
+    opacity: var(--modal-out-opacity, 0);
+    transform: translateY(var(--modal-out-y, 20px));
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes cx-sheet-in-top {
+  from {
+    opacity: var(--modal-out-opacity, 0);
+    transform: translateY(calc(var(--modal-out-y, 20px) * -1));
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes cx-sheet-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: var(--modal-out-opacity, 0);
+  }
+}
+
+.cx-sheet__content[data-state="open"][data-side="right"] {
+  animation: cx-sheet-in-right var(--modal-enter-duration, 0.6s) var(--cubic-enter);
+}
+.cx-sheet__content[data-state="open"][data-side="left"] {
+  animation: cx-sheet-in-left var(--modal-enter-duration, 0.6s) var(--cubic-enter);
+}
+.cx-sheet__content[data-state="open"][data-side="bottom"] {
+  animation: cx-sheet-in-bottom var(--modal-enter-duration, 0.6s) var(--cubic-enter);
+}
+.cx-sheet__content[data-state="open"][data-side="top"] {
+  animation: cx-sheet-in-top var(--modal-enter-duration, 0.6s) var(--cubic-enter);
+}
+.cx-sheet__content[data-state="closed"] {
+  animation: cx-sheet-out var(--modal-exit-duration, 0.3s) var(--cubic-exit) forwards;
+}
+
+/* 内部区块 = 官方 _Header_ / _Body_ / _Footer_ 直译 */
+.cx-sheet__header {
+  display: flex;
+  flex-shrink: 0;
+  flex-direction: column;
+  gap: calc(var(--spacing) * 0.5);
+  min-height: 50px;
+  justify-content: center;
+  padding: 0 20px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.cx-sheet__footer {
+  display: flex;
+  flex-shrink: 0;
+  flex-direction: column;
+  gap: calc(var(--spacing) * 2);
+  margin-top: auto;
+  padding: 16px 20px;
+}
+
+.cx-sheet__title {
+  margin: 0;
+  color: var(--color-text);
+  font-size: var(--font-text-lg-size);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: normal;
+  line-height: 1.4;
+}
+
+.cx-sheet__description {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: var(--font-text-sm-size);
+  line-height: var(--font-text-sm-line-height);
+}
+
+.cx-sheet__close {
+  position: absolute;
+  top: calc(var(--spacing) * 3);
+  right: calc(var(--spacing) * 3);
+}

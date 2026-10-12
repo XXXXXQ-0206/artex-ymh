@@ -9,11 +9,15 @@ import { ArrowUpRightIcon, ChevronLeftIcon, ChevronRightIcon } from "lucide-reac
 import { FindingRetestPanel } from "@/components/finding-retest-panel";
 import { StatusBadge } from "@/components/status-badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
+import {
+  Button,
+  Separator,
+  Skeleton,
+} from "@/codex-ui/codex/ui";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
-import { Separator } from "@/components/ui/separator";
-import { Skeleton } from "@/components/ui/skeleton";
+
+
 import { api } from "@/lib/api";
 import type { Finding, FindingsPage } from "@/lib/types";
 
@@ -92,8 +96,8 @@ export function RetestsTab({ taskId }: { taskId: string }) {
               <React.Fragment key={finding.id}>
                 {index > 0 ? <Separator className="my-1" /> : null}
                 <Button
-                  variant={finding.id === selectedId ? "secondary" : "ghost"}
                   className="h-auto w-full shrink-0 flex-col items-start gap-2 whitespace-normal py-3 text-left"
+                  variant={finding.id === selectedId ? "soft" : "ghost"}
                   aria-label={`选择漏洞：${findingLabel(finding)}`}
                   aria-pressed={finding.id === selectedId}
                   onClick={() => setSelectedId(finding.id)}
@@ -119,7 +123,7 @@ export function RetestsTab({ taskId }: { taskId: string }) {
             <CardFooter className="justify-between gap-2">
               <Button
                 variant="outline"
-                size="icon-sm"
+                size="md" uniform
                 aria-label="上一页漏洞"
                 disabled={page === 1}
                 onClick={() => setPage(page - 1)}
@@ -131,7 +135,7 @@ export function RetestsTab({ taskId }: { taskId: string }) {
               </span>
               <Button
                 variant="outline"
-                size="icon-sm"
+                size="md" uniform
                 aria-label="下一页漏洞"
                 disabled={page * PAGE_SIZE >= data.total}
                 onClick={() => setPage(page + 1)}
@@ -148,7 +152,7 @@ export function RetestsTab({ taskId }: { taskId: string }) {
                 <h2 className="min-w-0 flex-1 break-words font-medium">{findingLabel(selected)}</h2>
                 <Button asChild variant="ghost" size="sm">
                   <Link href={`/function/findings/detail?id=${selected.finding_id || selected.id}`}>
-                    漏洞详情 <ArrowUpRightIcon data-icon="inline-end" />
+                    漏洞详情 <ArrowUpRightIcon />
                   </Link>
                 </Button>
               </div>

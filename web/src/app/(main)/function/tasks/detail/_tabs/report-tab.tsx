@@ -6,7 +6,9 @@ import { CheckIcon, CopyIcon, FileTextIcon } from "lucide-react";
 import { toast } from "sonner";
 
 import { Markdown } from "@/components/markdown";
-import { Button } from "@/components/ui/button";
+import {
+  Button,
+} from "@/codex-ui/codex/ui";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { api } from "@/lib/api";
 import { copyText } from "@/lib/utils";

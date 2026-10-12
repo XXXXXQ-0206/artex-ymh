@@ -29,6 +29,10 @@ export * from "./radio-group";
 export * from "./scroll-area";
 export * from "./select";
 export * from "./separator";
+// [控制台新增] 官方无 sheet / table 组件（壳 src/ui/** 无此件、ui.css 全文无对应规则），
+// 按官方 vendored CSS 直译补齐，出处见 sheet.tsx / table.tsx 头注释。
+export * from "./sheet";
+export * from "./table";
 export * from "./skeleton";
 export * from "./slider";
 export * from "./switch";

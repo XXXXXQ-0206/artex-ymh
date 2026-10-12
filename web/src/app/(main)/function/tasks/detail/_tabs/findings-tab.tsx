@@ -8,9 +8,16 @@ import { ArrowDownIcon, ArrowUpIcon, ArrowUpRightIcon, ChevronRightIcon } from "
 import { toast } from "sonner";
 
 import { StatusBadge } from "@/components/status-badge";
-import { Badge } from "@/components/ui/badge";
+import {
+  Badge,
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+} from "@/codex-ui/codex/ui";
 import { Card, CardContent } from "@/components/ui/card";
-import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger } from "@/components/ui/select";
+
 import { api } from "@/lib/api";
 import { useStoredSortPreference } from "@/lib/sort-preference";
 import { statusMeta } from "@/lib/status";
@@ -66,7 +73,7 @@ function Row({
             <div className="flex min-w-0 items-center gap-2">
               <span className="truncate font-medium">{findingLabel(f)}</span>
               {f.inherited && f.source_task_id && (
-                <Badge variant="outline" className="shrink-0">
+                <Badge className="shrink-0">
                   来源 #{f.source_task_id} · 只读
                 </Badge>
               )}
@@ -74,7 +81,7 @@ function Row({
             <span className="truncate text-xs text-muted-foreground">{f.summary}</span>
           </div>
         </button>
-        <Badge variant="outline">流量证据 {f.traffic_count ?? 0} 条</Badge>
+        <Badge>流量证据 {f.traffic_count ?? 0} 条</Badge>
         {f.assets && f.assets.length > 0 && (
           <div className="hidden shrink-0 flex-wrap justify-end gap-1 sm:flex">
             {f.assets.slice(0, 2).map((a) => (
@@ -91,7 +98,7 @@ function Row({
         )}
         {f.finding_id && !f.inherited ? (
           <Select value={f.status} onValueChange={(v) => onStatus(f, v as FindingStatus)}>
-            <SelectTrigger size="sm" className="h-7 w-28 shrink-0 border-none px-1 shadow-none focus-visible:ring-0">
+            <SelectTrigger className="w-28 shrink-0">
               <StatusBadge domain="finding" value={f.status} dot />
             </SelectTrigger>
             <SelectContent position="popper" align="end">

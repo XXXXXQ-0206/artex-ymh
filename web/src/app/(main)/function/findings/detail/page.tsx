@@ -14,11 +14,20 @@ import { FindingTrafficPanel } from "@/components/finding-traffic-panel";
 import { Markdown } from "@/components/markdown";
 import { StatusBadge } from "@/components/status-badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import {
+  Badge,
+  Button,
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  Separator,
+} from "@/codex-ui/codex/ui";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger } from "@/components/ui/select";
-import { Separator } from "@/components/ui/separator";
+
+
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { api } from "@/lib/api";
@@ -134,7 +143,7 @@ function FindingDetailInner() {
       <header className="sticky top-0 z-10 flex flex-col gap-2 border-b bg-background/95 px-4 py-2.5 backdrop-blur lg:px-6">
         <div className="flex flex-wrap items-center gap-2">
           <SidebarTrigger className="-ml-1" />
-          <Button asChild variant="ghost" size="icon" className="size-7">
+          <Button asChild variant="ghost" size="md" uniform className="">
             <Link href="/function/findings">
               <ArrowLeftIcon />
             </Link>
@@ -148,7 +157,7 @@ function FindingDetailInner() {
           <StatusBadge domain="severity" value={finding.severity} dot />
           <StatusBadge domain="finding" value={finding.status} dot />
           {finding.inherited && finding.source_task_id && (
-            <Badge variant="outline">来源任务 #{finding.source_task_id} · 只读</Badge>
+            <Badge>来源任务 #{finding.source_task_id} · 只读</Badge>
           )}
         </div>
         <TabsList>
@@ -234,7 +243,7 @@ function FindingDetailInner() {
                     <StatusBadge domain="severity" value={finding.severity} dot />
                   ) : (
                     <Select value={finding.severity} onValueChange={(v) => changeSeverity(v as Severity)}>
-                      <SelectTrigger size="sm" className="h-7 w-auto border-none px-1 shadow-none focus-visible:ring-0">
+                      <SelectTrigger className="">
                         <StatusBadge domain="severity" value={finding.severity} dot />
                       </SelectTrigger>
                       <SelectContent position="popper" align="end">
@@ -256,7 +265,7 @@ function FindingDetailInner() {
                     <StatusBadge domain="finding" value={finding.status} dot />
                   ) : (
                     <Select value={finding.status} onValueChange={(v) => changeStatus(v as FindingStatus)}>
-                      <SelectTrigger size="sm" className="h-7 w-auto border-none px-1 shadow-none focus-visible:ring-0">
+                      <SelectTrigger className="">
                         <StatusBadge domain="finding" value={finding.status} dot />
                       </SelectTrigger>
                       <SelectContent position="popper" align="end">
