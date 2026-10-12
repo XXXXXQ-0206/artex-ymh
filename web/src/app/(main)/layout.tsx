@@ -54,6 +54,15 @@ export default function Layout({ children }: Readonly<{ children: ReactNode }>) 
 
   const defaultOpen = typeof document === "undefined" ? true : getClientCookie("sidebar_state") !== "false";
 
+  /**
+   * 托管态的面板开合**由外壳决定**（受控模式，2026-10-13）：
+   * 桌面端在 /artex 上由外壳自己画 288px 会话面板（混合档），访客只画主面 ——
+   * 所以嵌入时面板**默认收起**，并且不吃 cookie 持久化（`sidebar_state` 以前会把面板顶开，
+   * 真机实测出现过「外壳面板 + 访客面板」双面板）。
+   * 外壳要开合只走 `codex-host:panel`：`{open:boolean}` 幂等设置 / `{toggle:true}` 翻转。
+   */
+  const [panelOpen, setPanelOpen] = React.useState(false);
+
   if (!authed) return null;
 
   // 被托管时：**菜单栏与 52px 导轨归外壳**（desktop/main.js 把窗口指向壳的 /artex，
@@ -71,7 +80,11 @@ export default function Layout({ children }: Readonly<{ children: ReactNode }>) 
             发 codex-host:panel，这里接到 useSidebar().toggleSidebar。
             快捷键（Ctrl/Cmd+Shift+S 面板、Ctrl/Cmd+N 新聊天、Ctrl/Cmd+, 设置）在托管态同样要
             生效——独立态的分支一直是有的，这里之前漏了。 */}
-        <SidebarProvider defaultOpen={defaultOpen} className="min-h-0 flex-1 flex-col">
+        <SidebarProvider
+          className="min-h-0 flex-1 flex-col"
+          onOpenChange={setPanelOpen}
+          open={panelOpen}
+        >
           <ShellBridge />
           <div className="relative flex max-h-full min-h-0 w-full flex-1">
             <AppSidebar resizable variant="floating" collapsible="offcanvas" />
