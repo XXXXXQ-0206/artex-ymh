@@ -326,6 +326,30 @@ html[data-chat-list="on"] [data-slot="sidebar-footer"] {
   display: none;
 }
 
+/* ── 页面列表形态（tasks / findings / intranet…）──────────────────────────────
+   官方在这些页面里把 288px 面板当**当前页的列表**用（/scheduled 实测：18/600 的页标题 +
+   主操作行 + 44px 行距的列表），而不是全站导航。页面通过 #page-list-slot portal 进来，
+   并打开 data-page-list 让这里的规则生效。 */
+html[data-page-list="on"] [data-slot="sidebar-nav-main"] {
+  display: none;
+}
+
+/* 面板里同时挂着两套内容（chat 列表 / 页面列表）时按属性只显示一套：
+   非 chat 与非设置页时，对话插槽不参与布局（它只在 chat 路由有内容）。 */
+html[data-page-list="on"] #chat-conversations-slot {
+  display: none;
+}
+
+html[data-page-list="on"] [data-slot="sidebar-footer"] {
+  display: none;
+}
+
+/* 面板头（Codex 字标 + 铃铛/搜索那一行）在页面列表形态下收起：
+   官方 /scheduled 的面板顶部**只有页标题一行**（[68,58,18px/600]），没有字标行。 */
+html[data-page-list="on"] [data-slot="sidebar-header"] {
+  display: none;
+}
+
 /* 桌面应用导航与内容面共用 288px 面板。让两个工作区分组从面板头下方直接排布，
    设置入口贴在最底部；各路由使用同一位置和尺寸。 */
 .codex-app-nav {

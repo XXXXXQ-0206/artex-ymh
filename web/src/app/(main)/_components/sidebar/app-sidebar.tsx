@@ -70,6 +70,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             导航已经在 52px 导轨上，故 chat 路由下隐藏这里的 NavMain（见 globals.css 的
             html[data-chat-list="on"] 规则），其余路由仍用它。 */}
         <div id="chat-conversations-slot" className="flex min-h-0 min-w-0 flex-1 flex-col" />
+        {/* Codex 页面范式：面板放**当前页的列表**（任务/发现/内网…各自 portal 进来）。
+            打开 html[data-page-list="on"] 时隐藏下面的全站导航，见 codex-shell.css。 */}
+        <div id="page-list-slot" className="flex min-h-0 min-w-0 flex-1 flex-col" />
         {/* Codex 设置页会把面板换成"设置导航"（搜索 + 分组 + 条目），见 globals.css 的
             html[data-settings-nav="on"] 规则：该属性下隐藏主导航。 */}
         <div data-slot="sidebar-settings-nav" className="hidden min-h-0 min-w-0 flex-1 flex-col">

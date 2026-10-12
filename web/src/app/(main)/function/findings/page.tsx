@@ -52,6 +52,8 @@ import type {
 } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
+import { PageListPortal } from "@/app/(main)/_components/sidebar/page-list";
+
 import { AssetTree, assetPathOf } from "./_components/asset-tree";
 import {
   FINDING_STATUSES,
@@ -819,6 +821,19 @@ export default function FindingsPage() {
       data-codex-workspace-page="findings"
       className="codex-workspace-page flex flex-1 flex-col gap-4 md:gap-6"
     >
+      {/* Codex 页面范式：面板放当前页的列表（发现：名称 + 严重度/状态副行） */}
+      <PageListPortal
+        title="发现"
+        items={flat.items.slice(0, 80).map((f) => ({
+          key: f.finding_id ?? f.id,
+          title: f.name || f.vulnclass || "未分类",
+          meta: `${statusMeta("severity", f.severity).label} · ${statusMeta("finding", f.status).label}${
+            f.task_description ? ` · ${f.task_description}` : ""
+          }`,
+          href: f.finding_id ? `/function/findings/detail?id=${encodeURIComponent(f.finding_id)}` : undefined,
+        }))}
+        empty="暂无发现"
+      />
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-xl font-semibold tracking-tight">发现</h1>

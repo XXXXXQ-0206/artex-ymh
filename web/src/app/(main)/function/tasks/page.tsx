@@ -114,6 +114,7 @@ import {
 import { Spinner } from "@/components/ui/spinner";
 import { Switch } from "@/components/ui/switch";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { PageListPortal } from "@/app/(main)/_components/sidebar/page-list";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -782,6 +783,30 @@ export default function TasksPage() {
       data-codex-workspace-page="tasks"
       className="codex-workspace-page gap-4"
     >
+      {/* Codex 页面范式（官方 /scheduled 同构）：288px 面板放**当前页的列表**
+          —— 18/600 页标题 + 30px 主操作行（底色白 8%）+ 44px 行距的列表行
+          （标题 14/430 白 85%、副行 12/430 白 49.8%），点行进任务详情。 */}
+      <PageListPortal
+        title="任务"
+        action={
+          <CreateTaskSheet
+            tasks={tasks}
+            categories={categories}
+            onCreated={refreshCategoriesAndTasks}
+            onCategoriesChanged={refreshCategoriesAndTasks}
+            triggerClassName="h-[30px] w-full justify-start rounded-[12.5px] bg-[rgb(255_255_255_/_0.08)] px-2 text-[14px] font-normal text-[color:var(--codex-text-strong)] hover:bg-[rgb(255_255_255_/_0.12)]"
+          />
+        }
+        items={filtered.slice(0, 80).map((t) => ({
+          key: t.id,
+          title: (t.name?.trim() || t.description || t.id) as string,
+          meta: `${STATUS_OPTIONS.find((o) => o.value === t.status)?.label ?? t.status} · 目标 ${
+            t.goals_met ?? 0
+          }/${t.goals_total ?? 0}`,
+          href: `/function/tasks/detail?id=${encodeURIComponent(t.id)}`,
+        }))}
+        empty="暂无任务"
+      />
       <TabsList className="mx-4 lg:mx-6">
         <TabsTrigger value="current">当前任务</TabsTrigger>
         <TabsTrigger value="archived">已归档</TabsTrigger>
@@ -3042,11 +3067,14 @@ function CreateTaskSheet({
   categories,
   onCreated,
   onCategoriesChanged,
+  triggerClassName,
 }: {
   tasks: Task[];
   categories: TaskCategory[];
   onCreated: () => void;
   onCategoriesChanged: () => void;
+  /** 可选：改写抽屉触发按钮的外观（面板里的「新建任务」行要用官方行的样式）。 */
+  triggerClassName?: string;
 }) {
   const [open, setOpen] = React.useState(false);
   const [name, setName] = React.useState("");
@@ -3158,7 +3186,7 @@ function CreateTaskSheet({
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
-        <Button size="sm">
+      <Button size="sm" className={triggerClassName}>
           <PlusIcon /> 新建任务
         </Button>
       </SheetTrigger>
