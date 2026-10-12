@@ -1,0 +1,81 @@
+/* ============================================================================
+ * Card —— 官方 **没有** Card 组件（壳 src/ui/** 无此件；官方 CSS 里没有 _Card_ 类名，
+ *   token 层也没有 --card-* 组，只有 --color-surface-card 一个表面色）。
+ *
+ * 本文件按**官方 token 直译**，逐条映射（出处：web/src/styles/codex/official-tokens.css）
+ *   · 表面色   --color-surface-card（= --app-color-background-card, --color-surface）
+ *              （参考端实测：设置卡片 bg rgb(35,35,35) = #232323，FIDELITY-AUDIT #95）
+ *   · 前景色   --color-text
+ *   · 圆角     --radius-xl（= calc(0.75rem × --corner-radius-scale) = 15px；同一族里
+ *              设置卡片实测 20px = --radius-2xl，本件用 h1 的 --radius-xl 档，
+ *              需要更大圆角时由使用方传 rounded-2xl）
+ *   · 描边     --border-width-hairline（0.5px，官方发丝线宽度）+ --color-border
+ *   · 阴影     --shadow-card（官方 0px 4px 16px 0px #0000000d）
+ *              —— 两者合起来等价于官方 --app-shell-page-surface-shadow 的那对组合
+ *   · 内距     --spacing 阶梯（calc(var(--spacing) * N)），与 --alert-gutter 同族
+ *   · 字色     --color-text-secondary（描述）
+ * 本文件不含任何字面量尺寸/颜色。
+ * ========================================================================== */
+
+.cx-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cx-card-gap, calc(var(--spacing) * 4));
+  overflow: hidden;
+  border-radius: var(--radius-xl);
+  corner-shape: var(--codex-corner-shape);
+  background-color: var(--color-surface-card, var(--color-surface));
+  box-shadow: 0 0 0 var(--border-width-hairline, 0.5px) var(--color-border), var(--shadow-card);
+  color: var(--color-text);
+  font-size: var(--font-text-sm-size);
+  line-height: var(--font-text-sm-line-height);
+}
+
+.cx-card[data-size="sm"] {
+  --cx-card-gap: calc(var(--spacing) * 3);
+}
+
+.cx-card__header {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-auto-rows: min-content;
+  align-items: start;
+  gap: calc(var(--spacing) * 1);
+  padding: calc(var(--spacing) * 4) calc(var(--spacing) * 4) 0;
+}
+
+.cx-card__header:has(.cx-card__action) {
+  grid-template-columns: 1fr auto;
+}
+
+.cx-card__title {
+  color: var(--color-text);
+  font-size: var(--font-text-md-size);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--font-text-md-line-height);
+}
+
+.cx-card__description {
+  color: var(--color-text-secondary);
+  font-size: var(--font-text-sm-size);
+  line-height: var(--font-text-sm-line-height);
+}
+
+.cx-card__action {
+  grid-column-start: 2;
+  grid-row: 1 / span 2;
+  align-self: start;
+  justify-self: end;
+}
+
+.cx-card__content {
+  padding-inline: calc(var(--spacing) * 4);
+}
+
+.cx-card__footer {
+  display: flex;
+  align-items: center;
+  border-top: 1px solid var(--color-border);
+  background-color: var(--color-background-primary-soft-alpha);
+  padding: calc(var(--spacing) * 4);
+}

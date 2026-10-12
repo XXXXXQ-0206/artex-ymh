@@ -10,6 +10,8 @@ export * from "./alert-dialog";
 // 除本行外，本文件与壳 src/ui/index.ts 逐字节相同（另有 controls-gallery 一行按范围删除）。
 export * from "./badge";
 export * from "./button";
+// [控制台新增] 官方无 card / tabs 组件，按官方 token 组直译补齐，见各自文件头注释。
+export * from "./card";
 export * from "./checkbox";
 export * from "./context-menu";
 // [控制台逐字节移植] 此处原为 export * from "./controls-gallery"；
@@ -36,6 +38,8 @@ export * from "./table";
 export * from "./skeleton";
 export * from "./slider";
 export * from "./switch";
+// [控制台新增] 官方无 tabs 组件，按官方 --segmented-control-* token 组直译，见 tabs.tsx 头注释。
+export * from "./tabs";
 export * from "./textarea";
 export * from "./toast";
 export * from "./tooltip";

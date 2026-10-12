@@ -1,8 +1,11 @@
 "use client";
 
 import * as React from "react";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import {
+  Button,
+  Input,
+} from "@/codex-ui/codex/ui";
+
 import { sseUrl } from "@/lib/api";
 import { MOCK } from "@/lib/mock/enabled";
 import type { LogLine } from "@/lib/types";
@@ -208,19 +211,19 @@ export default function LogsPage() {
       </div>
       <div className="flex flex-1 flex-col gap-3">
         <div className="flex flex-wrap items-center gap-2">
-          <Input
+          <Input size="md"
             placeholder="过滤(文本 / tag)…"
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            className="h-8 max-w-xs"
+            className="max-w-xs"
           />
           <div className="flex gap-1">
             {(["all", "info", "warn", "error"] as const).map((lv) => (
               <Button
                 key={lv}
                 size="sm"
-                variant={level === lv ? "default" : "outline"}
-                className="h-8"
+                variant={level === lv ? "solid": "outline"}
+                className=""
                 onClick={() => setLevel(lv)}
               >
                 {lv === "all" ? "全部" : lv}
@@ -229,13 +232,13 @@ export default function LogsPage() {
           </div>
           <Button
             size="sm"
-            variant={paused ? "default" : "outline"}
-            className="h-8"
+            variant={paused ? "solid": "outline"}
+            className=""
             onClick={() => setPaused((p) => !p)}
           >
             {paused ? "已暂停" : "暂停"}
           </Button>
-          <Button size="sm" variant="outline" className="h-8" onClick={() => setLines([])}>
+          <Button size="sm" variant="outline" className="" onClick={() => setLines([])}>
             清空
           </Button>
           <span className="ml-auto text-xs text-muted-foreground">
@@ -256,7 +259,7 @@ export default function LogsPage() {
               <Button
                 size="sm"
                 variant="outline"
-                className="h-7 text-xs"
+                className=""
                 disabled={loadingHistory}
                 onClick={loadOlderHistory}
               >

@@ -4,22 +4,37 @@ import * as React from "react";
 import { toast } from "sonner";
 import { PlusIcon, RefreshCwIcon, ServerIcon, Trash2Icon } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
-import { Switch } from "@/components/ui/switch";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
+  Badge,
+  Button,
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  Checkbox,
+  Input,
+  Label,
   Sheet,
   SheetContent,
+  SheetDescription,
   SheetHeader,
   SheetTitle,
-  SheetDescription,
-} from "@/components/ui/sheet";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+  Switch,
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+  Textarea,
+} from "@/codex-ui/codex/ui";
+
+
+
+
+
+
+
+
+
 import { api } from "@/lib/api";
 import type { MCPServer, MCPTool, Agent } from "@/lib/types";
 
@@ -236,21 +251,21 @@ export default function MCPPage() {
           <div className="flex gap-2">
             <Button
               type="button"
-              variant={form.transport === "stdio" ? "default" : "outline"}
+              variant={form.transport === "stdio" ? "solid": "outline"}
               onClick={() => setF({ transport: "stdio" })}
             >
               stdio（本地）
             </Button>
             <Button
               type="button"
-              variant={form.transport === "http" ? "default" : "outline"}
+              variant={form.transport === "http" ? "solid": "outline"}
               onClick={() => setF({ transport: "http" })}
             >
               http（远程）
             </Button>
             <Button
               type="button"
-              variant={form.transport === "sse" ? "default" : "outline"}
+              variant={form.transport === "sse" ? "solid": "outline"}
               onClick={() => setF({ transport: "sse" })}
             >
               sse（旧版）
@@ -386,7 +401,7 @@ export default function MCPPage() {
               <div className="flex items-center gap-2">
                 <ServerIcon className="text-muted-foreground size-4 shrink-0" />
                 <CardTitle className="truncate text-base">{s.name}</CardTitle>
-                <Badge variant="outline" className="uppercase">
+                <Badge tone="muted" className="uppercase">
                   {s.transport}
                 </Badge>
                 <div className="ml-auto flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
@@ -395,8 +410,8 @@ export default function MCPPage() {
                     onCheckedChange={() => toggleEnabled(s)}
                     aria-label="启用"
                   />
-                  <Button
-                    size="icon"
+                  <Button uniform
+                    size="md"
                     variant="outline"
                     aria-label="删除"
                     onClick={() => removeServer(s)}

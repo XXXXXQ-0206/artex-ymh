@@ -14,9 +14,13 @@ import * as React from "react";
 import { Loader2Icon, SaveIcon } from "lucide-react";
 import { toast } from "sonner";
 
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import {
+  Button,
+  Input,
+  Label,
+} from "@/codex-ui/codex/ui";
+
+
 import { api } from "@/lib/api";
 import type { LLMRetryOverride, LLMRetryPolicy, LLMRetryRule } from "@/lib/types";
 

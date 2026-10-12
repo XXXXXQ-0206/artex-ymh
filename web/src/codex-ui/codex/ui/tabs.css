@@ -1,0 +1,117 @@
+/* ============================================================================
+ * Tabs —— 官方 **没有** Tabs 组件（壳 src/ui/** 无此件；官方 CSS 里没有 _Tab_/_Tabs_ 类名）。
+ *   官方最接近的实现是**分段控件 / 标签条**，其 token 组在 official-tokens.css 里是完整的：
+ *     --segmented-control-background                     轨道底（--gray-0 / --gray-100）
+ *     --segmented-control-gap: 2px                       选项间距
+ *     --segmented-control-gutter: 2px                    轨道内距
+ *     --segmented-control-thumb-background               选中底
+ *     --segmented-control-thumb-shadow: 0 1px 4px -1px #0003
+ *     --segmented-control-option-highlight-background-color / -gutter: 1px
+ *     --segmented-control-font-weight: 600
+ *   另有标签条内距：shell.css `._TabStripInset_11q0v_2`
+ *     padding-inline-start: calc(--spacing * 2) / end: calc(--spacing * 1.5)
+ *
+ * 本文件 = 上面这组 token 的直译（**无字面量尺寸/颜色**）：
+ *   轨道 = --segmented-control-background + gutter + 圆角 --radius-xl
+ *   选项 = --control-size-3xs 高（官方控件阶梯 22px）· 1px 内缩（--segmented-control-option-highlight-gutter）
+ *          · 圆角 --radius-lg · 字 --font-text-sm-size/semibold
+ *   选中 = --segmented-control-thumb-background + thumb-shadow
+ *   分隔线 = --color-border（line 变体）
+ * z-index / 键盘行为沿用 Radix Tabs（← → 切换、Home/End、roving tabindex）。
+ * ========================================================================== */
+
+.cx-tabs {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--spacing) * 2);
+}
+
+.cx-tabs[data-orientation="vertical"] {
+  flex-direction: row;
+}
+
+.cx-tabs__list {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  gap: var(--segmented-control-gap);
+  padding: var(--segmented-control-gutter);
+  border-radius: var(--radius-xl);
+  corner-shape: var(--codex-corner-shape);
+  background-color: var(--segmented-control-background);
+}
+
+.cx-tabs__list[data-variant="line"] {
+  gap: calc(var(--spacing) * 1);
+  padding: 0;
+  border-radius: 0;
+  background-color: transparent;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.cx-tabs__trigger {
+  position: relative;
+  display: inline-flex;
+  height: var(--control-size-3xs);
+  flex: 1 1 auto;
+  align-items: center;
+  justify-content: center;
+  gap: calc(var(--spacing) * 1);
+  padding-inline: calc(var(--spacing) * 2);
+  border: 0;
+  border-radius: var(--radius-lg);
+  corner-shape: var(--codex-corner-shape);
+  background-color: transparent;
+  color: var(--color-text-secondary);
+  font-family: var(--font-sans);
+  font-size: var(--font-text-sm-size);
+  line-height: 1;
+  white-space: nowrap;
+  cursor: var(--cursor-interaction, pointer);
+  transition-duration: var(--transition-duration-basic);
+  transition-property: background-color, color, box-shadow;
+  transition-timing-function: var(--transition-ease-basic);
+}
+
+.cx-tabs__trigger:hover {
+  color: var(--color-text);
+}
+
+.cx-tabs__trigger[data-state="active"] {
+  background-color: var(--segmented-control-thumb-background);
+  box-shadow: var(--segmented-control-thumb-shadow);
+  color: var(--color-text);
+  font-weight: var(--segmented-control-font-weight);
+}
+
+.cx-tabs__list[data-variant="line"] .cx-tabs__trigger[data-state="active"] {
+  background-color: transparent;
+  box-shadow: none;
+}
+
+.cx-tabs__trigger:focus {
+  outline: none;
+}
+
+.cx-tabs__trigger:focus-visible {
+  outline: 2px solid var(--color-ring);
+  outline-offset: 2px;
+}
+
+.cx-tabs__trigger:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.cx-tabs__trigger > svg {
+  width: var(--control-icon-size-sm);
+  height: var(--control-icon-size-sm);
+  flex-shrink: 0;
+  pointer-events: none;
+}
+
+.cx-tabs__content {
+  flex: 1;
+  min-width: 0;
+  outline: none;
+}

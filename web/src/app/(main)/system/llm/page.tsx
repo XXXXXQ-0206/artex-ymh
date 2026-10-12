@@ -15,17 +15,43 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Separator } from "@/components/ui/separator";
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { Switch } from "@/components/ui/switch";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Badge,
+  Button,
+  Card,
+  CardContent,
+  Input,
+  Label,
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+  Separator,
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  Switch,
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/codex-ui/codex/ui";
+
+
+
+
+
+
+
+
+
+
 import { api } from "@/lib/api";
 import type { LLMPoolMember, LLMPoolStatus, LLMProfile, LLMRetryOverride } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -236,11 +262,11 @@ function PoolSheet({
                         </span>
                         <span className="font-medium">{m.name}</span>
                         {m.active && (
-                          <Badge variant="outline" className="border-amber-400/50 text-amber-500">
+                          <Badge tone="muted" className="border-amber-400/50 text-amber-500">
                             激活
                           </Badge>
                         )}
-                        {excluded && <Badge variant="outline">不参与轮询</Badge>}
+                        {excluded && <Badge tone="muted">不参与轮询</Badge>}
                         <div className="ml-auto flex items-center gap-2">
                           {m.state === "tripped" && m.cooldown_secs > 0 && (
                             <span className="text-muted-foreground text-xs">冷却 {cooldownText(m.cooldown_secs)}</span>
@@ -249,10 +275,9 @@ function PoolSheet({
                             <span className="text-muted-foreground text-xs">连续失败 {m.fails} 次</span>
                           )}
                           {m.state !== "ok" && (
-                            <Button
-                              size="icon"
+                            <Button uniform
+                              size="md"
                               variant="ghost"
-                              className="size-7"
                               aria-label="立即恢复"
                               title="立即恢复：清除熔断，下次调用重试该配置"
                               onClick={() => void recover(m.profile_id)}
@@ -467,7 +492,7 @@ function ProfileSheet({
           <SheetTitle className="flex items-center gap-2">
             {isNew ? "新建模型配置" : `编辑：${profile?.name}`}
             {profile?.is_default && (
-              <Badge variant="outline" className="border-amber-400/50 text-amber-500">
+              <Badge tone="muted" className="border-amber-400/50 text-amber-500">
                 激活中
               </Badge>
             )}
@@ -519,10 +544,10 @@ function ProfileSheet({
                   不加 modal 时列表能渲染却滚不动。modal 让它自己持有最上层滚动锁。 */}
               <Popover open={modelsOpen} onOpenChange={setModelsOpen} modal>
                 <PopoverTrigger asChild>
-                  <Button
+                  <Button uniform
                     type="button"
                     variant="outline"
-                    size="icon"
+                    size="md"
                     className="shrink-0"
                     disabled={loadingModels}
                     onClick={loadModels}
@@ -865,7 +890,7 @@ export default function LLMPage() {
           <Button size="sm" variant="outline" onClick={() => setPoolOpen(true)}>
             <ZapIcon /> 轮询配置
             {poolOn && (
-              <Badge variant="outline" className="ml-1 border-emerald-500/50 text-emerald-600 dark:text-emerald-400">
+              <Badge tone="muted" className="ml-1 border-emerald-500/50 text-emerald-600 dark:text-emerald-400">
                 已开启
               </Badge>
             )}
@@ -915,10 +940,10 @@ export default function LLMPage() {
                       <div className="min-w-0 flex-1">
                         <div className="flex flex-wrap items-center gap-2">
                           <span className="truncate font-medium text-sm">{p.name}</span>
-                          <Badge variant="outline" className="uppercase">
+                          <Badge tone="muted" className="uppercase">
                             {p.format}
                           </Badge>
-                          <Badge variant="outline" className={cn("ml-auto", h.cls)} title={h.hint}>
+                          <Badge tone="muted" className={cn("ml-auto", h.cls)} title={h.hint}>
                             {h.label}
                           </Badge>
                         </div>
@@ -954,8 +979,8 @@ export default function LLMPage() {
                       >
                         {p.is_default ? "已激活" : "设为激活"}
                       </Button>
-                      <Button
-                        size="icon"
+                      <Button uniform
+                        size="md"
                         variant="outline"
                         aria-label="删除配置"
                         onClick={(e) => {
