@@ -3726,7 +3726,10 @@ func cors(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		w.Header().Set("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS")
-		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+		// Authorization 必须显式放行：桌面端外壳（Electron 的 http://127.0.0.1:<port> 源）会用
+		// Bearer token 直连 /api/* 渲染原生页面；只列 Content-Type 时浏览器预检会拒绝带
+		// Authorization 的请求，fetch 直接抛 TypeError: Failed to fetch（实测）。
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
 		if r.Method == http.MethodOptions {
 			w.WriteHeader(204)
 			return
