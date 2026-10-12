@@ -991,18 +991,11 @@
   margin-inline-start: auto;
 }
 
+/* 图标键：尺寸/圆角/颜色/过渡全部由复制层的 .cx-btn[size=md][data-uniform] 承担
+   （官方 control-size 阶梯 md = 28，与参考端实测 28×28 一致）。
+   这里只留版面约束，避免自写控件数值。 */
 .threadAction {
-  display: inline-flex;
-  width: 28px;
-  height: 28px;
   flex-shrink: 0;
-  align-items: center;
-  justify-content: center;
-  border-radius: var(--radius-lg, 12.5px);
-  color: var(--color-text-tertiary, rgb(255 255 255 / 0.498));
-  transition:
-    background-color var(--transition-duration-basic, 0.15s) ease,
-    color var(--transition-duration-basic, 0.15s) ease;
 }
 
 .threadAction:hover {

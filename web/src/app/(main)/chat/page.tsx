@@ -848,7 +848,7 @@ function ChatView({
         <div className={styles.threadActions}>
           <Popover>
             <PopoverTrigger asChild>
-              <Button className={styles.threadAction} size="sm" uniform title="会话信息" aria-label="会话信息">
+              <Button className={styles.threadAction} size="md" uniform title="会话信息" aria-label="会话信息">
                 <CodexEllipsis size={16} />
               </Button>
             </PopoverTrigger>
@@ -862,7 +862,7 @@ function ChatView({
               </p>
             </PopoverContent>
           </Popover>
-          <Button asChild className={styles.threadAction} size="sm" uniform title="设置" aria-label="设置">
+          <Button asChild className={styles.threadAction} size="md" uniform title="设置" aria-label="设置">
             <a href="/system/settings/">
               <CodexGear size={16} />
             </a>
