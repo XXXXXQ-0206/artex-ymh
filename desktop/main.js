@@ -1,13 +1,22 @@
 // ARTEX 桌面端（Electron 外壳）——参考 dsh-desktop 的组织方式：
-//   主进程负责拉起本机后端 + 一个窗口展示控制台 + 托盘图标，单实例。
+//   主进程负责拉起本机后端 + 一个窗口展示**界面** + 托盘图标，单实例。
 // 语义与托盘启动器一致：托盘图标存在 ⇔ ARTEX 在跑；退出时回收后端（只停自己拉起的库）。
+//
+// 界面 = **codex 壳**（codex-desktop-src 的构建产物，见 desktop/shell/）：
+//   壳提供顶栏/导轨/288 面板/圆角主表面与它自己的页面；ARTEX 控制台作为**被托管的访客**
+//   用 iframe 挂在壳的 /artex 路由里（协议见 web/src/codex-host/）。
+//   本进程只做三件事：抬起后端、把壳的静态产物用一个回环静态服务器喂给窗口、托盘与回收。
 const { app, BrowserWindow, Menu, Tray, nativeImage, nativeTheme, session, shell, ipcMain } = require("electron");
 const fs = require("node:fs");
 const path = require("node:path");
 
 const backend = require("./lib/backend");
+const { startShellServer } = require("./lib/shell-server");
 
-const URL = "http://127.0.0.1:8787/";
+const CONSOLE_URL = "http://127.0.0.1:8787/"; // 控制台（访客）
+const SHELL_DIR = path.join(__dirname, "shell"); // codex 壳产物（构建期从 codex-desktop-src 同步）
+let shellServer = null;
+let URL = CONSOLE_URL; // 壳起来之后换成 http://127.0.0.1:<port>/artex?artex=<控制台>
 const SILENT = process.argv.includes("--silent"); // 开机自启：只亮托盘，不弹窗
 const ICON_RUNNING = path.join(__dirname, "assets", "artex_running.ico");
 const ICON_STOPPED = path.join(__dirname, "assets", "artex_stopped.ico");
@@ -54,6 +63,24 @@ function log(msg) {
     fs.appendFileSync(path.join(dir, "desktop.log"), `${new Date().toISOString()} ${msg}\n`);
   } catch {
     /* ignore */
+  }
+}
+
+// 起壳：把 codex 壳的静态产物用回环静态服务器喂给窗口，并把窗口 URL 指到壳的 /artex
+// （访客 = 本机控制台）。壳缺失/起不来就**回退**成直接开控制台，不让用户白屏。
+async function startShell() {
+  try {
+    if (!fs.existsSync(path.join(SHELL_DIR, "index.html"))) {
+      log("[shell] 没有壳产物（desktop/shell），回退到控制台直连");
+      return;
+    }
+    const s = await startShellServer(SHELL_DIR);
+    shellServer = s;
+    URL = `http://127.0.0.1:${s.port}/artex?artex=${encodeURIComponent(CONSOLE_URL)}`;
+    log(`[shell] serving ${SHELL_DIR} on 127.0.0.1:${s.port} → ${URL}`);
+  } catch (err) {
+    log("[shell] 启动失败，回退到控制台直连：" + err.message);
+    URL = CONSOLE_URL;
   }
 }
 
@@ -264,6 +291,11 @@ function quit() {
     log("[lifecycle] stop failed: " + err.message);
   }
   if (tickTimer) clearInterval(tickTimer);
+  try {
+    shellServer?.close();
+  } catch {
+    /* 关不掉也不阻塞退出 */
+  }
   tray?.destroy();
   tray = null;
   app.quit();
@@ -312,6 +344,7 @@ if (!app.requestSingleInstanceLock()) {
     log(`[boot] installDir=${installDir} silent=${SILENT}`);
 
     await seedThemeFromSystem();
+    await startShell();
     createWindow();
     rebuildTray(false);
     tickTimer = setInterval(tick, 2000);
