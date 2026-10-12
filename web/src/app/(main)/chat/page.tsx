@@ -1485,7 +1485,7 @@ export default function ChatPage() {
               className="codex-history-new-chat w-full justify-start font-normal text-[color:var(--codex-text-strong)] hover:text-foreground"
               onClick={() => selectConversation(null)}
             >
-              <CodexPlus data-icon="inline-start" size={14} /> 新聊天
+              <CodexPlus size={14} /> 新聊天
             </Button>
             <Select
               value={agentFilter === null ? "all" : `agent:${agentFilter}`}
@@ -1547,7 +1547,7 @@ export default function ChatPage() {
                     onClick={() => setSelectionMode(true)}
                     disabled={filteredConversations.length === 0}
                   >
-                    <ListChecksIcon data-icon="inline-start" />
+                    <ListChecksIcon />
                     多选
                   </Button>
                 </div>

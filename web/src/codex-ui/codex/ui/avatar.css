@@ -1,0 +1,45 @@
+/* ============================================================================
+ * Avatar —— 官方无 Avatar 组件，但 token 组完整存在。
+ *
+ * ⚠️ official-tokens.css: --avatar-size(28px) / --avatar-radius(--radius-full) / --avatar-font-size-scaling(.5) 等
+ *
+ * 官方 token 直译（逐条映射）：
+ *   · · 尺寸 --avatar-size
+ *   · · 圆角 --avatar-radius
+ *   · · 字号 calc(var(--avatar-size) * var(--avatar-font-size-scaling))
+ *   · · 兜底底 --color-background-primary-soft-alpha · 图描边 --avatar-image-border-color（官方 --alpha-04/--alpha-15 双档）
+ * 本文件不含任何字面量尺寸/字号/字重/颜色（除官方 token 缺失、已显式注明的兜底）。
+ * ========================================================================== */
+
+.cx-avatar {
+  position: relative;
+  display: flex;
+  width: var(--avatar-size);
+  height: var(--avatar-size);
+  flex-shrink: 0;
+  overflow: hidden;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--avatar-radius);
+  background-color: var(--color-background-primary-soft-alpha);
+  color: var(--color-text-secondary);
+  font-size: calc(var(--avatar-size) * var(--avatar-font-size-scaling));
+  font-weight: var(--font-weight-normal);
+  line-height: 1;
+  user-select: none;
+}
+
+.cx-avatar__image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  box-shadow: 0 0 0 var(--border-width-hairline, 0.5px) var(--avatar-image-border-color, transparent) inset;
+}
+
+.cx-avatar__fallback {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+}

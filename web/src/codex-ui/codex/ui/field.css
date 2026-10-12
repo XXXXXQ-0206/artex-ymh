@@ -1,0 +1,91 @@
+/* ============================================================================
+ * Field —— 官方无表单 Field 组件；官方唯一带 --* 组的表单件是 label（`._label_` 14px/500/20）。
+ *
+ * 官方 token 直译：
+ *   · 字段间距 gap-2        → calc(var(--spacing) * 2)（与 --input-gap-md 同档）
+ *   · 字段组间距 gap-5      → calc(var(--spacing) * 5)（= --dialog-container-inner-padding 同档）
+ *   · 标签字色/字号/字重    → --color-text / --font-text-sm-size / --font-weight-medium（复制层 .cx-label 同源）
+ *   · 描述与错误            → --color-text-secondary / --color-text-danger
+ * 本文件不含字面量尺寸/字号/字重/颜色（官方 token 缺失处已显式注明兜底）。
+ * ========================================================================== */
+
+.cx-field-set {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--spacing) * 4);
+  border: 0;
+  margin: 0;
+  padding: 0;
+}
+
+.cx-field-legend {
+  margin-bottom: calc(var(--spacing) * 1.5);
+  color: var(--color-text);
+  font-size: var(--font-text-md-size);
+  font-weight: var(--font-weight-medium);
+}
+
+/* label 档：与 field-label 同号（官方 .cx-label = 14px/500/20） */
+.cx-field-legend[data-variant="label"] {
+  font-size: var(--font-text-sm-size);
+  line-height: var(--font-text-sm-line-height);
+}
+
+.cx-field-group {
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  gap: calc(var(--spacing) * 5);
+}
+
+.cx-field {
+  display: flex;
+  width: 100%;
+  gap: calc(var(--spacing) * 2);
+  flex-direction: column;
+}
+
+.cx-field[data-orientation="horizontal"] {
+  flex-direction: row;
+  align-items: center;
+}
+
+.cx-field[data-invalid="true"] {
+  color: var(--color-text-danger);
+}
+
+.cx-field-label {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--spacing) * 2);
+  color: var(--color-text);
+  font-size: var(--font-text-sm-size);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--font-text-sm-line-height);
+}
+
+.cx-field-description {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: var(--font-text-xs-size);
+  line-height: var(--font-text-xs-line-height);
+}
+
+.cx-field-content {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--spacing) * 1);
+  flex: 1;
+}
+
+.cx-field-separator {
+  position: relative;
+  height: calc(var(--spacing) * 5);
+  background-color: transparent;
+}
+
+.cx-field-separator > .cx-separator {
+  position: absolute;
+  inset-inline: 0;
+  top: 50%;
+}

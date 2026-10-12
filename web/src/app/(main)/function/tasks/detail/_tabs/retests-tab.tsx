@@ -8,14 +8,27 @@ import { ArrowUpRightIcon, ChevronLeftIcon, ChevronRightIcon } from "lucide-reac
 
 import { FindingRetestPanel } from "@/components/finding-retest-panel";
 import { StatusBadge } from "@/components/status-badge";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  Alert,
+  AlertDescription,
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyTitle,
+} from "@/codex-ui/codex/ui";
 import {
   Button,
   Separator,
   Skeleton,
 } from "@/codex-ui/codex/ui";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
+
+
 
 
 import { api } from "@/lib/api";
@@ -75,7 +88,7 @@ export function RetestsTab({ taskId }: { taskId: string }) {
   return (
     <div className="flex flex-col gap-4">
       {error ? (
-        <Alert variant="destructive">
+        <Alert variant="danger">
           <AlertDescription>
             加载任务漏洞失败：{error}
             <Button variant="outline" size="sm" onClick={refresh}>

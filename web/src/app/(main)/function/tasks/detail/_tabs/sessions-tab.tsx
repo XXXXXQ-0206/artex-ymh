@@ -52,7 +52,11 @@ import {
 } from "@/codex-ui/codex/ui";
 
 
-import { InputGroup, InputGroupAddon, InputGroupButton } from "@/components/ui/input-group";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupButton,
+} from "@/codex-ui/codex/ui";
 
 
 
@@ -1988,9 +1992,8 @@ export function SessionsTab({ taskId }: { taskId: string }) {
                     }}
                     className="max-h-36 min-h-9 overflow-y-auto"
                   />
-                  <InputGroupAddon align="block-end">
-                    <InputGroupButton
-                      size="icon-xs"
+                  <InputGroupAddon align="inline-end">
+                    <InputGroupButton size="2xs"
                       variant="ghost"
                       onClick={() => fileInputRef.current?.click()}
                       disabled={mainBusy || uploading}
@@ -2000,15 +2003,16 @@ export function SessionsTab({ taskId }: { taskId: string }) {
                       {uploading ? <Loader2Icon className="animate-spin" /> : <PaperclipIcon />}
                     </InputGroupButton>
                     {mainBusy && isBtwCommand(input) && (
-                      <InputGroupButton size="icon-xs" onClick={send} aria-label="发送旁路问题">
+                      <InputGroupButton size="2xs" onClick={send} aria-label="发送旁路问题">
                         <ArrowUpIcon />
                       </InputGroupButton>
                     )}
                     {mainBusy ? (
                       <InputGroupButton
                         className="ml-auto"
-                        size="icon-xs"
-                        variant="destructive"
+                        size="2xs"
+                        color="danger"
+                        variant="soft"
                         onClick={stop}
                         disabled={stopping}
                         title="停止当前执行"
@@ -2019,8 +2023,8 @@ export function SessionsTab({ taskId }: { taskId: string }) {
                     ) : (
                       <InputGroupButton
                         className="ml-auto"
-                        size="icon-xs"
-                        variant="default"
+                        size="2xs"
+                        variant="solid"
                         onClick={send}
                         disabled={(!input.trim() && attachments.length === 0) || sending}
                         title="发送消息"
@@ -2056,7 +2060,7 @@ export function SessionsTab({ taskId }: { taskId: string }) {
                     aria-invalid={workerMessageCharCount(workerMessage) > MAX_WORKER_MESSAGE_CHARS}
                     className="max-h-36 min-h-9 overflow-y-auto"
                   />
-                  <InputGroupAddon align="block-end">
+                  <InputGroupAddon align="inline-end">
                     <span
                       className={cn(
                         "px-1 text-[10px] tabular-nums text-muted-foreground",
@@ -2066,15 +2070,16 @@ export function SessionsTab({ taskId }: { taskId: string }) {
                       {workerMessageCharCount(workerMessage)}/{MAX_WORKER_MESSAGE_CHARS}
                     </span>
                     {active.status === "running" && isBtwCommand(workerMessage) && (
-                      <InputGroupButton size="icon-xs" onClick={sendWorkerChat} aria-label="发送旁路问题">
+                      <InputGroupButton size="2xs" onClick={sendWorkerChat} aria-label="发送旁路问题">
                         <ArrowUpIcon />
                       </InputGroupButton>
                     )}
                     {active.status === "running" ? (
                       <InputGroupButton
                         className="ml-auto"
-                        size="icon-xs"
-                        variant="destructive"
+                        size="2xs"
+                        color="danger"
+                        variant="soft"
                         onClick={() => void controlWorker(active, "pause")}
                         disabled={controllingIntent === active.intent_id}
                         title="暂停当前 Worker"
@@ -2103,9 +2108,8 @@ export function SessionsTab({ taskId }: { taskId: string }) {
                             "直接继续"
                           )}
                         </InputGroupButton>
-                        <InputGroupButton
-                          size="icon-xs"
-                          variant="default"
+                        <InputGroupButton size="2xs"
+                          variant="solid"
                           onClick={sendWorkerChat}
                           disabled={
                             workerMessageSending ||

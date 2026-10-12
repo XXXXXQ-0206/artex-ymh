@@ -1,0 +1,57 @@
+/* ============================================================================
+ * InputGroup —— 官方无 InputGroup 组件；输入容器本体走复制层 .cx-input（官方 _Container_1pj83_2）。
+ *
+ * 官方 token 直译：
+ *   · 前后缀内距 --input-gutter · 图标尺寸 --control-icon-size-sm
+ *   · 文字/次要色 --color-text / --color-text-secondary · 禁用 --color-text-tertiary
+ * 本文件不含字面量尺寸/字号/字重/颜色。
+ * ========================================================================== */
+
+.cx-input-group {
+  position: relative;
+  display: flex;
+  width: 100%;
+  align-items: center;
+}
+
+.cx-input-group > .cx-input {
+  flex: 1;
+  min-width: 0;
+}
+
+.cx-input-group__addon {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--spacing) * 1);
+  padding-inline: var(--input-gutter);
+  color: var(--color-text-secondary);
+}
+
+.cx-input-group__addon[data-align='inline-start'] {
+  order: -1;
+}
+
+.cx-input-group__addon svg {
+  width: var(--control-icon-size-sm);
+  height: var(--control-icon-size-sm);
+  flex-shrink: 0;
+}
+
+.cx-input-group__text {
+  color: var(--color-text-secondary);
+  font-size: var(--font-text-sm-size);
+  user-select: none;
+}
+
+.cx-input-group__button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-secondary);
+  cursor: var(--cursor-interaction, pointer);
+}
+
+.cx-input-group__button:disabled {
+  color: var(--color-text-tertiary);
+  cursor: not-allowed;
+}

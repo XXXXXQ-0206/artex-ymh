@@ -34,16 +34,34 @@ import {
   Spinner,
   Textarea,
 } from "@/codex-ui/codex/ui";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  Field,
+  FieldDescription,
+  FieldGroup,
+  FieldLabel,
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+  Tabs,
+  TabsList,
+  TabsTrigger,
+  ToggleGroup,
+  ToggleGroupItem,
+} from "@/codex-ui/codex/ui";
 
-import { Field, FieldDescription, FieldGroup, FieldLabel } from "@/components/ui/field";
-import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group";
 
 
 
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+
+
+
+
 import { api } from "@/lib/api";
 import { getLocalStorageValue, setLocalStorageValue } from "@/lib/local-storage.client";
 import { statusMeta } from "@/lib/status";
@@ -889,9 +907,6 @@ export default function FindingsPage() {
             type="single"
             value={severity}
             onValueChange={(value) => value && setSeverity(value as "all" | Severity)}
-            variant="outline"
-            size="sm"
-            spacing={0}
           >
             {(
               [

@@ -22,22 +22,49 @@ import {
   AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Input } from "@/components/ui/input";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+  Badge,
+  Button,
+  Card,
+  Checkbox,
+  Input,
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/codex-ui/codex/ui";
+
+
+
+
+
+
+
+
+
+
+
 import { api } from "@/lib/api";
 import type { TrafficDetail, TrafficExchange, TrafficHost, TrafficResp } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -279,9 +306,9 @@ export default function TrafficPage() {
                 {hosts.length > 0 && (
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <Button
+                      <Button uniform
                         variant="ghost"
-                        size="icon-xs"
+                        size="md"
                         onClick={() => setHostCountSortDirection((current) => (current === "desc" ? "asc" : "desc"))}
                         aria-label={
                           hostCountSortDirection === "desc"
@@ -334,7 +361,7 @@ export default function TrafficPage() {
             </div>
             <div className="border-t p-2">
               <Button
-                variant="destructive"
+                variant="soft" color="danger"
                 size="sm"
                 className="w-full"
                 disabled={selectedHosts.length === 0}
@@ -352,7 +379,7 @@ export default function TrafficPage() {
           <Input placeholder="host…" value={host} onChange={(e) => setHost(e.target.value)} className="h-8" />
         </div>
         <Button
-          variant="destructive"
+          variant="soft" color="danger"
           size="sm"
           className="h-8"
           disabled={!hostQ || deleting}
@@ -372,7 +399,7 @@ export default function TrafficPage() {
           />
         </div>
         <Select value={method} onValueChange={setMethod}>
-          <SelectTrigger size="sm" className="w-32">
+          <SelectTrigger  className="w-32">
             <SelectValue placeholder="方法" />
           </SelectTrigger>
           <SelectContent>
@@ -385,7 +412,7 @@ export default function TrafficPage() {
           </SelectContent>
         </Select>
         <Select value={String(size)} onValueChange={(v) => setSize(Number(v))}>
-          <SelectTrigger size="sm" className="w-28">
+          <SelectTrigger  className="w-28">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -401,9 +428,9 @@ export default function TrafficPage() {
           <span className="tabular-nums">
             {rangeStart}–{rangeEnd} / {total}
           </span>
-          <Button
+          <Button uniform
             variant="outline"
-            size="icon"
+            size="md"
             className="size-8"
             disabled={page <= 0}
             onClick={() => setPage((p) => Math.max(0, p - 1))}
@@ -413,9 +440,9 @@ export default function TrafficPage() {
           <span className="tabular-nums">
             {page + 1} / {pageCount}
           </span>
-          <Button
+          <Button uniform
             variant="outline"
-            size="icon"
+            size="md"
             className="size-8"
             disabled={page + 1 >= pageCount}
             onClick={() => setPage((p) => Math.min(pageCount - 1, p + 1))}
@@ -534,7 +561,7 @@ export default function TrafficPage() {
               <SheetHeader className="border-b px-5 py-4">
                 <div className="flex items-center gap-2 pr-8">
                   <MethodBadge method={selected.method} />
-                  <Badge variant="secondary" className={cn("font-mono tabular-nums", statusTone(selected.status))}>
+                  <Badge tone="neutral" className={cn("font-mono tabular-nums", statusTone(selected.status))}>
                     {selected.status}
                   </Badge>
                   <span className="ml-auto text-xs text-muted-foreground tabular-nums">{fmtTime(selected.ts)}</span>
@@ -579,45 +606,52 @@ export default function TrafficPage() {
           if (!o) setDeleteMode(null);
         }}
       >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>
-              {deleteMode === "selected"
-                ? `删除选中的 ${selectedHosts.length} 个目标的全部流量？`
-                : "删除该目标的全部流量？"}
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              {deleteMode === "selected" ? (
-                <>
-                  将永久删除 <span className="font-semibold tabular-nums">{selectedHosts.length}</span> 个目标（
-                  <span className="font-mono">
-                    {selectedHosts.slice(0, 3).join("、")}
-                    {selectedHosts.length > 3 ? "…" : ""}
-                  </span>
-                  ）的所有流量记录（含请求/响应原文），此操作不可撤销。
-                </>
-              ) : (
-                <>
-                  将永久删除 host 包含 <span className="font-mono font-semibold">{hostQ}</span>{" "}
-                  的所有流量记录（含请求/响应原文），此操作不可撤销。
-                </>
-              )}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={deleting}>取消</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={(e) => {
-                e.preventDefault();
-                confirmDelete();
-              }}
-              disabled={deleting}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              {deleting ? "删除中…" : "确认删除"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
+        <AlertDialogContent
+          title={
+            deleteMode === "selected"
+              ? `删除选中的 ${selectedHosts.length} 个目标的全部流量？`
+              : "删除该目标的全部流量？"
+          }
+          description={
+            deleteMode === "selected" ? (
+              <>
+                将永久删除 <span className="font-semibold tabular-nums">{selectedHosts.length}</span> 个目标（
+                <span className="font-mono">
+                  {selectedHosts.slice(0, 3).join("、")}
+                  {selectedHosts.length > 3 ? "…" : ""}
+                </span>
+                ）的所有流量记录（含请求/响应原文），此操作不可撤销。
+              </>
+            ) : (
+              <>
+                将永久删除 host 包含 <span className="font-mono font-semibold">{hostQ}</span> 的所有流量记录（含请求/响应原文），此操作不可撤销。
+              </>
+            )
+          }
+          footer={
+            <>
+              <AlertDialogCancel asChild>
+                <Button disabled={deleting} size="sm" variant="ghost">
+                  取消
+                </Button>
+              </AlertDialogCancel>
+              <AlertDialogAction asChild>
+                <Button
+                  color="danger"
+                  disabled={deleting}
+                  size="sm"
+                  variant="solid"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    confirmDelete();
+                  }}
+                >
+                  {deleting ? "删除中…" : "确认删除"}
+                </Button>
+              </AlertDialogAction>
+            </>
+          }
+        />
       </AlertDialog>
     </div>
   );

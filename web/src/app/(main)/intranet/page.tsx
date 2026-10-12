@@ -4,11 +4,25 @@ import * as React from "react";
 
 import { Loader2Icon, NetworkIcon, RefreshCwIcon } from "lucide-react";
 
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Badge,
+  Button,
+  Card,
+  CardContent,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/codex-ui/codex/ui";
+
+
+
+
 import { api } from "@/lib/api";
 import type { Credential, IntranetTopology, ShellSession, Task, TunnelInfo } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -152,20 +166,20 @@ export default function IntranetPage() {
         <div className="flex items-center gap-2">
           <NetworkIcon className="h-5 w-5 text-muted-foreground" />
           <h1 className="text-xl font-semibold tracking-tight">内网作战</h1>
-          <Badge variant="secondary" className="tabular-nums">
+          <Badge tone="neutral" className="tabular-nums">
             会话 {aliveSessions}/{sessions.length}
           </Badge>
-          <Badge variant="secondary" className="tabular-nums">
+          <Badge tone="neutral" className="tabular-nums">
             隧道 {tunnels.length}
           </Badge>
-          <Badge variant="secondary" className="tabular-nums">
+          <Badge tone="neutral" className="tabular-nums">
             凭据 {credentials.length}
           </Badge>
         </div>
         <div className="flex items-center gap-2">
           {/* 任务过滤:照 findings 页下拉范式;选中值同时作用于拓扑与三台账(含 10s 轮询)。 */}
           <Select value={taskId} onValueChange={setTaskId}>
-            <SelectTrigger size="sm" className="w-48">
+            <SelectTrigger  className="w-48">
               <SelectValue placeholder="任务" />
             </SelectTrigger>
             <SelectContent>

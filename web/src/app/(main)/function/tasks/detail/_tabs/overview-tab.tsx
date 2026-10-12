@@ -27,10 +27,19 @@ import {
   Button,
   Input,
 } from "@/codex-ui/codex/ui";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  NativeSelect,
+  NativeSelectOption,
+  Progress,
+} from "@/codex-ui/codex/ui";
 
-import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
-import { Progress } from "@/components/ui/progress";
+
+
 import { api } from "@/lib/api";
 import type {
   Finding,

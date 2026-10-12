@@ -18,32 +18,31 @@ import {
   AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-
-import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
-import {
+  Badge,
+  Button,
+  Card,
+  Input,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+  Switch,
   Table,
   TableBody,
   TableCell,
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+} from "@/codex-ui/codex/ui";
+
+
+
+
+
+
+
+
 import { cn } from "@/lib/utils";
 import { api } from "@/lib/api";
 import type { LLMRecordItem, LLMRecordDetail, LLMTask } from "@/lib/types";
@@ -104,9 +103,9 @@ function CopyButton({ text }: { text: string }) {
   };
 
   return (
-    <Button
+    <Button uniform
       variant="ghost"
-      size="icon"
+      size="md"
       className="size-5 shrink-0"
       disabled={disabled}
       title={copied ? "已复制" : "复制内容"}
@@ -261,7 +260,7 @@ export default function LLMRecordsPage() {
         <div className="flex items-center gap-2">
           <RadioIcon className="h-5 w-5 text-muted-foreground" />
           <h1 className="text-xl font-semibold tracking-tight">LLM 录制</h1>
-          <Badge variant="secondary">{total}</Badge>
+          <Badge tone="neutral">{total}</Badge>
         </div>
       </div>
 
@@ -283,7 +282,7 @@ export default function LLMRecordsPage() {
           onChange={(e) => setModel(e.target.value)}
         />
         <Select value={pickedTask} onValueChange={setPickedTask}>
-          <SelectTrigger size="sm" className="w-56">
+          <SelectTrigger  className="w-56">
             <SelectValue placeholder="选择任务…" />
           </SelectTrigger>
           <SelectContent>
@@ -302,7 +301,7 @@ export default function LLMRecordsPage() {
           </SelectContent>
         </Select>
         <Button
-          variant="destructive"
+          variant="soft" color="danger"
           size="sm"
           className="h-8"
           disabled={!pickedTask || deleting}
@@ -313,7 +312,7 @@ export default function LLMRecordsPage() {
           删除任务对话
         </Button>
         <Select value={String(size)} onValueChange={(v) => setSize(Number(v))}>
-          <SelectTrigger size="sm" className="w-28">
+          <SelectTrigger  className="w-28">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -329,7 +328,7 @@ export default function LLMRecordsPage() {
         <div className="flex items-center gap-2 rounded-md border px-2.5 py-1">
           <Switch
             id="llm-rec-toggle"
-            size="sm"
+            size="settings"
             checked={recEnabled}
             onCheckedChange={toggleRecording}
             disabled={recBusy}
@@ -349,9 +348,9 @@ export default function LLMRecordsPage() {
           <span className="tabular-nums">
             {rangeStart}–{rangeEnd} / {total}
           </span>
-          <Button
+          <Button uniform
             variant="outline"
-            size="icon"
+            size="md"
             className="size-8"
             disabled={page <= 0}
             onClick={() => setPage((p) => Math.max(0, p - 1))}
@@ -361,9 +360,9 @@ export default function LLMRecordsPage() {
           <span className="tabular-nums">
             {page + 1} / {totalPages}
           </span>
-          <Button
+          <Button uniform
             variant="outline"
-            size="icon"
+            size="md"
             className="size-8"
             disabled={page + 1 >= totalPages}
             onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
@@ -420,7 +419,7 @@ export default function LLMRecordsPage() {
                         {rec.task_id ? `#${rec.task_id}` : "-"}
                       </TableCell>
                       <TableCell>
-                        <Badge variant="outline" className="text-xs font-mono">
+                        <Badge tone="muted" className="text-xs font-mono">
                           {rec.worker || "-"}
                         </Badge>
                       </TableCell>
@@ -442,9 +441,9 @@ export default function LLMRecordsPage() {
                       </TableCell>
                       <TableCell>
                         {rec.status === "ok" ? (
-                          <Badge variant="secondary" className="text-xs text-emerald-600">OK</Badge>
+                          <Badge tone="neutral" className="text-xs text-emerald-600">OK</Badge>
                         ) : (
-                          <Badge variant="destructive" className="text-xs">Error</Badge>
+                          <Badge tone="danger" className="text-xs">Error</Badge>
                         )}
                       </TableCell>
                     </TableRow>
@@ -460,17 +459,17 @@ export default function LLMRecordsPage() {
           <Card className="flex h-[42%] min-h-0 flex-col overflow-hidden py-0">
             {/* Detail header */}
             <div className="flex items-center gap-2 border-b px-3 py-2">
-              <Badge variant="outline" className="text-xs font-mono">
+              <Badge tone="muted" className="text-xs font-mono">
                 #{selected.id}
               </Badge>
-              <Badge variant="outline" className="text-xs font-mono">
+              <Badge tone="muted" className="text-xs font-mono">
                 {selected.profile_name || "-"}
               </Badge>
-              <Badge variant="outline" className="text-xs font-mono">
+              <Badge tone="muted" className="text-xs font-mono">
                 {selected.model || "-"}
               </Badge>
               {selected.task_id && (
-                <Badge variant="outline" className="text-xs font-mono">
+                <Badge tone="muted" className="text-xs font-mono">
                   任务 #{selected.task_id}
                 </Badge>
               )}
@@ -481,14 +480,14 @@ export default function LLMRecordsPage() {
                 {fmtLatency(selected.latency_ms)}
               </span>
               {selected.status === "ok" ? (
-                <Badge variant="secondary" className="text-xs text-emerald-600">OK</Badge>
+                <Badge tone="neutral" className="text-xs text-emerald-600">OK</Badge>
               ) : (
-                <Badge variant="destructive" className="text-xs">Error</Badge>
+                <Badge tone="danger" className="text-xs">Error</Badge>
               )}
               {/* 原文视图开关。旧记录没有原文，此时禁用而非静默回退，避免看着像
                   「原文与解析一致」。 */}
               <Button
-                variant={showRaw ? "secondary" : "ghost"}
+                variant={showRaw ? "soft": "ghost"}
                 size="sm"
                 className="ml-auto h-7 shrink-0 text-xs"
                 disabled={!hasRaw}
@@ -497,9 +496,9 @@ export default function LLMRecordsPage() {
               >
                 原文
               </Button>
-              <Button
+              <Button uniform
                 variant="ghost"
-                size="icon"
+                size="md"
                 className="size-7 shrink-0"
                 onClick={() => setSelected(null)}
               >
@@ -553,27 +552,33 @@ export default function LLMRecordsPage() {
       </div>
 
       <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>删除任务「{pickedTask}」的全部 LLM 对话？</AlertDialogTitle>
-            <AlertDialogDescription>
-              将永久删除该任务的所有 LLM 调用记录（含请求/响应原文），此操作不可撤销。
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={deleting}>取消</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={(e) => {
-                e.preventDefault();
-                confirmDelete();
-              }}
-              disabled={deleting}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              {deleting ? "删除中…" : "确认删除"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
+        <AlertDialogContent
+          title={`删除任务「${pickedTask}」的全部 LLM 对话？`}
+          description="将永久删除该任务的所有 LLM 调用记录（含请求/响应原文），此操作不可撤销。"
+          footer={
+            <>
+              <AlertDialogCancel asChild>
+                <Button disabled={deleting} size="sm" variant="ghost">
+                  取消
+                </Button>
+              </AlertDialogCancel>
+              <AlertDialogAction asChild>
+                <Button
+                  color="danger"
+                  disabled={deleting}
+                  size="sm"
+                  variant="solid"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    confirmDelete();
+                  }}
+                >
+                  {deleting ? "删除中…" : "确认删除"}
+                </Button>
+              </AlertDialogAction>
+            </>
+          }
+        />
       </AlertDialog>
     </div>
   );

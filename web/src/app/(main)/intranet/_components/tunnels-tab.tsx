@@ -10,15 +10,20 @@ import {
   AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+  Badge,
+  Button,
+  Card,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/codex-ui/codex/ui";
+
+
+
+
 import { api } from "@/lib/api";
 import type { TunnelInfo } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -35,7 +40,7 @@ function StateBadge({ state }: { state: string }) {
   const dot = state === "alive" ? "bg-emerald-500" : state === "error" ? "bg-red-500" : "bg-neutral-400";
   const label = state === "alive" ? "存活" : state === "error" ? "失败" : state === "stopped" ? "已停" : state || "—";
   return (
-    <Badge variant={state === "alive" ? "secondary" : "outline"} className={cn("gap-1.5 text-xs", cls)}>
+    <Badge tone={state === "alive" ? "neutral" : "muted"} className={cn("gap-1.5 text-xs", cls)}>
       <span className={cn("size-1.5 rounded-full", dot)} />
       {label}
     </Badge>
@@ -73,7 +78,7 @@ export function TunnelsTab({
   return (
     <>
       <div className="flex items-center justify-end gap-2 px-1 pb-2">
-        <Button variant="outline" size="sm" className="h-7 gap-1" onClick={onRefresh} disabled={loading}>
+        <Button size="xs" variant="outline" className="gap-1" onClick={onRefresh} disabled={loading}>
           <RefreshCwIcon className={cn("size-3.5", loading && "animate-spin")} />
           刷新
         </Button>
@@ -120,7 +125,7 @@ export function TunnelsTab({
                       {t.task_id ? `#${t.task_id}` : "—"}
                     </TableCell>
                     <TableCell>
-                      <Badge variant="secondary" className="font-mono text-xs">
+                      <Badge tone="neutral" className="font-mono text-xs">
                         {t.kind || "-"}
                       </Badge>
                     </TableCell>
@@ -155,10 +160,9 @@ export function TunnelsTab({
                       </span>
                     </TableCell>
                     <TableCell>
-                      <Button
+                      <Button size="xs"
                         variant="outline"
-                        size="sm"
-                        className="h-7 gap-1"
+                        className="gap-1"
                         disabled={t.state !== "alive"}
                         title={t.state === "alive" ? "回收该隧道" : "仅存活隧道可回收"}
                         onClick={() => setPendingTeardown(t)}
@@ -177,31 +181,41 @@ export function TunnelsTab({
       </Card>
 
       <AlertDialog open={pendingTeardown !== null} onOpenChange={(o) => !o && setPendingTeardown(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>回收隧道 #{pendingTeardown?.id}？</AlertDialogTitle>
-            <AlertDialogDescription>
+        <AlertDialogContent
+          title={`回收隧道 #${pendingTeardown?.id}？`}
+          description={
+            <>
               将拆除 {pendingTeardown?.kind} 隧道（入口{" "}
               {pendingTeardown?.listen_host
                 ? `${pendingTeardown.listen_host}:${pendingTeardown.listen_port}`
                 : "—"}
               ），正在经它代理的连接会立即中断。
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={tearingDown}>取消</AlertDialogCancel>
-            <AlertDialogAction
-              variant="destructive"
-              disabled={tearingDown}
-              onClick={(e) => {
-                e.preventDefault();
-                confirmTeardown();
-              }}
-            >
-              {tearingDown ? "回收中…" : "确认回收"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
+            </>
+          }
+          footer={
+            <>
+              <AlertDialogCancel asChild>
+                <Button disabled={tearingDown} size="sm" variant="ghost">
+                  取消
+                </Button>
+              </AlertDialogCancel>
+              <AlertDialogAction asChild>
+                <Button
+                  color="danger"
+                  disabled={tearingDown}
+                  size="sm"
+                  variant="solid"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    confirmTeardown();
+                  }}
+                >
+                  {tearingDown ? "回收中…" : "确认回收"}
+                </Button>
+              </AlertDialogAction>
+            </>
+          }
+        />
       </AlertDialog>
     </>
   );

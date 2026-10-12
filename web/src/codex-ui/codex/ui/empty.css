@@ -1,0 +1,62 @@
+/* ============================================================================
+ * Empty —— 官方无 Empty 组件（空状态）。
+ *
+ * 官方 token 直译：
+ *   · 纵向间距 --spacing 阶梯 · 圆角 --radius-xl · 内距 calc(--spacing * 6)
+ *   · 图标尺寸 --control-icon-size-2xl · 文字 --color-text / --color-text-secondary
+ * 本文件不含字面量尺寸/字号/字重/颜色。
+ * ========================================================================== */
+
+.cx-empty {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: calc(var(--spacing) * 4);
+  border-radius: var(--radius-xl);
+  padding: calc(var(--spacing) * 6);
+  text-align: center;
+  text-wrap: balance;
+}
+
+.cx-empty__header {
+  display: flex;
+  max-width: var(--modal-max-width, var(--dialog-max-width, 450px));
+  flex-direction: column;
+  align-items: center;
+  gap: calc(var(--spacing) * 2);
+}
+
+.cx-empty__media {
+  display: flex;
+  width: var(--control-icon-size-2xl);
+  height: var(--control-icon-size-2xl);
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-lg);
+  background-color: var(--color-background-primary-soft-alpha);
+  color: var(--color-text-secondary);
+}
+
+.cx-empty__title {
+  color: var(--color-text);
+  font-size: var(--font-text-md-size);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--font-text-md-line-height);
+}
+
+.cx-empty__description {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: var(--font-text-sm-size);
+  line-height: var(--font-text-sm-line-height);
+}
+
+.cx-empty__content {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--spacing) * 2);
+}

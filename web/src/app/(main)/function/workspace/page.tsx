@@ -14,32 +14,32 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import {
+  Button,
+  Card,
+  CardContent,
+  Dialog,
+  DialogContent,
+  Input,
+  Sheet,
+  SheetContent,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
   Table,
   TableBody,
   TableCell,
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
-import {
-  Sheet,
-  SheetContent,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  Textarea,
+} from "@/codex-ui/codex/ui";
+
+
+
+
+
+
 import { cn } from "@/lib/utils";
 import { api } from "@/lib/api";
 import type { WorkspaceEntry, WorkspaceFile } from "@/lib/types";
@@ -198,7 +198,7 @@ export default function WorkspacePage() {
           <Button variant="outline" size="sm" onClick={() => uploadRef.current?.click()}>
             <UploadIcon /> 上传
           </Button>
-          <Button variant="ghost" size="icon" className="size-8" onClick={() => load(path)} title="刷新">
+          <Button uniform variant="ghost" size="md" className="size-8" onClick={() => load(path)} title="刷新">
             <RefreshCwIcon className={cn("size-4", loading && "animate-spin")} />
           </Button>
           <input
@@ -253,9 +253,9 @@ export default function WorkspacePage() {
                   <TableCell>
                     <div className="flex items-center justify-end gap-1">
                       {!e.dir && (
-                        <Button
+                        <Button uniform
                           variant="ghost"
-                          size="icon"
+                          size="md"
                           className="size-7"
                           title="下载"
                           onClick={() => api.workspaceDownload(e.path).catch((err) => toast.error(`下载失败：${(err as Error).message}`))}
@@ -263,9 +263,9 @@ export default function WorkspacePage() {
                           <DownloadIcon className="size-3.5" />
                         </Button>
                       )}
-                      <Button
+                      <Button uniform
                         variant="ghost"
-                        size="icon"
+                        size="md"
                         className="text-destructive size-7"
                         title="删除"
                         onClick={() => del(e)}
@@ -338,25 +338,27 @@ export default function WorkspacePage() {
 
       {/* 新建文件夹 */}
       <Dialog open={mkdirOpen} onOpenChange={setMkdirOpen}>
-        <DialogContent className="sm:max-w-sm">
-          <DialogHeader>
-            <DialogTitle>新建文件夹</DialogTitle>
-          </DialogHeader>
+        <DialogContent
+          className="sm:max-w-sm"
+          title="新建文件夹"
+          footer={
+            <>
+              <Button size="sm" variant="outline" onClick={() => setMkdirOpen(false)}>
+                取消
+              </Button>
+              <Button disabled={!mkdirName.trim()} size="sm" variant="solid" onClick={doMkdir}>
+                创建
+              </Button>
+            </>
+          }
+        >
           <Input
             autoFocus
+            placeholder="文件夹名称"
             value={mkdirName}
             onChange={(e) => setMkdirName(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && doMkdir()}
-            placeholder="文件夹名称"
           />
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setMkdirOpen(false)}>
-              取消
-            </Button>
-            <Button onClick={doMkdir} disabled={!mkdirName.trim()}>
-              创建
-            </Button>
-          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

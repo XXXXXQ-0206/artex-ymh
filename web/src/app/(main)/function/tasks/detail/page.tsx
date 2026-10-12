@@ -19,7 +19,15 @@ import { toast } from "sonner";
 
 import { StatusBadge } from "@/components/status-badge";
 import { TaskLLMProfileChain } from "@/components/task-llm-profile-chain";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/codex-ui/codex/ui";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -42,7 +50,7 @@ import {
 
 import { SidebarTrigger } from "@/components/ui/sidebar";
 
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
 
 
 import { api } from "@/lib/api";
@@ -281,7 +289,7 @@ function TaskLLMControl({ task, profiles, onUpdated }: { task: Task; profiles: L
         </div>
 
         {exhausted && (
-          <Alert variant="destructive">
+          <Alert variant="danger">
             <CircleAlertIcon />
             <AlertTitle>配置链额度已耗尽</AlertTitle>
             <AlertDescription>

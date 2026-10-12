@@ -5,14 +5,34 @@ import * as React from "react";
 import { AlertCircleIcon, CheckCircle2Icon, DownloadIcon, PlugZapIcon, RefreshCwIcon, SearchIcon } from "lucide-react";
 import { toast } from "sonner";
 
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Badge,
+  Button,
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  Checkbox,
+  Input,
+  Label,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/codex-ui/codex/ui";
+
+
+
+
+
+
+
 import { api } from "@/lib/api";
 import type { SSProject, SSTask } from "@/lib/types";
 
@@ -196,10 +216,10 @@ function DataSourceCard({
 }
 
 function StatusBadge({ status, loading }: { status: SSStatus | null; loading: boolean }) {
-  if (loading || !status) return <Badge variant="secondary">检测中…</Badge>;
-  if (!status.exists) return <Badge variant="destructive">未创建</Badge>;
-  if (!status.configured) return <Badge variant="outline">未配置</Badge>;
-  if (!status.enabled) return <Badge variant="outline">未启用</Badge>;
+  if (loading || !status) return <Badge tone="neutral">检测中…</Badge>;
+  if (!status.exists) return <Badge tone="danger">未创建</Badge>;
+  if (!status.configured) return <Badge tone="muted">未配置</Badge>;
+  if (!status.enabled) return <Badge tone="muted">未启用</Badge>;
   if (status.reachable)
     return (
       <Badge className="bg-emerald-600 hover:bg-emerald-600">
@@ -207,7 +227,7 @@ function StatusBadge({ status, loading }: { status: SSStatus | null; loading: bo
       </Badge>
     );
   return (
-    <Badge variant="destructive">
+    <Badge tone="danger">
       <AlertCircleIcon className="mr-1 size-3" /> 不可达
     </Badge>
   );
@@ -313,7 +333,7 @@ function SyncWorkbench() {
             <Checkbox checked={selected.has(p.id)} onCheckedChange={() => toggle(p.id)} />
           </TableCell>
           <TableCell className="font-medium">{p.name}</TableCell>
-          <TableCell>{p.tag ? <Badge variant="secondary">{p.tag}</Badge> : "—"}</TableCell>
+          <TableCell>{p.tag ? <Badge tone="neutral">{p.tag}</Badge> : "—"}</TableCell>
           <TableCell className="text-right">{p.AssetCount ?? 0}</TableCell>
         </TableRow>
       ));
@@ -325,7 +345,7 @@ function SyncWorkbench() {
         </TableCell>
         <TableCell className="font-medium">{t.name}</TableCell>
         <TableCell>
-          <Badge variant={t.progress === 100 ? "secondary" : "outline"}>
+          <Badge tone={t.progress === 100 ? "neutral" : "muted"}>
             {t.progress != null ? `${t.progress}%` : "—"}
           </Badge>
         </TableCell>
@@ -458,7 +478,7 @@ function SyncResult({ result }: { result: Awaited<ReturnType<typeof api.ssSync>>
     <div className="space-y-2 rounded-md border bg-muted/40 p-3 text-sm">
       <div className="flex flex-wrap gap-3">
         {Object.entries(synced).map(([k, v]) => (
-          <Badge key={k} variant="secondary">
+          <Badge key={k} tone="neutral">
             {labels[k] ?? k}: {v}
           </Badge>
         ))}

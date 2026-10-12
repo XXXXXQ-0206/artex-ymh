@@ -1,0 +1,66 @@
+/* ============================================================================
+ * Alert —— 官方无 Alert 组件；token 层有 --alert-* 组（border-radius / gap / gutter / font-size / line-height / title-font-weight）。
+ *
+ * 官方 token 直译（official-tokens.css 原文）：
+ *   · 圆角 --alert-border-radius（= --radius-xl） · 内距 --alert-gutter（= --spacing*4）
+ *   · 间距 --alert-gap（= --spacing*3） · 文字 --alert-font-size / --alert-line-height
+ *   · 标题字重 --alert-title-font-weight（--font-weight-semibold）
+ *   · 底/描边/文字色走官方语义 token：--color-background-primary-soft-alpha / --color-border / --color-text
+ *   · danger 档：--color-background-danger-soft-alpha / --color-text-danger
+ * 本文件不含字面量尺寸/字号/字重/颜色（官方 token 缺失处已显式注明兜底）。
+ * ========================================================================== */
+
+.cx-alert {
+  position: relative;
+  display: grid;
+  width: 100%;
+  grid-template-columns: 0 auto;
+  align-items: start;
+  gap: var(--alert-gap);
+  padding: var(--alert-gutter);
+  border-radius: var(--alert-border-radius);
+  corner-shape: var(--codex-corner-shape);
+  box-shadow: 0 0 0 var(--border-width-hairline, 0.5px) var(--color-border);
+  background-color: var(--color-background-primary-soft-alpha);
+  color: var(--color-text);
+  font-size: var(--alert-font-size);
+  line-height: var(--alert-line-height);
+}
+
+.cx-alert:has(> svg) {
+  grid-template-columns: calc(var(--control-icon-size-sm) + var(--alert-gap)) auto;
+}
+
+.cx-alert[data-variant="danger"] {
+  background-color: var(--color-background-danger-soft-alpha);
+  color: var(--color-text-danger);
+}
+
+.cx-alert > svg {
+  width: var(--control-icon-size-sm);
+  height: var(--control-icon-size-sm);
+  translate: 0 calc(var(--spacing) * 0.5);
+  color: currentcolor;
+}
+
+.cx-alert__title {
+  grid-column-start: 2;
+  font-weight: var(--alert-title-font-weight);
+  letter-spacing: var(--tracking-normal);
+}
+
+.cx-alert__description {
+  grid-column-start: 2;
+  color: var(--color-text-secondary);
+  font-size: var(--font-text-sm-size);
+  line-height: var(--font-text-sm-line-height);
+}
+
+.cx-alert[data-variant="danger"] .cx-alert__description {
+  color: color-mix(in oklab, currentcolor 80%, transparent);
+}
+
+.cx-alert__action {
+  grid-column-start: 2;
+  justify-self: end;
+}

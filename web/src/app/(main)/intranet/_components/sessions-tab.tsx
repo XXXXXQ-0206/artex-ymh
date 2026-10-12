@@ -12,15 +12,20 @@ import {
   AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+  Badge,
+  Button,
+  Card,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/codex-ui/codex/ui";
+
+
+
+
 import { api } from "@/lib/api";
 import { safeHref } from "@/lib/safe-href";
 import type { ShellSession } from "@/lib/types";
@@ -43,7 +48,7 @@ function StatusBadge({ status }: { status: string }) {
   const alive = status === "alive";
   return (
     <Badge
-      variant={alive ? "secondary" : "outline"}
+      tone={alive ? "neutral" : "muted"}
       className={cn("gap-1.5 text-xs", alive ? "text-emerald-600" : "text-muted-foreground")}
     >
       <span className={cn("size-1.5 rounded-full", alive ? "bg-emerald-500" : "bg-neutral-400")} />
@@ -131,7 +136,7 @@ export function SessionsTab({
     <>
       {hostFilter && (
         <div className="flex items-center gap-2 px-1 pb-2 text-xs">
-          <Badge variant="secondary" className="gap-1.5">
+          <Badge tone="neutral" className="gap-1.5">
             宿主：{hostFilter.ip || hostFilter.id}
             <button type="button" onClick={onClearHostFilter} className="hover:text-foreground" title="清除过滤">
               <XIcon className="size-3" />
@@ -180,11 +185,11 @@ export function SessionsTab({
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-1.5">
-                          <Badge variant="secondary" className="font-mono text-xs">
+                          <Badge tone="neutral" className="font-mono text-xs">
                             {s.kind || "-"}
                           </Badge>
                           {s.lang && (
-                            <Badge variant="outline" className="font-mono text-xs">
+                            <Badge tone="muted" className="font-mono text-xs">
                               {s.lang}
                             </Badge>
                           )}
@@ -223,10 +228,9 @@ export function SessionsTab({
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-1">
-                          <Button
+                          <Button size="xs"
                             variant="outline"
-                            size="sm"
-                            className="h-7 gap-1"
+                            className="gap-1"
                             title="对目标发无害探针,校验会话存活"
                             disabled={probingId === s.id}
                             onClick={() => probe(s)}
@@ -238,15 +242,14 @@ export function SessionsTab({
                             )}
                             探活
                           </Button>
-                          <Button variant="outline" size="sm" className="h-7 gap-1" onClick={() => onOpenWorkbench(s)}>
+                          <Button size="xs" variant="outline" className="gap-1" onClick={() => onOpenWorkbench(s)}>
                             <TerminalIcon className="size-3.5" />
                             工作台
                           </Button>
                           {s.status === "alive" && (
-                            <Button
+                            <Button size="xs"
                               variant="outline"
-                              size="sm"
-                              className="h-7 gap-1"
+                              className="gap-1"
                               title="以该会话立足点主机为初始 scope 创建内网任务"
                               onClick={() => setHandoffTarget(s)}
                             >
@@ -254,10 +257,10 @@ export function SessionsTab({
                               移交内网
                             </Button>
                           )}
-                          <Button
+                          <Button uniform
                             variant="ghost"
-                            size="icon"
-                            className="size-7 text-muted-foreground hover:text-red-600"
+                            size="md"
+                            className="text-muted-foreground hover:text-red-600"
                             title="删除会话"
                             onClick={() => setPendingDelete(s)}
                           >
@@ -275,53 +278,73 @@ export function SessionsTab({
       </Card>
 
       <AlertDialog open={handoffTarget !== null} onOpenChange={(o) => !o && setHandoffTarget(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>移交会话 #{handoffTarget?.id} 到内网任务？</AlertDialogTitle>
-            <AlertDialogDescription>
+        <AlertDialogContent
+          title={`移交会话 #${handoffTarget?.id} 到内网任务？`}
+          description={
+            <>
               将创建一个新的内网探索任务，初始测试范围仅包含该会话的立足点主机（
               {handoffTarget?.host_asset_id || "未知"}
               ），后续发现的相邻网段需在任务页批准后才会放行。
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={handingOff}>取消</AlertDialogCancel>
-            <AlertDialogAction
-              disabled={handingOff}
-              onClick={(e) => {
-                e.preventDefault();
-                confirmHandoff();
-              }}
-            >
-              {handingOff ? "创建中…" : "确认移交"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
+            </>
+          }
+          footer={
+            <>
+              <AlertDialogCancel asChild>
+                <Button disabled={handingOff} size="sm" variant="ghost">
+                  取消
+                </Button>
+              </AlertDialogCancel>
+              <AlertDialogAction asChild>
+                <Button
+                  disabled={handingOff}
+                  size="sm"
+                  variant="solid"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    confirmHandoff();
+                  }}
+                >
+                  {handingOff ? "创建中…" : "确认移交"}
+                </Button>
+              </AlertDialogAction>
+            </>
+          }
+        />
       </AlertDialog>
 
       <AlertDialog open={pendingDelete !== null} onOpenChange={(o) => !o && setPendingDelete(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>删除会话 #{pendingDelete?.id}？</AlertDialogTitle>
-            <AlertDialogDescription>
+        <AlertDialogContent
+          title={`删除会话 #${pendingDelete?.id}？`}
+          description={
+            <>
               将断开并移除该 webshell 会话（{pendingDelete?.kind} · {pendingDelete?.host_asset_id}
               ），目标上的马文件不会被清除。此操作不可撤销。
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={deleting}>取消</AlertDialogCancel>
-            <AlertDialogAction
-              variant="destructive"
-              disabled={deleting}
-              onClick={(e) => {
-                e.preventDefault();
-                confirmDelete();
-              }}
-            >
-              {deleting ? "删除中…" : "确认删除"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
+            </>
+          }
+          footer={
+            <>
+              <AlertDialogCancel asChild>
+                <Button disabled={deleting} size="sm" variant="ghost">
+                  取消
+                </Button>
+              </AlertDialogCancel>
+              <AlertDialogAction asChild>
+                <Button
+                  color="danger"
+                  disabled={deleting}
+                  size="sm"
+                  variant="solid"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    confirmDelete();
+                  }}
+                >
+                  {deleting ? "删除中…" : "确认删除"}
+                </Button>
+              </AlertDialogAction>
+            </>
+          }
+        />
       </AlertDialog>
     </>
   );

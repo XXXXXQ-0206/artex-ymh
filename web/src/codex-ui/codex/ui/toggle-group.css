@@ -1,0 +1,78 @@
+/* ============================================================================
+ * ToggleGroup —— 官方无 ToggleGroup 组件；官方最接近的是**分段控件**，token 组完整：
+ *   --segmented-control-background / -gap(2px) / -gutter(2px) / -thumb-background /
+ *   --segmented-control-thumb-shadow / -option-highlight-gutter(1px) / -font-weight(600)
+ * （与复制层 tabs.css 同源；tabs 是「标签页」，本件是「多选/单选钮组」）。
+ *
+ * 本文件不含字面量尺寸/颜色。
+ * ========================================================================== */
+
+.cx-toggle-group {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  gap: var(--segmented-control-gap);
+  padding: var(--segmented-control-gutter);
+  border-radius: var(--radius-xl);
+  corner-shape: var(--codex-corner-shape);
+  background-color: var(--segmented-control-background);
+}
+
+.cx-toggle-group[data-orientation='vertical'] {
+  flex-direction: column;
+}
+
+.cx-toggle-group__item {
+  display: inline-flex;
+  height: var(--control-size-3xs);
+  flex: 1 1 auto;
+  align-items: center;
+  justify-content: center;
+  gap: calc(var(--spacing) * 1);
+  padding-inline: calc(var(--spacing) * 2);
+  border: 0;
+  border-radius: var(--radius-lg);
+  corner-shape: var(--codex-corner-shape);
+  background-color: transparent;
+  color: var(--color-text-secondary);
+  font-family: var(--font-sans);
+  font-size: var(--font-text-sm-size);
+  line-height: 1;
+  white-space: nowrap;
+  cursor: var(--cursor-interaction, pointer);
+  transition-duration: var(--transition-duration-basic);
+  transition-property: background-color, color, box-shadow;
+  transition-timing-function: var(--transition-ease-basic);
+}
+
+.cx-toggle-group__item:hover {
+  color: var(--color-text);
+}
+
+.cx-toggle-group__item[data-state='on'] {
+  background-color: var(--segmented-control-thumb-background);
+  box-shadow: var(--segmented-control-thumb-shadow);
+  color: var(--color-text);
+  font-weight: var(--segmented-control-font-weight);
+}
+
+.cx-toggle-group__item:focus {
+  outline: none;
+}
+
+.cx-toggle-group__item:focus-visible {
+  outline: 2px solid var(--color-ring);
+  outline-offset: 2px;
+}
+
+.cx-toggle-group__item:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.cx-toggle-group__item > svg {
+  width: var(--control-icon-size-sm);
+  height: var(--control-icon-size-sm);
+  flex-shrink: 0;
+  pointer-events: none;
+}

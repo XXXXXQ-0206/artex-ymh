@@ -10,19 +10,39 @@ import {
   AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Textarea } from "@/components/ui/textarea";
+  Badge,
+  Button,
+  Input,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+  Textarea,
+} from "@/codex-ui/codex/ui";
+
+
+
+
+
+
+
+
 import { api } from "@/lib/api";
 import type { SessionFsEntry, ShellSession } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -142,7 +162,7 @@ function Terminal({ session }: { session: ShellSession }) {
           disabled={running}
         />
         <Select value={String(timeoutSec)} onValueChange={(v) => setTimeoutSec(Number(v))}>
-          <SelectTrigger size="sm" className="w-24" title="超时">
+          <SelectTrigger  className="w-24" title="超时">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -380,20 +400,20 @@ export function SessionWorkbench({
               <SheetTitle className="pr-8">会话工作台 #{session.id}</SheetTitle>
               <SheetDescription className="truncate font-mono text-xs">{session.url}</SheetDescription>
               <div className="flex flex-wrap items-center gap-2 pt-1">
-                <Badge variant="secondary" className="font-mono text-xs">
+                <Badge tone="neutral" className="font-mono text-xs">
                   {session.kind || "-"}
                 </Badge>
                 {session.lang && (
-                  <Badge variant="outline" className="font-mono text-xs">
+                  <Badge tone="muted" className="font-mono text-xs">
                     {session.lang}
                   </Badge>
                 )}
                 {session.platform && (
-                  <Badge variant="outline" className="text-xs">
+                  <Badge tone="muted" className="text-xs">
                     {session.platform}
                   </Badge>
                 )}
-                <Badge variant="outline" className="font-mono text-xs">
+                <Badge tone="muted" className="font-mono text-xs">
                   {session.host_asset_id}
                 </Badge>
                 <Button
@@ -425,27 +445,33 @@ export function SessionWorkbench({
             </Tabs>
 
             <AlertDialog open={confirming} onOpenChange={setConfirming}>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>删除会话 #{session.id}？</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    将断开并移除该 webshell 会话，目标上的马文件不会被清除。此操作不可撤销。
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel disabled={deleting}>取消</AlertDialogCancel>
-                  <AlertDialogAction
-                    variant="destructive"
-                    disabled={deleting}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      doDelete();
-                    }}
-                  >
-                    {deleting ? "删除中…" : "确认删除"}
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
+              <AlertDialogContent
+                title={`删除会话 #${session.id}？`}
+                description="将断开并移除该 webshell 会话，目标上的马文件不会被清除。此操作不可撤销。"
+                footer={
+                  <>
+                    <AlertDialogCancel asChild>
+                      <Button disabled={deleting} size="sm" variant="ghost">
+                        取消
+                      </Button>
+                    </AlertDialogCancel>
+                    <AlertDialogAction asChild>
+                      <Button
+                        color="danger"
+                        disabled={deleting}
+                        size="sm"
+                        variant="solid"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          doDelete();
+                        }}
+                      >
+                        {deleting ? "删除中…" : "确认删除"}
+                      </Button>
+                    </AlertDialogAction>
+                  </>
+                }
+              />
             </AlertDialog>
           </>
         )}

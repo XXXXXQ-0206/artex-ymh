@@ -4,10 +4,20 @@ import * as React from "react";
 
 import { CheckCircle2Icon, Loader2Icon, MinusCircleIcon } from "lucide-react";
 
-import { Badge } from "@/components/ui/badge";
-import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Badge,
+  Card,
+  Input,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/codex-ui/codex/ui";
+
+
+
 import type { Credential } from "@/lib/types";
 
 import { fmtTime } from "./format";
@@ -71,7 +81,7 @@ export function CredsTab({ credentials, loading }: { credentials: Credential[]; 
                   <TableRow key={c.id}>
                     <TableCell className="font-mono text-xs text-muted-foreground">#{c.id}</TableCell>
                     <TableCell>
-                      <Badge variant="secondary" className="font-mono text-xs">
+                      <Badge tone="neutral" className="font-mono text-xs">
                         {c.cred_type || "-"}
                       </Badge>
                     </TableCell>

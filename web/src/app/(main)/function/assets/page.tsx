@@ -25,29 +25,26 @@ import {
   AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
-import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+  Badge,
+  Button,
+  Card,
+  Checkbox,
   Dialog,
   DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog";
-import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import {
+  Field,
+  FieldGroup,
+  FieldLabel,
+  Input,
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
   Sheet,
   SheetContent,
   SheetDescription,
@@ -55,9 +52,29 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-} from "@/components/ui/sheet";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/codex-ui/codex/ui";
+
+
+
+
+
+
+
+
+
+
+
+
 import { api } from "@/lib/api";
 import { parseCompanyScopeText } from "@/lib/company-scope";
 import { safeHref } from "@/lib/safe-href";
@@ -351,7 +368,7 @@ export default function AssetsPage() {
             共 <span className="tabular-nums">{totalAssets}</span> 项资产
           </span>
           {selected.size > 0 && (
-            <Button variant="destructive" size="sm" onClick={() => openDelete(Array.from(selected) as number[])}>
+            <Button variant="soft" color="danger" size="sm" onClick={() => openDelete(Array.from(selected) as number[])}>
               <Trash2Icon className="size-3.5" /> 删除已选 ({selected.size})
             </Button>
           )}
@@ -402,7 +419,7 @@ export default function AssetsPage() {
                         {c.scope?.length ? (
                           <div className="flex flex-wrap gap-1">
                             {c.scope.map((s, i) => (
-                              <Badge key={i} variant="secondary" className="font-mono text-[11px]">
+                              <Badge key={i} tone="neutral" className="font-mono text-[11px]">
                                 {s.raw}
                               </Badge>
                             ))}
@@ -415,9 +432,9 @@ export default function AssetsPage() {
                         <div className="flex items-center justify-end gap-1.5">
                           <EditScopeDialog company={c} onSaved={refresh} />
                           <AppendScopeDialog company={c} onSaved={refresh} />
-                          <Button
+                          <Button uniform
                             variant="ghost"
-                            size="icon"
+                            size="md"
                             className="size-7 text-muted-foreground hover:text-destructive"
                             onClick={() => {
                               setCompanyDeleteTarget(c);
@@ -470,9 +487,9 @@ export default function AssetsPage() {
                   {companyName(a.company_id) || <span className="text-muted-foreground">未归属</span>}
                 </TableCell>
                 <TableCell className="w-8 pl-0">
-                  <Button
+                  <Button uniform
                     variant="ghost"
-                    size="icon"
+                    size="md"
                     className="size-7 text-muted-foreground hover:text-destructive"
                     onClick={() => openDelete([a.id])}
                     aria-label={`删除资产 ${a.domain || a.id}`}
@@ -517,9 +534,9 @@ export default function AssetsPage() {
                   />
                 </TableCell>
                 <TableCell className="w-8 pl-0">
-                  <Button
+                  <Button uniform
                     variant="ghost"
-                    size="icon"
+                    size="md"
                     className="size-7 text-muted-foreground hover:text-destructive"
                     onClick={() => openDelete([a.id])}
                     aria-label={`删除资产 ${a.ip || a.id}`}
@@ -559,9 +576,9 @@ export default function AssetsPage() {
                   {(Array.isArray(a.record_value) ? a.record_value.join(", ") : a.record_value) || "—"}
                 </TableCell>
                 <TableCell className="w-8 pl-0">
-                  <Button
+                  <Button uniform
                     variant="ghost"
-                    size="icon"
+                    size="md"
                     className="size-7 text-muted-foreground hover:text-destructive"
                     onClick={() => openDelete([a.id])}
                     aria-label={`删除资产 ${a.domain || a.id}`}
@@ -599,9 +616,9 @@ export default function AssetsPage() {
                 <TableCell className="text-xs">{a.category || "—"}</TableCell>
                 <TableCell className="text-xs">{a.app_icp || "—"}</TableCell>
                 <TableCell className="w-8 pl-0">
-                  <Button
+                  <Button uniform
                     variant="ghost"
-                    size="icon"
+                    size="md"
                     className="size-7 text-muted-foreground hover:text-destructive"
                     onClick={() => openDelete([a.id])}
                     aria-label={`删除资产 ${a.app_name || a.id}`}
@@ -655,7 +672,7 @@ export default function AssetsPage() {
                     <Checkbox checked={selected.has(a.id)} onCheckedChange={() => toggleSelect(a.id)} />
                   </TableCell>
                   <TableCell className="text-xs">
-                    <Badge variant={isHttp ? "default" : "secondary"} className="font-mono text-[10px]">
+                    <Badge tone={isHttp ? "neutral" : "neutral"} className="font-mono text-[10px]">
                       {svc || "—"}
                     </Badge>
                   </TableCell>
@@ -699,9 +716,9 @@ export default function AssetsPage() {
                     )}
                   </TableCell>
                   <TableCell className="w-8 pl-0">
-                    <Button
+                    <Button uniform
                       variant="ghost"
-                      size="icon"
+                      size="md"
                       className="size-7 text-muted-foreground hover:text-destructive"
                       onClick={() => openDelete([a.id])}
                       aria-label={`删除资产 ${a.url || a.id}`}
@@ -751,9 +768,9 @@ export default function AssetsPage() {
                   />
                 </TableCell>
                 <TableCell className="w-8 pl-0">
-                  <Button
+                  <Button uniform
                     variant="ghost"
-                    size="icon"
+                    size="md"
                     className="size-7 text-muted-foreground hover:text-destructive"
                     onClick={() => openDelete([a.id])}
                     aria-label={`删除资产 ${a.url || a.id}`}
@@ -768,28 +785,37 @@ export default function AssetsPage() {
       </Tabs>
 
       <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>确认删除</AlertDialogTitle>
-            <AlertDialogDescription>
-              将永久删除 <span className="font-semibold tabular-nums">{deleteIds.length}</span>{" "}
-              条资产记录，此操作不可撤销。
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={deleting}>取消</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={(e) => {
-                e.preventDefault();
-                void confirmDelete();
-              }}
-              disabled={deleting}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              {deleting ? "删除中…" : "确认删除"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
+        <AlertDialogContent
+          title="确认删除"
+          description={
+            <>
+              将永久删除 <span className="font-semibold tabular-nums">{deleteIds.length}</span> 条资产记录，此操作不可撤销。
+            </>
+          }
+          footer={
+            <>
+              <AlertDialogCancel asChild>
+                <Button disabled={deleting} size="sm" variant="ghost">
+                  取消
+                </Button>
+              </AlertDialogCancel>
+              <AlertDialogAction asChild>
+                <Button
+                  color="danger"
+                  disabled={deleting}
+                  size="sm"
+                  variant="solid"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    void confirmDelete();
+                  }}
+                >
+                  {deleting ? "删除中…" : "确认删除"}
+                </Button>
+              </AlertDialogAction>
+            </>
+          }
+        />
       </AlertDialog>
 
       <AlertDialog
@@ -801,12 +827,34 @@ export default function AssetsPage() {
           }
         }}
       >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>删除企业 · {companyDeleteTarget?.name}</AlertDialogTitle>
-            <AlertDialogDescription asChild>
-              <div className="space-y-3">
-                <p>此操作将永久删除该企业及其资产范围配置，不可撤销。</p>
+        <AlertDialogContent
+          title={`删除企业 · ${companyDeleteTarget?.name}`}
+          description="此操作将永久删除该企业及其资产范围配置，不可撤销。"
+          footer={
+            <>
+              <AlertDialogCancel asChild>
+                <Button disabled={companyDeleting} size="sm" variant="ghost">
+                  取消
+                </Button>
+              </AlertDialogCancel>
+              <AlertDialogAction asChild>
+                <Button
+                  color="danger"
+                  disabled={companyDeleting}
+                  size="sm"
+                  variant="solid"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    void confirmDeleteCompany();
+                  }}
+                >
+                  {companyDeleting ? "删除中…" : "确认删除"}
+                </Button>
+              </AlertDialogAction>
+            </>
+          }
+        >
+          <div className="space-y-3">
                 <label
                   htmlFor="delete-assets-opt"
                   className="flex cursor-pointer items-center gap-2.5 rounded-md border p-3 hover:bg-muted/50"
@@ -821,22 +869,7 @@ export default function AssetsPage() {
                     <span className="block text-xs text-muted-foreground">不勾选则保留资产，仅取消归属关系</span>
                   </span>
                 </label>
-              </div>
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={companyDeleting}>取消</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={(e) => {
-                e.preventDefault();
-                void confirmDeleteCompany();
-              }}
-              disabled={companyDeleting}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              {companyDeleting ? "删除中…" : "确认删除"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
+          </div>
         </AlertDialogContent>
       </AlertDialog>
     </div>
@@ -913,7 +946,7 @@ function AssetCard({
       {total > 0 && (
         <div className="flex shrink-0 items-center gap-2 border-t px-3 py-1.5 text-xs text-muted-foreground">
           <Select value={String(size)} onValueChange={(v) => onSize(Number(v))}>
-            <SelectTrigger size="sm" className="h-7 w-24">
+            <SelectTrigger  className="h-7 w-24">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -931,9 +964,9 @@ function AssetCard({
           </span>
           {pageCount > 1 && (
             <div className="flex items-center gap-2">
-              <Button
+              <Button uniform
                 variant="outline"
-                size="icon"
+                size="md"
                 className="size-7"
                 disabled={page <= 0}
                 onClick={() => onPage((p) => Math.max(0, p - 1))}
@@ -943,9 +976,9 @@ function AssetCard({
               <span className="tabular-nums">
                 {page + 1} / {pageCount}
               </span>
-              <Button
+              <Button uniform
                 variant="outline"
-                size="icon"
+                size="md"
                 className="size-7"
                 disabled={page + 1 >= pageCount}
                 onClick={() => onPage((p) => Math.min(pageCount - 1, p + 1))}
@@ -966,7 +999,7 @@ function Chips({ items, mono }: { items: string[]; mono?: boolean }) {
   return (
     <div className="flex flex-wrap gap-1">
       {clean.map((s, i) => (
-        <Badge key={i} variant="outline" className={cn("text-[10px]", mono && "font-mono")}>
+        <Badge key={i} tone="muted" className={cn("text-[10px]", mono && "font-mono")}>
           {s}
         </Badge>
       ))}
@@ -1049,7 +1082,7 @@ function CompanyDialog({ onSaved }: { onSaved: () => void }) {
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
         <Button size="sm">
-          <BuildingIcon data-icon="inline-start" /> 新增企业
+          <BuildingIcon /> 新增企业
         </Button>
       </SheetTrigger>
       <SheetContent className="w-full! max-w-none! gap-0 p-0 sm:w-[520px]! sm:max-w-[520px]!">
@@ -1130,13 +1163,25 @@ function EditScopeDialog({ company, onSaved }: { company: Company; onSaved: () =
           编辑
         </Button>
       </DialogTrigger>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>编辑资产范围 · {company.name}</DialogTitle>
-          <DialogDescription>
-            编辑后将替换全部现有范围。ICP 精确匹配资产，企业关键词仅作为 Agent 提示。
-          </DialogDescription>
-        </DialogHeader>
+      <DialogContent
+        title={`编辑资产范围 · ${company.name}`}
+        description="编辑后将替换全部现有范围。ICP 精确匹配资产，企业关键词仅作为 Agent 提示。"
+        footer={
+          <>
+            <Button disabled={busy} size="sm" variant="outline" onClick={() => setOpen(false)}>
+              取消
+            </Button>
+            <Button
+              disabled={busy || parsedScope.errors.length > 0}
+              size="sm"
+              variant="solid"
+              onClick={submit}
+            >
+              {busy ? "保存中…" : "覆盖保存"}
+            </Button>
+          </>
+        }
+      >
         <FieldGroup className="py-2">
           <ScopeTextEditor
             id={`edit-company-scope-${company.id}`}
@@ -1154,14 +1199,6 @@ function EditScopeDialog({ company, onSaved }: { company: Company; onSaved: () =
             />
           </Field>
         </FieldGroup>
-        <DialogFooter>
-          <Button variant="outline" onClick={() => setOpen(false)} disabled={busy}>
-            取消
-          </Button>
-          <Button onClick={submit} disabled={busy || parsedScope.errors.length > 0}>
-            {busy ? "保存中…" : "覆盖保存"}
-          </Button>
-        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
@@ -1213,11 +1250,25 @@ function AppendScopeDialog({ company, onSaved }: { company: Company; onSaved: ()
           追加
         </Button>
       </DialogTrigger>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>追加资产范围 · {company.name}</DialogTitle>
-          <DialogDescription>新范围会追加到现有范围。ICP 精确匹配资产，企业关键词仅作为 Agent 提示。</DialogDescription>
-        </DialogHeader>
+      <DialogContent
+        title={`追加资产范围 · ${company.name}`}
+        description="新范围会追加到现有范围。ICP 精确匹配资产，企业关键词仅作为 Agent 提示。"
+        footer={
+          <>
+            <Button disabled={busy} size="sm" variant="outline" onClick={() => setOpen(false)}>
+              取消
+            </Button>
+            <Button
+              disabled={busy || parsedScope.rules.length === 0 || parsedScope.errors.length > 0}
+              size="sm"
+              variant="solid"
+              onClick={submit}
+            >
+              {busy ? "保存中…" : "追加"}
+            </Button>
+          </>
+        }
+      >
         <FieldGroup className="py-2">
           <ScopeTextEditor
             id={`append-company-scope-${company.id}`}
@@ -1235,14 +1286,6 @@ function AppendScopeDialog({ company, onSaved }: { company: Company; onSaved: ()
             />
           </Field>
         </FieldGroup>
-        <DialogFooter>
-          <Button variant="outline" onClick={() => setOpen(false)} disabled={busy}>
-            取消
-          </Button>
-          <Button onClick={submit} disabled={busy || parsedScope.rules.length === 0 || parsedScope.errors.length > 0}>
-            {busy ? "保存中…" : "追加"}
-          </Button>
-        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

@@ -1,0 +1,31 @@
+/* ============================================================================
+ * NativeSelect —— 官方无独立原生下拉组件；尺寸/圆角/内距/描边全部走复制层 .cx-input（官方 _Container_1pj83_2）。
+ *
+ * 官方 token 直译：
+ *   · 高度/圆角/内距/描边 = .cx-input 的 --input-* 一套（本文件不重复声明）
+ *   · 箭头图标 --control-icon-size-sm · 次要色 --color-text-secondary
+ * 本文件不含字面量尺寸/字号/字重/颜色。
+ * ========================================================================== */
+
+.cx-native-select {
+  position: relative;
+  display: block;
+  width: 100%;
+}
+
+.cx-native-select > select {
+  width: 100%;
+  appearance: none;
+  cursor: var(--cursor-interaction, pointer);
+}
+
+.cx-native-select__icon {
+  position: absolute;
+  top: 50%;
+  right: var(--input-gutter);
+  width: var(--control-icon-size-sm);
+  height: var(--control-icon-size-sm);
+  translate: 0 -50%;
+  color: var(--color-text-secondary);
+  pointer-events: none;
+}

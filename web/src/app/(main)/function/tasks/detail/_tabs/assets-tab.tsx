@@ -51,12 +51,20 @@ import {
 } from "@/codex-ui/codex/ui";
 
 
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/codex-ui/codex/ui";
 
 
 
 
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
 
 import { api } from "@/lib/api";
 import { parseCompanyScopeText } from "@/lib/company-scope";

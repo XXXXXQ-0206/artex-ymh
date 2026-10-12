@@ -9,7 +9,12 @@ import { Markdown } from "@/components/markdown";
 import {
   Button,
 } from "@/codex-ui/codex/ui";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/codex-ui/codex/ui";
 import { api } from "@/lib/api";
 import { copyText } from "@/lib/utils";
 

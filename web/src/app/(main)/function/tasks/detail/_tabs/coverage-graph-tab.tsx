@@ -24,7 +24,10 @@ import {
   SheetTitle,
 } from "@/codex-ui/codex/ui";
 
-import { Card, CardContent } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+} from "@/codex-ui/codex/ui";
 
 
 import { api } from "@/lib/api";

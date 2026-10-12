@@ -5,7 +5,9 @@ import * as React from "react";
 import type { Graph as G6Graph } from "@antv/g6";
 import { RefreshCw } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
+import {
+  Button,
+} from "@/codex-ui/codex/ui";
 import type { IntranetSegment, IntranetTopology } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -104,7 +106,7 @@ function TopologyLegend({
         ) : (
           <span className="text-muted-foreground">{loading ? "加载中…" : "暂无拓扑数据"}</span>
         )}
-        <Button variant="ghost" size="icon" className="size-6" onClick={onRefresh} title="刷新">
+        <Button uniform variant="ghost" size="2xs" className="" onClick={onRefresh} title="刷新">
           <RefreshCw className={cn("size-3.5", loading && "animate-spin")} />
         </Button>
       </div>

@@ -4,14 +4,37 @@ import * as React from "react";
 
 import { BarChart3Icon, ChevronLeftIcon, ChevronRightIcon, Loader2Icon, SearchIcon, TerminalIcon } from "lucide-react";
 
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Badge,
+  Button,
+  Card,
+  Dialog,
+  DialogContent,
+  Input,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/codex-ui/codex/ui";
+
+
+
+
+
+
+
 import { api } from "@/lib/api";
 import type { CommandRecord, ToolStat } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -131,7 +154,7 @@ export default function CommandsPage() {
         <div className="flex items-center gap-2">
           <TerminalIcon className="h-5 w-5 text-muted-foreground" />
           <h1 className="text-xl font-semibold tracking-tight">工具执行</h1>
-          <Badge variant="secondary">{total}</Badge>
+          <Badge tone="neutral">{total}</Badge>
         </div>
       </div>
 
@@ -153,7 +176,7 @@ export default function CommandsPage() {
           onChange={(e) => setTaskFilter(e.target.value.replace(/\D/g, ""))}
         />
         <Select value={String(size)} onValueChange={(v) => setSize(Number(v))}>
-          <SelectTrigger size="sm" className="w-28">
+          <SelectTrigger  className="w-28">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -174,9 +197,9 @@ export default function CommandsPage() {
           <span className="tabular-nums">
             {rangeStart}–{rangeEnd} / {total}
           </span>
-          <Button
+          <Button uniform
             variant="outline"
-            size="icon"
+            size="md"
             className="size-8"
             disabled={page <= 0}
             onClick={() => setPage((p) => Math.max(0, p - 1))}
@@ -186,9 +209,9 @@ export default function CommandsPage() {
           <span className="tabular-nums">
             {page + 1} / {totalPages}
           </span>
-          <Button
+          <Button uniform
             variant="outline"
-            size="icon"
+            size="md"
             className="size-8"
             disabled={page + 1 >= totalPages}
             onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
@@ -238,12 +261,12 @@ export default function CommandsPage() {
                       </TableCell>
                       <TableCell className="text-xs font-mono text-muted-foreground">#{cmd.exploration_id}</TableCell>
                       <TableCell>
-                        <Badge variant="outline" className="text-xs font-mono">
+                        <Badge tone="muted" className="text-xs font-mono">
                           {cmd.worker || "-"}
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <Badge variant="secondary" className="text-xs font-mono">
+                        <Badge tone="neutral" className="text-xs font-mono">
                           {cmd.tool || "-"}
                         </Badge>
                       </TableCell>
@@ -254,11 +277,11 @@ export default function CommandsPage() {
                       </TableCell>
                       <TableCell>
                         {cmd.is_error ? (
-                          <Badge variant="destructive" className="text-xs">
+                          <Badge tone="danger" className="text-xs">
                             失败
                           </Badge>
                         ) : (
-                          <Badge variant="secondary" className="text-xs text-emerald-600">
+                          <Badge tone="neutral" className="text-xs text-emerald-600">
                             成功
                           </Badge>
                         )}
@@ -274,10 +297,11 @@ export default function CommandsPage() {
 
       {/* 工具调用统计：与表格同一批记录（同筛选、不分页） */}
       <Dialog open={statsOpen} onOpenChange={setStatsOpen}>
-        <DialogContent className="sm:max-w-lg">
-          <DialogHeader>
-            <DialogTitle>工具调用统计</DialogTitle>
-            <DialogDescription>
+        <DialogContent
+          className="sm:max-w-lg"
+          title="工具调用统计"
+          description={
+            <>
               {taskFilter || queryQ ? "当前筛选条件下的全部记录" : "全部工具执行记录"}
               {stats.length > 0 && (
                 <>
@@ -287,13 +311,14 @@ export default function CommandsPage() {
                   {statsErrors > 0 && (
                     <>
                       {" · 失败 "}
-                      <span className="tabular-nums text-red-600 dark:text-red-400">{statsErrors}</span>
+                      <span className="tabular-nums text-danger">{statsErrors}</span>
                     </>
                   )}
                 </>
               )}
-            </DialogDescription>
-          </DialogHeader>
+            </>
+          }
+        >
 
           {statsLoading && stats.length === 0 ? (
             <div className="py-10 text-center">
@@ -340,21 +365,21 @@ export default function CommandsPage() {
                 <SheetTitle className="pr-8">工具执行详情</SheetTitle>
                 <SheetDescription>{fmtTime(selected.created_at)}</SheetDescription>
                 <div className="flex flex-wrap items-center gap-2 pt-2">
-                  <Badge variant="outline" className="text-xs font-mono">
+                  <Badge tone="muted" className="text-xs font-mono">
                     #{selected.exploration_id}
                   </Badge>
-                  <Badge variant="outline" className="text-xs font-mono">
+                  <Badge tone="muted" className="text-xs font-mono">
                     {selected.worker || "-"}
                   </Badge>
-                  <Badge variant="secondary" className="text-xs font-mono">
+                  <Badge tone="neutral" className="text-xs font-mono">
                     {selected.tool || "-"}
                   </Badge>
                   {selected.is_error ? (
-                    <Badge variant="destructive" className="text-xs">
+                    <Badge tone="danger" className="text-xs">
                       失败
                     </Badge>
                   ) : (
-                    <Badge variant="secondary" className="text-xs text-emerald-600">
+                    <Badge tone="neutral" className="text-xs text-emerald-600">
                       成功
                     </Badge>
                   )}

@@ -20,7 +20,11 @@ import {
   Button,
   ScrollArea,
 } from "@/codex-ui/codex/ui";
-import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from "@/codex-ui/codex/ui";
 
 import type { FindingAssetKind, FindingAssetNode } from "@/lib/types";
 import { cn } from "@/lib/utils";

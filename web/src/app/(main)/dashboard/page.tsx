@@ -17,10 +17,21 @@ import {
 import { Bar, BarChart, CartesianGrid, Tooltip as RechartsTooltip, XAxis, YAxis } from "recharts";
 
 import { StatusBadge } from "@/components/status-badge";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { type ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { Progress } from "@/components/ui/progress";
+import {
+  Badge,
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+  Progress,
+  type ChartConfig,
+} from "@/codex-ui/codex/ui";
+
+
+
 import { api } from "@/lib/api";
 import type {
   Activity,
@@ -897,7 +908,7 @@ export default function DashboardPage() {
                     <div className="mt-0.5 truncate text-[10px] text-muted-foreground">{a.summary}</div>
                   </div>
                   <div className="shrink-0 text-right">
-                    <Badge variant="outline" className="px-1.5 py-0 text-[9px] text-muted-foreground">
+                    <Badge tone="muted" className="px-1.5 py-0 text-[9px] text-muted-foreground">
                       {a.kind}
                     </Badge>
                     <div className="mt-0.5 text-[9px] tabular-nums text-muted-foreground">{fmtRel(a.ts)}</div>
@@ -1133,7 +1144,7 @@ export default function DashboardPage() {
             <div className="flex items-center justify-between rounded-lg border bg-muted/20 px-3 py-2">
               <div className="text-[10px] text-muted-foreground">LLM 配置</div>
               <Badge
-                variant="outline"
+                tone="muted"
                 className={cn(
                   "text-[10px]",
                   stats?.llm_configured
@@ -1148,7 +1159,7 @@ export default function DashboardPage() {
             <div className="flex items-center justify-between rounded-lg border bg-muted/20 px-3 py-2">
               <div className="text-[10px] text-muted-foreground">流量捕获</div>
               <Badge
-                variant="outline"
+                tone="muted"
                 className={cn(
                   "text-[10px]",
                   settings?.traffic_capture
