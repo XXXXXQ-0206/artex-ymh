@@ -59,6 +59,7 @@ import type { Activity, Agent, ChatAttachment, Conversation, LLMProfile } from "
 import { cn } from "@/lib/utils";
 
 import styles from "./_components/codex-chat.module.css";
+import { PermissionPill } from "./_components/permission-pill";
 import { ChatTranscript } from "@/codex-ui/chat";
 
 // fmtBytes renders a human file size for attachment chips (mirrors transcript.tsx).
@@ -265,6 +266,10 @@ function Composer({
               </button>
             </>
           )}
+      {/* 官方工具行左组的顺序是「+ 然后 权限药丸」；ARTEX 用**真实**的拦截规则姿态填这个位
+          （0 条启用 = 橙色「拦截已关闭 · 完全放开」，N 条 = 次要色「拦截 · N 条规则」），
+          见 _components/permission-pill.tsx。 */}
+      <PermissionPill />
         </div>
         <div />
         <div className={styles.composerFooterEnd}>
