@@ -20,27 +20,36 @@ import {
   AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Badge } from "@/components/ui/badge";
-import {
+  Badge,
+  Button,
+  Checkbox,
+  Input,
+  Label,
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+  ScrollArea,
   Sheet,
   SheetContent,
   SheetFooter,
   SheetHeader,
   SheetTitle,
-} from "@/components/ui/sheet";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+  Textarea,
+} from "@/codex-ui/codex/ui";
+
+
+
+
+
+
+
+
+
+
 import { cn } from "@/lib/utils";
 import { api } from "@/lib/api";
 import type { Agent, SkillItem, MCPServer, SkillCall, MissingSkill } from "@/lib/types";
@@ -279,7 +288,7 @@ function SkillsOverview({
                   onClick={() => onSelect(s.name)}
                   title={s.name}
                 >
-                  <Badge variant="outline" className="max-w-[12rem] cursor-pointer truncate font-mono text-xs font-normal hover:bg-muted">
+                  <Badge tone="muted" className="max-w-[12rem] cursor-pointer truncate font-mono text-xs font-normal hover:bg-muted">
                     {s.name}
                   </Badge>
                 </button>
@@ -602,9 +611,9 @@ export default function SkillsPage() {
           ? <FolderIcon className="size-3.5 shrink-0 text-amber-500" />
           : <FileTextIcon className="size-3.5 shrink-0 text-muted-foreground" />
         }
-        <Input
+        <Input size="2xs"
           ref={inlineRef}
-          className="h-6 flex-1 px-1 py-0 font-mono text-xs"
+          className="flex-1 px-1 py-0 font-mono text-xs"
           placeholder={creating?.kind === "dir" ? "folder-name" : "filename.py"}
           value={newEntryName}
           onChange={(e) => setNewEntryName(e.target.value)}
@@ -642,15 +651,15 @@ export default function SkillsPage() {
               <span className="min-w-0 flex-1 truncate" title={node.path}>{node.name}</span>
               {/* Absolute so a long name can never push the actions out of view */}
               <span className="absolute inset-y-0 right-1 hidden items-center gap-0.5 rounded bg-muted pl-1 group-hover:flex">
-                <Button size="icon" variant="ghost" className="size-5" title="新建文件"
+                <Button uniform size="2xs" variant="ghost" className="" title="新建文件"
                   onClick={(e) => { e.stopPropagation(); startCreate(skill, node.path, "file"); }}>
                   <FilePlusIcon className="size-3 text-muted-foreground" />
                 </Button>
-                <Button size="icon" variant="ghost" className="size-5" title="新建文件夹"
+                <Button uniform size="2xs" variant="ghost" className="" title="新建文件夹"
                   onClick={(e) => { e.stopPropagation(); startCreate(skill, node.path, "dir"); }}>
                   <FolderPlusIcon className="size-3 text-muted-foreground" />
                 </Button>
-                <Button size="icon" variant="ghost" className="size-5" title="删除文件夹"
+                <Button uniform size="2xs" variant="ghost" className="" title="删除文件夹"
                   onClick={(e) => { e.stopPropagation(); setPendingDelete({ kind: "dir", skill, path: node.path }); }}>
                   <Trash2Icon className="size-3 text-destructive" />
                 </Button>
@@ -685,7 +694,7 @@ export default function SkillsPage() {
             "absolute inset-y-0 right-1 hidden items-center rounded pl-1 group-hover:flex",
             isSelected ? "bg-accent" : "bg-muted",
           )}>
-            <Button size="icon" variant="ghost" className="size-5"
+            <Button uniform size="2xs" variant="ghost" className=""
               title="删除文件"
               onClick={(e) => { e.stopPropagation(); setPendingDelete({ kind: "file", skill, path: node.path }); }}>
               <Trash2Icon className="size-3 text-destructive" />
@@ -799,15 +808,15 @@ export default function SkillsPage() {
                         "absolute inset-y-0 right-1 hidden items-center gap-0.5 rounded pl-1 group-hover:flex",
                         isSkillSelected ? "bg-accent" : "bg-muted",
                       )}>
-                        <Button size="icon" variant="ghost" className="size-5" title="新建文件"
+                        <Button uniform size="2xs" variant="ghost" className="" title="新建文件"
                           onClick={(e) => { e.stopPropagation(); startCreate(s.name, "", "file"); }}>
                           <FilePlusIcon className="size-3 text-muted-foreground" />
                         </Button>
-                        <Button size="icon" variant="ghost" className="size-5" title="新建文件夹"
+                        <Button uniform size="2xs" variant="ghost" className="" title="新建文件夹"
                           onClick={(e) => { e.stopPropagation(); startCreate(s.name, "", "dir"); }}>
                           <FolderPlusIcon className="size-3 text-muted-foreground" />
                         </Button>
-                        <Button size="icon" variant="ghost" className="size-5" title="删除 Skill"
+                        <Button uniform size="2xs" variant="ghost" className="" title="删除 Skill"
                           onClick={(e) => { e.stopPropagation(); setPendingDelete({ kind: "skill", skill: s.name }); }}>
                           <Trash2Icon className="size-3 text-destructive" />
                         </Button>
@@ -852,10 +861,10 @@ export default function SkillsPage() {
                 )}
                 <div className="mt-2 flex flex-wrap gap-2">
                   {selectedSkill.license && (
-                    <Badge variant="outline" className="text-xs font-normal">License: {selectedSkill.license}</Badge>
+                    <Badge tone="muted" className="text-xs font-normal">License: {selectedSkill.license}</Badge>
                   )}
                   {selectedSkill.compatibility && (
-                    <Badge variant="secondary" className="text-xs font-normal">{selectedSkill.compatibility}</Badge>
+                    <Badge tone="neutral" className="text-xs font-normal">{selectedSkill.compatibility}</Badge>
                   )}
                 </div>
               </div>
@@ -887,7 +896,7 @@ export default function SkillsPage() {
                     <div className="flex flex-wrap items-center gap-1">
                       <span className="text-xs text-muted-foreground">调用方：</span>
                       {selectedSkill.usage_agents.map((k) => (
-                        <Badge key={k} variant="secondary" className="text-xs font-normal">{k}</Badge>
+                        <Badge key={k} tone="neutral" className="text-xs font-normal">{k}</Badge>
                       ))}
                     </div>
                   )}
@@ -900,7 +909,7 @@ export default function SkillsPage() {
                         {usageCalls.map((c, i) => (
                           <div key={`${c.ts}-${i}`} className="flex items-center gap-2 border-b px-2 py-1 text-xs last:border-b-0">
                             <span className="tabular-nums text-muted-foreground">{fmtTime(c.ts)}</span>
-                            <Badge variant="outline" className="font-normal">{c.agent_key || "—"}</Badge>
+                            <Badge tone="muted" className="font-normal">{c.agent_key || "—"}</Badge>
                             <span className="ml-auto text-muted-foreground">
                               {c.task_id > 0 ? `任务 #${c.task_id}` : c.session_id ? "对话会话" : "—"}
                             </span>
@@ -985,31 +994,45 @@ export default function SkillsPage() {
 
       {/* ── 删除二次确认 ── */}
       <AlertDialog open={!!pendingDelete} onOpenChange={(o) => { if (!o) setPendingDelete(null); }}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>
+        <AlertDialogContent
+          title={
+            <>
               {pendingDelete?.kind === "skill" && `删除 Skill「${pendingDelete.skill}」？`}
               {pendingDelete?.kind === "dir" && `删除文件夹「${pendingDelete.path}」？`}
               {pendingDelete?.kind === "file" && `删除文件「${pendingDelete.path}」？`}
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              {pendingDelete?.kind === "skill"
-                ? "将删除该 Skill 的全部文件、MCP 关联与可见性配置。此操作不可撤销。"
-                : pendingDelete?.kind === "dir"
-                  ? "将一并删除该文件夹下的所有文件。此操作不可撤销。"
-                  : "此操作不可撤销。"}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={deleting}>取消</AlertDialogCancel>
-            <AlertDialogAction
-              disabled={deleting}
-              onClick={(e) => { e.preventDefault(); void runPendingDelete(); }}
-            >
-              {deleting ? "删除中…" : "删除"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
+            </>
+          }
+          description={
+            pendingDelete?.kind === "skill"
+              ? "将删除该 Skill 的全部文件、MCP 关联与可见性配置。此操作不可撤销。"
+              : pendingDelete?.kind === "dir"
+                ? "将一并删除该文件夹下的所有文件。此操作不可撤销。"
+                : "此操作不可撤销。"
+          }
+          footer={
+            <>
+              <AlertDialogCancel asChild>
+                <Button disabled={deleting} size="sm" variant="ghost">
+                  取消
+                </Button>
+              </AlertDialogCancel>
+              <AlertDialogAction asChild>
+                <Button
+                  color="danger"
+                  disabled={deleting}
+                  size="sm"
+                  variant="solid"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    void runPendingDelete();
+                  }}
+                >
+                  {deleting ? "删除中…" : "删除"}
+                </Button>
+              </AlertDialogAction>
+            </>
+          }
+        />
       </AlertDialog>
 
       {/* ── 新建 Skill 对话框 ── */}

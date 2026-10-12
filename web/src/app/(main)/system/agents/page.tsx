@@ -4,39 +4,39 @@ import * as React from "react";
 import { toast } from "sonner";
 import { Bot, PlusIcon, Trash2Icon } from "lucide-react";
 
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
 import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+  Badge,
+  Button,
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  Dialog,
+  DialogContent,
+  DialogTrigger,
+  Input,
+  Label,
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  Textarea,
+} from "@/codex-ui/codex/ui";
+
+
+
+
+
+
+
+
 import { AgentEditor } from "@/components/agent-editor";
 import { api } from "@/lib/api";
 import type { Agent } from "@/lib/types";
@@ -69,16 +69,16 @@ function AgentGridCard({
           <span className="text-sm font-medium">{agent.name}</span>
           <span className="text-muted-foreground font-mono text-xs">{agent.key}</span>
           {agent.builtin ? (
-            <Badge variant="secondary" className="px-1.5 py-0 text-[10px]">
+            <Badge tone="neutral" className="px-1.5 py-0 text-[10px]">
               内置
             </Badge>
           ) : (
-            <Badge variant="outline" className="px-1.5 py-0 text-[10px]">
+            <Badge tone="muted" className="px-1.5 py-0 text-[10px]">
               自定义
             </Badge>
           )}
           {!agent.enabled && (
-            <Badge variant="outline" className="text-destructive px-1.5 py-0 text-[10px]">
+            <Badge tone="muted" className="text-destructive px-1.5 py-0 text-[10px]">
               已停用
             </Badge>
           )}
@@ -95,26 +95,32 @@ function AgentGridCard({
       {!agent.builtin && (
         <AlertDialog>
           <AlertDialogTrigger asChild>
-            <Button
+            <Button uniform
               variant="ghost"
-              size="icon-sm"
+              size="md"
               className="text-muted-foreground hover:text-destructive absolute top-2 right-2 opacity-0 transition-opacity group-hover:opacity-100"
             >
               <Trash2Icon className="size-3.5" />
             </Button>
           </AlertDialogTrigger>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>删除 Agent「{agent.name}」？</AlertDialogTitle>
-              <AlertDialogDescription>
-                将一并删除它的提示词、变量、可见性与工具绑定。此操作不可撤销。
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>取消</AlertDialogCancel>
-              <AlertDialogAction onClick={del}>删除</AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
+          <AlertDialogContent
+            title={`删除 Agent「${agent.name}」？`}
+            description="将一并删除它的提示词、变量、可见性与工具绑定。此操作不可撤销。"
+            footer={
+              <>
+                <AlertDialogCancel asChild>
+                  <Button size="sm" variant="ghost">
+                    取消
+                  </Button>
+                </AlertDialogCancel>
+                <AlertDialogAction asChild>
+                  <Button color="danger" size="sm" variant="solid" onClick={del}>
+                    删除
+                  </Button>
+                </AlertDialogAction>
+              </>
+            }
+          />
         </AlertDialog>
       )}
     </div>
@@ -155,13 +161,15 @@ function CreateAgentDialog({ onCreated }: { onCreated: (key: string) => void }) 
           <PlusIcon /> 新建 Agent
         </Button>
       </DialogTrigger>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>新建自定义 Agent</DialogTitle>
-          <DialogDescription>
-            创建一个会话型助手。key 用于内部标识，创建后不可更改；名称与描述用于识别。
-          </DialogDescription>
-        </DialogHeader>
+      <DialogContent
+        title="新建自定义 Agent"
+        description="创建一个会话型助手。key 用于内部标识，创建后不可更改；名称与描述用于识别。"
+        footer={
+          <Button disabled={!canCreate} size="sm" variant="solid" onClick={create}>
+            创建
+          </Button>
+        }
+      >
         <div className="grid gap-4 py-2">
           <div className="grid gap-1.5">
             <Label htmlFor="agent-key">Key</Label>
@@ -196,11 +204,6 @@ function CreateAgentDialog({ onCreated }: { onCreated: (key: string) => void }) 
             />
           </div>
         </div>
-        <DialogFooter>
-          <Button onClick={create} disabled={!canCreate}>
-            创建
-          </Button>
-        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
@@ -266,7 +269,7 @@ export default function AgentsPage() {
                   {editing.name}
                   <span className="text-muted-foreground font-mono text-xs">{editing.key}</span>
                   {!editing.builtin && (
-                    <Badge variant="outline" className="px-1.5 py-0 text-[10px]">
+                    <Badge tone="muted" className="px-1.5 py-0 text-[10px]">
                       自定义
                     </Badge>
                   )}

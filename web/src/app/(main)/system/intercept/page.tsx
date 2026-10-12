@@ -17,50 +17,52 @@ import {
   AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import {
+  Badge,
+  Button,
+  Card,
+  CardContent,
   Dialog,
   DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
-import { Switch } from "@/components/ui/switch";
-import { Textarea } from "@/components/ui/textarea";
-import {
+  Input,
+  Label,
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import {
+  Separator,
   Sheet,
   SheetContent,
   SheetDescription,
   SheetFooter,
   SheetHeader,
   SheetTitle,
-} from "@/components/ui/sheet";
-import {
+  Switch,
   Table,
   TableBody,
   TableCell,
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
-import { Card, CardContent } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+  Textarea,
+} from "@/codex-ui/codex/ui";
+
+
+
+
+
+
+
+
+
+
+
+
+
 import { api } from "@/lib/api";
 import type { AutoAllowState, InterceptRule, InterceptAction, JudgeConfig, LLMProfile, Tool } from "@/lib/types";
 
@@ -140,9 +142,9 @@ const defaultForm = (): RuleForm => ({
 // ---- small components ----
 
 function ActionBadge({ action }: { action: InterceptAction }) {
-  if (action === "allow") return <Badge variant="secondary">允许</Badge>;
-  if (action === "deny")  return <Badge variant="destructive">禁止</Badge>;
-  return <Badge variant="outline" className="border-amber-400 text-amber-600">申请</Badge>;
+  if (action === "allow") return <Badge tone="neutral">允许</Badge>;
+  if (action === "deny")  return <Badge tone="danger">禁止</Badge>;
+  return <Badge tone="muted" className="border-amber-400 text-amber-600">申请</Badge>;
 }
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
@@ -258,7 +260,7 @@ function JudgeCard() {
                   <p className="text-sm font-medium">审批提示词</p>
                   <p className="text-xs text-muted-foreground">模型据此判定 ALLOW / ASK / DENY，可直接编辑</p>
                 </div>
-                <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={restorePrompt} disabled={saving}>
+                <Button variant="ghost" size="sm" className="text-xs" onClick={restorePrompt} disabled={saving}>
                   恢复默认模板
                 </Button>
               </div>
@@ -437,51 +439,52 @@ function AutoAllowCard() {
           <p className="text-sm font-medium text-red-700 dark:text-red-400">
             自动放行中 · 剩余 {autoAllowRemainingLabel(st.remaining_seconds)}(到期自动恢复拦截)
           </p>
-          <Button variant="destructive" size="sm" className="shrink-0" onClick={disable} disabled={busy}>
+          <Button variant="soft" color="danger" size="sm" className="shrink-0" onClick={disable} disabled={busy}>
             关闭
           </Button>
         </div>
       )}
 
       <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>开启一键放行?</AlertDialogTitle>
-            <AlertDialogDescription asChild>
-              <div className="space-y-3">
-                <p>
-                  开启后,AI agent 的所有需审批操作(横向移动、隧道工具、爆破、临时服务等)将
-                  <span className="font-semibold text-red-600 dark:text-red-400">【无人值守自动放行】</span>
-                  ,仅真·破坏性命令仍被拦截。仅在授权靶场/授权测试环境使用。请选择有效时长。
-                </p>
-                <div className="flex items-center gap-2">
-                  {AUTO_ALLOW_HOURS.map((h) => (
-                    <Button
-                      key={h}
-                      variant={hours === h ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => setHours(h)}
-                    >
-                      {h} 小时
-                    </Button>
-                  ))}
-                </div>
-              </div>
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={busy}>取消</AlertDialogCancel>
-            <AlertDialogAction
-              variant="destructive"
-              disabled={busy}
-              onClick={(e) => {
-                e.preventDefault(); // 等接口返回后再关弹窗
-                enable();
-              }}
-            >
-              {busy ? "开启中…" : "确认开启"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
+        <AlertDialogContent
+          title="开启一键放行?"
+          description="开启后,AI agent 的所有需审批操作(横向移动、隧道工具、爆破、临时服务等)将【无人值守自动放行】,仅真·破坏性命令仍被拦截。仅在授权靶场/授权测试环境使用。请选择有效时长。"
+          footer={
+            <>
+              <AlertDialogCancel asChild>
+                <Button disabled={busy} size="sm" variant="ghost">
+                  取消
+                </Button>
+              </AlertDialogCancel>
+              <AlertDialogAction asChild>
+                <Button
+                  color="danger"
+                  disabled={busy}
+                  size="sm"
+                  variant="solid"
+                  onClick={(e) => {
+                    e.preventDefault(); // 等接口返回后再关弹窗
+                    enable();
+                  }}
+                >
+                  {busy ? "开启中…" : "确认开启"}
+                </Button>
+              </AlertDialogAction>
+            </>
+          }
+        >
+          <div className="flex items-center gap-2">
+            {AUTO_ALLOW_HOURS.map((h) => (
+              <Button
+                key={h}
+                size="sm"
+                variant={hours === h ? "solid" : "outline"}
+                onClick={() => setHours(h)}
+              >
+                {h} 小时
+              </Button>
+            ))}
+          </div>
         </AlertDialogContent>
       </AlertDialog>
     </div>
@@ -687,7 +690,7 @@ export default function InterceptPage() {
             </span>
           ) : (
             <>
-              <Badge variant="secondary" className="shrink-0">{scopeTools.length} 个工具</Badge>
+              <Badge tone="neutral" className="shrink-0">{scopeTools.length} 个工具</Badge>
               <span className="truncate text-muted-foreground" title={scopeTools.join("、")}>
                 {scopeTools.join("、")}
               </span>
@@ -695,7 +698,7 @@ export default function InterceptPage() {
           )}
         </div>
         <Button
-          variant={scopeTools.length === 0 ? "default" : "outline"}
+          variant={scopeTools.length === 0 ? "solid": "outline"}
           size="sm"
           className="shrink-0"
           onClick={openScope}
@@ -783,15 +786,15 @@ export default function InterceptPage() {
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center justify-end gap-0.5">
-                        <Button
-                          size="icon" variant="ghost" className="h-7 w-7"
+                        <Button uniform
+                          size="2xs" variant="ghost" className=""
                           onClick={() => openEdit(rule)}
                         >
                           <PencilIcon className="h-3.5 w-3.5" />
                         </Button>
-                        <Button
-                          size="icon" variant="ghost"
-                          className="h-7 w-7 text-destructive hover:text-destructive"
+                        <Button uniform
+                          size="2xs" variant="ghost"
+                          className="text-destructive hover:text-destructive"
                           onClick={() => handleDelete(rule.id)}
                         >
                           <Trash2Icon className="h-3.5 w-3.5" />
@@ -978,16 +981,27 @@ export default function InterceptPage() {
 
       {/* ---- scope dialog ---- */}
       <Dialog open={scopeOpen} onOpenChange={setScopeOpen}>
-        <DialogContent className="sm:max-w-lg flex flex-col overflow-hidden p-0 gap-0" style={{ maxHeight: "min(80vh, 560px)" }}>
-          <DialogHeader className="shrink-0 border-b px-6 py-4">
-            <DialogTitle className="flex items-center gap-2">
-              <ListFilterIcon className="h-4 w-4" />
+        <DialogContent
+          className="sm:max-w-lg flex flex-col overflow-hidden p-0 gap-0"
+          style={{ maxHeight: "min(80vh, 560px)" }}
+          title={
+            <span className="flex items-center gap-2">
+              <ListFilterIcon className="size-4" />
               拦截范围
-            </DialogTitle>
-            <DialogDescription className="text-xs">
-              只有启用拦截的工具才会进入规则匹配；其余工具直接放行
-            </DialogDescription>
-          </DialogHeader>
+            </span>
+          }
+          description="只有启用拦截的工具才会进入规则匹配；其余工具直接放行"
+          footer={
+            <>
+              <Button size="sm" variant="outline" onClick={() => setScopeOpen(false)}>
+                取消
+              </Button>
+              <Button disabled={scopeSaving || scopeLoading} size="sm" variant="solid" onClick={saveScope}>
+                {scopeSaving ? "保存中…" : "保存"}
+              </Button>
+            </>
+          }
+        >
 
           <div className="flex-1 min-h-0 overflow-y-auto px-6 py-4 space-y-5">
             {scopeLoading ? (
@@ -1011,7 +1025,7 @@ export default function InterceptPage() {
                           <div className="flex items-center gap-1.5">
                             <span className="font-mono text-sm">{t.key}</span>
                             {(t.kind && t.kind !== "builtin") && (
-                              <Badge variant="outline" className="px-1 py-0 text-[10px]">{t.kind}</Badge>
+                              <Badge tone="muted" className="px-1 py-0 text-[10px]">{t.kind}</Badge>
                             )}
                           </div>
                           {t.description && (
@@ -1026,12 +1040,6 @@ export default function InterceptPage() {
             )}
           </div>
 
-          <div className="shrink-0 border-t px-6 py-3 flex justify-end gap-2">
-            <Button variant="outline" size="sm" onClick={() => setScopeOpen(false)}>取消</Button>
-            <Button size="sm" onClick={saveScope} disabled={scopeSaving || scopeLoading}>
-              {scopeSaving ? "保存中…" : "保存"}
-            </Button>
-          </div>
         </DialogContent>
       </Dialog>
     </div>

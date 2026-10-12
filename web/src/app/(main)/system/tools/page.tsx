@@ -4,36 +4,46 @@ import * as React from "react";
 import { toast } from "sonner";
 import { PlayIcon, PlusIcon, RotateCcwIcon, SaveIcon, SearchIcon, Trash2Icon } from "lucide-react";
 
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Textarea } from "@/components/ui/textarea";
-import { Separator } from "@/components/ui/separator";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
+  Badge,
+  Button,
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import {
+  Checkbox,
+  Input,
+  Label,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+  Separator,
   Sheet,
   SheetContent,
   SheetDescription,
   SheetHeader,
   SheetTitle,
-} from "@/components/ui/sheet";
+  Switch,
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+  Textarea,
+} from "@/codex-ui/codex/ui";
+
+
+
+
+
+
+
+
+
+
+
 import { api } from "@/lib/api";
 import type { Agent, Tool } from "@/lib/types";
 
@@ -259,11 +269,11 @@ function ToolEditor({
               <div className="flex flex-wrap items-center gap-2">
                 {r.parentKey && <span className="text-muted-foreground font-mono text-[10px]">↳</span>}
                 <span className="font-mono text-sm">{r.name}</span>
-                <Badge variant="secondary" className="px-1.5 py-0 text-[10px]">
+                <Badge tone="neutral" className="px-1.5 py-0 text-[10px]">
                   {r.type || "?"}
                 </Badge>
                 {r.required && (
-                  <Badge variant="outline" className="px-1.5 py-0 text-[10px]">
+                  <Badge tone="muted" className="px-1.5 py-0 text-[10px]">
                     必填
                   </Badge>
                 )}
@@ -320,26 +330,26 @@ function ToolGridCard({ tool, onClick }: { tool: Tool; onClick: () => void }) {
       <div className="flex flex-wrap items-center gap-2">
         <span className="font-mono text-sm font-medium">{tool.key}</span>
         {tool.system ? (
-          <Badge variant="secondary" className="px-1.5 py-0 text-[10px]">
+          <Badge tone="neutral" className="px-1.5 py-0 text-[10px]">
             系统
           </Badge>
         ) : (
-          <Badge variant="outline" className="px-1.5 py-0 text-[10px]">
+          <Badge tone="muted" className="px-1.5 py-0 text-[10px]">
             自定义·{tool.kind}
           </Badge>
         )}
         {tool.deferred && (
-          <Badge variant="outline" className="px-1.5 py-0 text-[10px]">
+          <Badge tone="muted" className="px-1.5 py-0 text-[10px]">
             deferred
           </Badge>
         )}
         {!tool.enabled && (
-          <Badge variant="outline" className="text-destructive px-1.5 py-0 text-[10px]">
+          <Badge tone="muted" className="text-destructive px-1.5 py-0 text-[10px]">
             已停用
           </Badge>
         )}
         <Badge
-          variant="secondary"
+          tone="neutral"
           className="ml-auto px-1.5 py-0 text-[10px] tabular-nums"
           title={`累计调用 ${tool.calls ?? 0} 次`}
         >
@@ -354,7 +364,7 @@ function ToolGridCard({ tool, onClick }: { tool: Tool; onClick: () => void }) {
           <span className="text-muted-foreground text-[10px]">（未绑定 Agent）</span>
         )}
         {tool.agents.map((a) => (
-          <Badge key={a} variant="outline" className="px-1.5 py-0 text-[10px]">
+          <Badge key={a} tone="muted" className="px-1.5 py-0 text-[10px]">
             {a}
           </Badge>
         ))}
@@ -407,8 +417,8 @@ export default function ToolsPage() {
         </div>
         <div className="relative w-64">
           <SearchIcon className="text-muted-foreground absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2" />
-          <Input
-            className="h-8 pl-8 text-sm"
+          <Input size="md"
+            className="pl-8 text-sm"
             placeholder="搜索工具名、描述、Agent…"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
