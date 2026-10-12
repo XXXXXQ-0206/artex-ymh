@@ -1,0 +1,127 @@
+{
+  "groups": [
+    {
+      "name": "app-menu-bar",
+      "limit": 8,
+      "selectors": [
+        "div[class*=ApplicationMenuTopBar]",
+        "div[class*=ApplicationMenuTopBar] > div",
+        "div[class*=ApplicationMenuTopBar] [role=menubar]",
+        "#application-menu-trigger-file-menu",
+        "#application-menu-trigger-file-menu svg",
+        "div[class*=ApplicationMenuTopBar] .no-drag"
+      ]
+    },
+    {
+      "name": "overlays",
+      "limit": 12,
+      "selectors": [
+        "[role=menu]",
+        "[role=menuitem]",
+        "[role=separator]",
+        "[role=listbox]",
+        "[role=option]",
+        "[role=tooltip]",
+        "[role=dialog]",
+        "[data-radix-popper-content-wrapper]",
+        "[data-state=open]",
+        "[class*=MenuContent]",
+        "[class*=DropdownMenu]"
+      ]
+    },
+    {
+      "name": "sidebar",
+      "limit": 6,
+      "selectors": [
+        "aside.app-shell-left-panel",
+        "#app-shell-sidebar",
+        "nav[class*=sidebar-rail]",
+        "[class*=panel-resizer]",
+        "nav[class*=Navigation_]",
+        "._PageSurface_yl8z4_2",
+        "._MainContentTopFade_yl8z4_2"
+      ]
+    },
+    {
+      "name": "shell",
+      "limit": 4,
+      "selectors": [
+        "#root",
+        "#root > div",
+        "._Workspace_yl8z4_2",
+        "._MainContentClip_yl8z4_2",
+        "main",
+        "._WorkspaceContent_yl8z4_2",
+        "._MainContentViewport_yl8z4_2",
+        "._MainContentFrame_yl8z4_2",
+        "header[class*=z-30]",
+        "div[class*=Toolbar_]"
+      ]
+    },
+    {
+      "name": "composer",
+      "limit": 6,
+      "selectors": [
+        "[class*=ComposerLayoutRoot]",
+        "[class*=ComposerLayoutBody]",
+        "[class*=ComposerLayoutFooter]",
+        "[class*=ComposerLayoutInput]",
+        "[class*=AdaptiveFooterInput]",
+        "[contenteditable=true]",
+        "div[class*=thread-content-max-width]"
+      ]
+    },
+    {
+      "name": "conversation",
+      "limit": 6,
+      "selectors": [
+        "[class*=MarkdownRoot]",
+        "[data-message-author-role]",
+        "[class*=messageBubble]",
+        "article",
+        "[class*=ThreadRoot]",
+        "[class*=turn]",
+        "pre",
+        "code",
+        "[class*=timestamp]",
+        "[class*=Conversation]"
+      ]
+    },
+    {
+      "name": "home",
+      "limit": 8,
+      "selectors": [
+        "[class*=home-composer-layout]",
+        "[class*=home-mode-toggle]",
+        "h1",
+        "h2",
+        "button[class*=suggestion]",
+        "[class*=suggestion]",
+        "[class*=empty-state]",
+        "[class*=EmptyState]"
+      ]
+    },
+    {
+      "name": "toast",
+      "limit": 4,
+      "selectors": [
+        ".codex-toast-area",
+        "[class*=toast]",
+        "[role=status]"
+      ]
+    },
+    {
+      "name": "settings",
+      "limit": 6,
+      "selectors": [
+        "[class*=SettingsRoot]",
+        "[class*=settings]",
+        "[role=switch]",
+        "[role=tablist]",
+        "input",
+        "select",
+        "[role=combobox]"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "groups": [
+    {
+      "name": "app-menu-dropdown",
+      "selectors": [
+        "[role=menu]",
+        "[role=menuitem]",
+        "[role=separator]",
+        "[data-radix-popper-content-wrapper]"
+      ],
+      "limit": 40
+    }
+  ]
+}

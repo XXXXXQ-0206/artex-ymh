@@ -1,0 +1,306 @@
+/* ============================================================================
+ * Codex Desktop 官方 token 桥接层
+ *
+ * ./official-tokens.css 是官方 token 的原文搬运；本文件负责把它接到 ARTEX 的
+ * 主题机制上，并补齐官方 token 里以别处声明、抽取时不在 @layer theme 中的少量值。
+ *
+ * 三件事：
+ *   1. 明暗双值开关：官方用 var(--lightningcss-light, L)var(--lightningcss-dark, D)
+ *      表达同一 token 的亮/暗两值，用 --lightningcss-* 的 "initial / 空" 语义二选一。
+ *      ARTEX 的主题是 .dark 类 + data-theme-mode，这里把它翻成同样的语义。
+ *   2. 角形：官方 --codex-corner-shape = superellipse(1.5)，且支持超椭圆时把
+ *      --corner-radius-scale 从 1 提到 1.25（这就是 9.375 / 10 / 12.5 的来源）。
+ *   3. 基础排版与语义变量：字体栈、基准字重 430、滚动条、选中色、焦点环，
+ *      以及把 ARTEX 的 --card / --popover 等语义变量对齐到官方实测值。
+ * ========================================================================== */
+
+/* ── 1. 官方明暗双值开关 ─────────────────────────────────────────────────── */
+:root {
+  --lightningcss-light: initial;
+  --lightningcss-dark: ;
+  /* 官方用 @container style(--theme-variant:dark) 分档（26 处）；ARTEX 之前没有
+     这个变量，那批分支永远不匹配。这里按当前主题补上同一档。 */
+  --theme-variant: light;
+  color-scheme: light;
+}
+
+html.dark,
+html[data-theme-mode="dark"],
+[data-theme="dark"] {
+  --lightningcss-light: ;
+  --lightningcss-dark: initial;
+  --theme-variant: dark;
+  color-scheme: dark;
+}
+
+html[data-theme-mode="light"],
+[data-theme="light"] {
+  --lightningcss-light: initial;
+  --lightningcss-dark: ;
+  --theme-variant: light;
+  color-scheme: light;
+}
+
+/* Codex Desktop 是 Electron 窗口：官方给 electron 窗口类型单独一档 token
+   （--menu-* / --padding-row-* 等）。根元素由 layout.tsx 打上这个标记。 */
+
+/* ── 2. 角形与半径倍率（官方原文）────────────────────────────────────────── */
+:root {
+  --codex-corner-shape: round;
+}
+
+@supports (corner-shape: superellipse(1.5)) {
+  :root {
+    --codex-corner-shape: superellipse(1.5);
+  }
+}
+
+/* ── 3. 基础排版 ─────────────────────────────────────────────────────────── */
+html {
+  font-family: var(--font-sans);
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* The Electron reference resolves the root family directly to the system UI
+   stack. Theme font variables live on <body>, so relying on var(--font-sans)
+   here lets a preference class leak into the root computed style. Keep the
+   browser build configurable while pinning the desktop surface to Codex's
+   measured family. */
+html[data-codex-window-type="electron"],
+html[data-codex-window-type="electron"] body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+html body {
+  font-family: var(--font-sans);
+  /* Codex 普查实测：正文字重 430（不是 400）——"看着像却不像"的主要来源 */
+  font-weight: 430;
+  line-height: var(--font-text-md-line-height, 1.5rem);
+  color: var(--color-text);
+  background-color: var(--color-surface);
+}
+
+/* 代码/等宽：官方 --font-mono-default */
+code,
+kbd,
+pre,
+samp,
+.font-mono {
+  font-family: var(--font-mono);
+}
+
+/* 选中色：官方用强调色低透明底 */
+::selection {
+  background-color: color-mix(in oklab, var(--blue-400) 32%, transparent);
+}
+
+/* 滚动条：Codex 桌面端是细的浮层滚动条 */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in oklab, var(--color-text) 18%, transparent) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: color-mix(in oklab, var(--color-text) 16%, transparent);
+  border: 3px solid transparent;
+  border-radius: var(--radius-full);
+  background-clip: content-box;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background-color: color-mix(in oklab, var(--color-text) 28%, transparent);
+}
+
+/* 焦点环：官方 --color-ring */
+:focus-visible {
+  outline-color: var(--color-ring);
+}
+
+/* 官方用 data-reduced-motion 属性驱动动效开关，照抄 */
+@media (prefers-reduced-motion: reduce) {
+  html:not([data-reduced-motion="false"]) *,
+  html:not([data-reduced-motion="false"]) *::before,
+  html:not([data-reduced-motion="false"]) *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ── 3b. Electron 窗口类型的运行时实测值 ──────────────────────────────────
+   官方在 <html> 上还会用 inline style 注入一批值（JS 侧算出来的），静态 CSS 里没有
+   或会被后续规则覆盖。这里按参考端 getComputedStyle 的**实测生效值**钉死，
+   保证 ARTEX 与参考端同值。来源：evidence/codex-desktop/captures/tokens.runtime.json
+   （ref-capture 在 1280×816 / data-theme=dark / electron 窗口下采得）。 */
+html[data-codex-window-type="electron"] {
+  /* 侧栏首选宽：--spacing-token-sidebar 取 clamp(240px, 340px, min(520px, 100vw - 320px)) */
+  --codex-sidebar-preferred-width: 340px;
+
+  /* 字号：UI 用 --text-*，正文用 --font-text-*-size，两套不同 */
+  --font-ui-size: 14px;
+  --font-code-size: 12px;
+  --text-xs: 12px;
+  --text-sm: 13px;
+  --text-base: 14px;
+  --text-lg: 16px;
+  --text-xl: 28px;
+  --text-2xl: 36px;
+  --text-3xl: 48px;
+  --text-4xl: 72px;
+  --text-heading-sm: 18px;
+  --text-heading-md: 20px;
+  --text-heading-lg: 24px;
+  --text-heading-app: 28px;
+
+  /* 字重：官方 --font-ui-weight = 430（正文基准） */
+  --font-ui-weight: 430;
+  --font-weight-medium: 500;
+
+  /* 菜单（electron 档实测）：半径 20、条目半径 15、条目内边距 10px 12px、gutter 4px */
+  --menu-radius: var(--radius-2xl);
+  --menu-gutter: var(--spacing);
+  --menu-item-radius: var(--radius-xl);
+  /* 实测生效值（tokens.runtime.json）：5px 8px；10px 12px 只出现在 @media (pointer:coarse) */
+  --menu-item-padding: calc(var(--spacing) * 1.25) calc(var(--spacing) * 2);
+  --menu-font-size: var(--text-sm);
+  --menu-line-height: calc(1.25 / 0.875);
+  --menu-corner-shape: var(--codex-corner-shape);
+  --menu-item-background-color: var(--color-background-primary-ghost-hover);
+  --menu-backdrop-filter: blur(var(--blur-lg));
+
+  /* 弹层半径：tokens.runtime.json 实测三者都是 calc(.75rem * 1.25) = 15px（= --radius-xl）。
+     注意 --radius-form-dialog 是另一档：calc(.25rem*6*1.25) = 30px。 */
+  --dialog-radius: calc(0.75rem * 1.25);
+  --popover-radius: calc(0.75rem * 1.25);
+  --modal-radius: calc(0.75rem * 1.25);
+  --radius-form-dialog: calc(0.25rem * 6 * 1.25);
+
+  /* 阴影发丝线宽度（实测）：宽度是几何值，与主题无关 */
+  --shadow-hairline-width: 0.5px;
+
+  /* 输入区 / 会话列（实测）：半径与 gutter */
+  --composer-radius: calc(0.25rem * 5.5);
+  --composer-gutter: calc(0.25rem * 3);
+  --thread-gutter: calc(0.25rem * 4);
+
+  /* tooltip（实测）：半径与字号 */
+  --tooltip-border-radius: var(--radius-md);
+  --tooltip-font-size: 14px;
+}
+
+/* 颜色与阴影档位只在深色窗口成立：上面的实测值采自 data-theme=dark 的参考端
+   （tokens.runtime.json）。浅色窗口必须回落到 official-tokens.css 的亮色档，
+   否则出现 --color-text #1a1c1f 叠在 --color-surface #181818 上（1.04:1）。
+   几何 / 字号 / 字重 / 半径保持上面的无条件块。 */
+html[data-codex-window-type="electron"].dark,
+html[data-codex-window-type="electron"][data-theme-mode="dark"],
+html[data-codex-window-type="electron"][data-theme="dark"] {
+  /* 菜单（electron 档实测） */
+  --menu-background-color: rgb(45 45 45);
+  --menu-box-shadow: 0 0 0 0.5px color-mix(in srgb, #fff 8.4%, transparent), var(--shadow-xl);
+
+  /* 表面色阶（实测）：官方静态 CSS 在 electron 档会被后续规则覆盖成别的值，
+     这里按 tokens.runtime.json 钉死，保证与参考端同色。 */
+  --color-surface: #181818;
+  --color-surface-secondary: #141414;
+  --color-surface-tertiary: rgb(40 40 40);
+  --color-surface-elevated: rgba(54, 54, 54, 0.96);
+  --color-surface-elevated-secondary: rgb(45 45 45);
+  --color-surface-card: #181818;
+
+  /* 边框 alpha（实测 8.4% / 4.2% / 15.6%） */
+  --color-border: color-mix(in oklab, #fff 8.4%, transparent);
+  --color-border-subtle: color-mix(in oklab, #fff 4.2%, transparent);
+  --color-border-strong: color-mix(in oklab, #fff 15.6%, transparent);
+  --color-background-primary-ghost-hover: rgba(255, 255, 255, 0.078);
+
+  /* 次要文字色（实测）：三级文字是 rgba(255,255,255,.498)，不是 50% 的 color-mix */
+  --color-text-tertiary: rgba(255, 255, 255, 0.498);
+  --color-text-secondary: color-mix(in srgb, #dfdfdf 65%, transparent);
+  --app-color-background-application-menu: #1f1f1f;
+
+  /* 阴影强度与发丝线（实测）：官方静态 CSS 的 alpha 档（.08/.08/.1/.12）不是生效值，
+     运行时是 .2/.2/.36/.3；hairline 也从 1px/#00000014 变成 .5px/#ffffff1f。 */
+  --shadow-alpha-100: 0.2;
+  --shadow-alpha-200: 0.2;
+  --shadow-alpha-300: 0.36;
+  --shadow-alpha-400: 0.3;
+  --shadow-hairline-color: #ffffff1f;
+
+  /* 输入区 / tooltip 的表面色（实测） */
+  --composer-background-color: rgba(54, 54, 54, 0.96);
+  --tooltip-background-color: rgba(54, 54, 54, 0.96);
+  --tooltip-text-color: #dfdfdf;
+}
+
+/* ── 4. ARTEX 语义变量 → 官方实测值 ──────────────────────────────────────── */
+/* 深色窗口底色 = 官方 gray-0 dark (#0d0d0d)；主表面 = --color-surface (#181818)。
+   这两个是外壳层次感的根，之前 --card 取 #131313 比参考端暗一档。 */
+/* ★ 窗口底/导轨/顶栏 = --app-color-background-shell = --color-surface-tertiary = rgb(40,40,40)。
+   像素证据（参考端 ref-01-chat-home.png，1280×816@dpr1.5 采样）：
+     导轨/顶栏底 (20,400)(640,10)(2,812) → rgb(40,40,40)
+     面板中部 (200,300) → rgb(30,30,30)；主表面 (800,400) → rgb(24,24,24)；输入区 (800,750) → rgb(54,54,54)
+   面板 30 = color-mix(in oklab, #181818 65%, transparent) 叠在 40 上（0.65*24+0.35*40 = 29.6）。
+   所以层次是 40 → 30 → 24，不是之前以为的 13 → 24。 */
+html.dark {
+  --background: var(--color-surface-tertiary);
+  --card: var(--color-surface);
+  --card-foreground: var(--color-text);
+  --foreground: var(--color-text-emphasis, var(--color-text));
+  --muted-foreground: var(--color-text-tertiary);
+  --border: color-mix(in oklab, var(--color-text) 12%, transparent);
+  --input: color-mix(in oklab, var(--color-text) 16%, transparent);
+  --ring: var(--color-ring);
+  --accent: var(--gray-250);
+  --accent-foreground: var(--color-text);
+}
+
+/* ── 5. 官方组件 token 的便捷类 ──────────────────────────────────────────── */
+/* 供各页面直接套用官方组件规格，避免每处重抄一遍 calc。 */
+.codex-menu-surface {
+  background-color: var(--menu-background-color);
+  border-radius: var(--menu-radius);
+  box-shadow: var(--menu-box-shadow);
+  corner-shape: var(--menu-corner-shape);
+  padding: var(--menu-gutter);
+  font-size: var(--menu-font-size);
+  line-height: var(--menu-line-height);
+}
+
+.codex-menu-item {
+  padding: var(--menu-item-padding);
+  border-radius: var(--menu-item-radius);
+  gap: var(--menu-item-gap);
+}
+
+.codex-menu-item[data-highlighted],
+.codex-menu-item:hover {
+  background-color: var(--menu-item-background-color);
+}
+
+.codex-modal-surface {
+  background-color: var(--modal-backdrop-fade-background);
+  border-radius: var(--modal-radius);
+  padding: var(--modal-container-inner-padding);
+}
+
+.codex-ease-enter {
+  transition-timing-function: var(--cubic-enter);
+}
+
+.codex-ease-exit {
+  transition-timing-function: var(--cubic-exit);
+}

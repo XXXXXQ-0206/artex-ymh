@@ -1,0 +1,17 @@
+{
+  "groups": [
+    {
+      "name": "app-menu-bar",
+      "selectors": [
+        "div[class*=ApplicationMenuTopBar]",
+        "div[class*=ApplicationMenuTopBar] > div",
+        "div[class*=ApplicationMenuTopBar] [role=menubar]",
+        "#application-menu-trigger-file-menu",
+        "#application-menu-trigger-file-menu svg",
+        "#application-menu-trigger-edit-menu",
+        "div[class*=ApplicationMenuTopBar] .no-drag"
+      ],
+      "limit": 12
+    }
+  ]
+}

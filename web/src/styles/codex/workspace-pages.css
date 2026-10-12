@@ -1,0 +1,140 @@
+/* Shared Codex workspace surfaces for tasks, findings and intranet. */
+
+[data-codex-workspace-page] {
+  --workspace-page-gap: 20px;
+  --workspace-card-radius: 20px;
+  /* 语义 token：深色走 electron 桥接的实测值，浅色走 official-tokens 的亮色档。 */
+  --workspace-border: var(--color-border);
+  --workspace-surface: var(--color-surface-card, var(--color-surface));
+  gap: var(--workspace-page-gap);
+  color: var(--color-text, #dfdfdf);
+}
+
+[data-codex-workspace-page] [data-slot="card"] {
+  border: 0;
+  border-radius: var(--workspace-card-radius);
+  background: var(--workspace-surface);
+  box-shadow: 0 0 0 0.5px var(--workspace-border);
+}
+
+[data-codex-workspace-page] [data-slot="card-header"] {
+  padding: 18px 20px 12px;
+}
+
+[data-codex-workspace-page] [data-slot="card-content"] {
+  padding-inline: 20px;
+}
+
+[data-codex-workspace-page] > :first-child {
+  min-height: 40px;
+}
+
+[data-codex-workspace-page] h1 {
+  font-size: 24px;
+  font-weight: 500;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+}
+
+[data-codex-workspace-page] h1 + p {
+  margin-top: 4px;
+  color: var(--color-text-secondary, rgb(255 255 255 / 0.65));
+  font-size: 13px;
+  line-height: 18px;
+}
+
+[data-codex-workspace-page] [data-slot="tabs-list"] {
+  min-height: 36px;
+  gap: 2px;
+  padding: 3px;
+  border: 0;
+  border-radius: 12.5px;
+  background: var(--color-background-primary-soft-alpha);
+}
+
+[data-codex-workspace-page] [data-slot="tabs-trigger"] {
+  min-height: 30px;
+  border-radius: 9px;
+  padding: 5px 12px;
+  color: var(--color-text-tertiary, rgb(255 255 255 / 0.5));
+  font-size: 13px;
+  font-weight: 430;
+}
+
+[data-codex-workspace-page] [data-slot="tabs-trigger"][data-state="active"] {
+  background: var(--color-background-primary-ghost-hover);
+  color: var(--color-text, #dfdfdf);
+}
+
+[data-codex-workspace-page] [data-slot="input"],
+[data-codex-workspace-page] [data-slot="select-trigger"],
+[data-codex-workspace-page] [data-slot="button"] {
+  border-radius: 10px;
+}
+
+[data-codex-workspace-page] [data-slot="table-container"] {
+  border: 0;
+  border-radius: 0 0 var(--workspace-card-radius) var(--workspace-card-radius);
+}
+
+[data-codex-workspace-page] [data-slot="table-head"] {
+  height: 40px;
+  color: var(--color-text-tertiary, rgb(255 255 255 / 0.5));
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+[data-codex-workspace-page] [data-slot="table-row"] {
+  min-height: 52px;
+  border-color: var(--color-border-subtle);
+}
+
+[data-codex-workspace-page] [data-slot="table-row"]:hover {
+  background: color-mix(in oklab, var(--color-text) 3.5%, transparent);
+}
+
+[data-codex-workspace-page] > div.flex.flex-wrap.items-center.gap-2,
+[data-codex-workspace-page] > div.flex.items-center.justify-between.gap-4 {
+  min-height: 40px;
+}
+
+[data-codex-workspace-page="tasks"] > [data-slot="tabs-list"] {
+  margin-inline: 0;
+}
+
+[data-codex-workspace-page="tasks"] [data-slot="card-content"] {
+  padding-top: 18px;
+}
+
+[data-codex-workspace-page="findings"] [data-slot="card-content"] {
+  padding-top: 16px;
+  padding-bottom: 16px;
+}
+
+[data-codex-workspace-page="intranet"] > [data-slot="card"] {
+  overflow: hidden;
+}
+
+[data-codex-workspace-page="intranet"] > [data-slot="card"] [data-slot="card-content"] {
+  padding: 0;
+}
+
+[data-codex-workspace-page="intranet"] [data-slot="tabs"] {
+  gap: 10px;
+}
+
+@media (max-width: 899px) {
+  [data-codex-workspace-page] {
+    --workspace-page-gap: 14px;
+  }
+
+  [data-codex-workspace-page] [data-slot="card-header"] {
+    padding-inline: 14px;
+  }
+
+  [data-codex-workspace-page] [data-slot="card-content"] {
+    padding-inline: 14px;
+  }
+}

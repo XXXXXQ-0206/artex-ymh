@@ -1,0 +1,1295 @@
+/* ============================================================================
+ * Codex Desktop 对话面（chat surface）1:1 复刻样式
+ *
+ * 数值出处（全部为官方 CSS 原文或参考端 1280×816 getComputedStyle 实测）：
+ *  A. src/renderer/assets/app-initial-c43288484373.css —— CSS-module 15oep
+ *     （_ComposerLayoutRoot/Body/Footer/Input/AdaptiveFooterInput）
+ *  B. src/renderer/assets/app-initial-c43288484373.css —— CSS-module 176oq
+ *     （_MarkdownRoot/Paragraph/Heading/List/Blockquote/Table/InlineCode/CodeBlock）
+ *  C. src/renderer/assets/app-shared-f2d570e85ceb.css —— CSS-module snnl5
+ *     （_Surface/_CodeSurface/_CodeContent/_StickyActionBar）+ toolbar jg414
+ *  D. 参考端 CDP 9222 实测（2026-10-09，1280×816，data-theme=dark，electron）：
+ *     转录列 [424,·,768] padding 0 16px 32px；输入区列 [424,·,768] padding 0 16px 16px；
+ *     输入面板 736×98 / 圆角 22 / rgb(54,54,54) / inset 0 0 1px #fff3；
+ *     发送键 28×28 药丸 rgb(223,223,223)，图标 rgb(45,45,45)，transition opacity .15s；
+ *     工具行按钮 28 高 / 9999px 药丸 / 13px·430 / rgba(255,255,255,.498)。
+ *  E. 动效：--cubic-enter/--cubic-exit/--transition-duration-*；
+ *     reduced-motion 机制照抄官方：:root[data-reduced-motion="true"] 关，
+ *     或 @media (prefers-reduced-motion: reduce) 且 :root:not([data-reduced-motion]) 关。
+ * ========================================================================== */
+
+/* ── 顶层作用域：对话面局部变量 ─────────────────────────────────────────── */
+.scope {
+  /* 官方 --thread-content-max-width = 48rem（实测内容列 768px） */
+  --chat-column: 48rem;
+  /* 正文 = 官方 --codex-chat-font-size(14px) × --leading-relaxed(1.625) = 22.75px，
+     参考端实测：.text-size-chat { font-size:14px; line-height:22.75px; font-weight:430 } */
+  --chat-body-size: 14px;
+  --chat-body-line-height: 1.421875rem;
+  --chat-body-weight: 430;
+  /* 官方 --codex-chat-font-size（electron 档实测 14px）+ --line-height-composer = --spacing*5 */
+  --chat-composer-size: 14px;
+  --chat-composer-line-height: 1.25rem;
+  /* 官方 --markdown-space = font-size / 4 = 14 / 4 = 3.5px */
+  --chat-space: 3.5px;
+  /* 官方 --spacing-token-button-composer = --spacing * 7 = 28px */
+  --chat-control: 1.75rem;
+  /* 官方发送键：底 #dfdfdf(_color-background-composer-primary = --color-text)，
+     图标 #181818(_color-surface)。实测参考端 aria-label="发送" 的
+     bg rgb(223,223,223) / color rgb(24,24,24)（此前写的 rgb(45,45,45) 差一档）。 */
+  --chat-on-primary: rgb(24 24 24);
+  --chat-primary: #dfdfdf;
+
+  display: flex;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  flex-direction: column;
+  color: var(--color-text, #dfdfdf);
+  font-weight: var(--chat-body-weight);
+}
+
+/* ── 列：官方 .mx-auto .w-[min(100%,var(--thread-content-max-width))] ─────── */
+.column {
+  width: 100%;
+  max-width: var(--chat-column);
+  min-width: 0;
+  margin-inline: auto;
+}
+
+/* ── 转录列：实测 padding 0 16px 32px ───────────────────────────────────── */
+.transcriptColumn {
+  padding: 0 1rem 2rem;
+}
+
+/* ── 输入区列：实测 padding 0 16px 16px + sticky 贴底 ─────────────────────
+   本应用的 sticky 容器底边比参考端多 2px，因此用 14px 让输入面板落在
+   参考实测的 y=698（项目条 y=660）。 */
+.composerColumn {
+  position: sticky;
+  bottom: 0;
+  z-index: 10;
+  /* 首页态：官方 cx-composer-column = [424,644,768,152]，padding 8px 16px 0
+     —— **底边距 0**（输入面板直接贴到主表面下沿往里 16px 处由 column 的高度决定）。
+     此前写的 0.875rem(14px) 会把列撑到 166，比参考端高 14px。 */
+  padding: 0 1rem 0;
+}
+
+/* 会话态：输入区浮层 [·,698 935×114] padding-bottom 16px（官方 .cx-conversation__composer），
+   与首页态只差这一条底边距。 */
+.composerColumnConversation {
+  padding-bottom: 1rem;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+ * 首页态（Codex「我们要构建什么？」）
+ * 官方结构：flex-1 容器垂直居中 + 标题 heading-xl(28px/400/1.2) + 输入面板
+ * ══════════════════════════════════════════════════════════════════════════ */
+.home {
+  display: flex;
+  min-height: 0;
+  flex: 1 1 0%;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  text-align: center;
+}
+
+.homeTitle {
+  /* 官方 .heading-xl { font-size: var(--text-xl); font-weight: 500; line-height: 1.2 }，
+     参考端实测 28px / 400 / 33.6px（electron 档 --text-xl:28px，字重取 400）。 */
+  margin: 0;
+  max-width: 100%;
+  font-size: 28px;
+  font-weight: 400;
+  line-height: 1.2;
+  letter-spacing: normal;
+  color: var(--color-text, #dfdfdf);
+}
+
+.homeSubtitle {
+  margin: 0;
+  max-width: 28rem;
+  font-size: 13px;
+  font-weight: var(--chat-body-weight);
+  line-height: 1.25rem;
+  color: var(--color-text-tertiary, rgb(255 255 255 / 0.498));
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+ * 输入面板（composer）
+ * 官方：._ComposerLayoutRoot_（flex column, position relative, bg + shadow）
+ *       ._ComposerLayoutBody_（flex-1, flex column, radius, corner-shape）
+ * ══════════════════════════════════════════════════════════════════════════ */
+.composer {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  /* 实测 rgb(54,54,54)（--composer-background-color = --color-surface-elevated） */
+  background-color: rgb(54 54 54);
+  /* 圆角 22px = --composer-radius = calc(--spacing * 5.5) */
+  border-radius: 22px;
+  /* 官网 --elevation-composer-dark: inset 0 0 1px 0 #fff3 */
+  box-shadow: inset 0 0 1px 0 rgb(255 255 255 / 0.2);
+  border: 0;
+  /* 官方 --composer-corner-shape（超椭圆角） */
+  corner-shape: superellipse(1.1);
+}
+
+:global(html:not(.dark)) .composer {
+  background-color: rgb(236 236 236);
+  box-shadow: inset 0 0 1px 0 rgb(0 0 0 / 0.2);
+}
+
+.composerAttachments {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+  /* 官方 ._ComposerLayoutAttachments_[data-composer-spacing=default]:not([data-visible-attachments])
+     padding: var(--padding-composer-empty-attachments) = 8px 8px 6px */
+  padding: 0.5rem 0.5rem 0.375rem;
+}
+
+.attachmentChip {
+  display: flex;
+  min-width: 0;
+  max-width: 100%;
+  align-items: center;
+  gap: 0.375rem;
+  border: 1px solid var(--color-border, rgb(255 255 255 / 0.12));
+  border-radius: var(--radius-md, 10px);
+  background-color: color-mix(in oklab, var(--color-text, #dfdfdf) 6%, transparent);
+  padding: 0.25rem 0.5rem;
+  font-size: 12px;
+  line-height: 1rem;
+  color: var(--color-text, #dfdfdf);
+}
+
+.attachmentChipName {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.attachmentChipMeta {
+  flex-shrink: 0;
+  color: var(--color-text-tertiary, rgb(255 255 255 / 0.498));
+  font-variant-numeric: tabular-nums;
+}
+
+.chipRemove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+  border-radius: 9999px;
+  color: var(--color-text-tertiary, rgb(255 255 255 / 0.498));
+  transition: color var(--transition-duration-basic, 0.15s) ease;
+}
+
+.chipRemove:hover {
+  color: var(--color-text, #dfdfdf);
+}
+
+/* 输入行：官方 ._ComposerLayoutInput_[data-composer-layout=multiline][data-composer-spacing=default]
+   { margin-bottom: 4px; padding: 0 12px } */
+.composerInputRow {
+  display: flex;
+  min-width: 0;
+  align-items: flex-end;
+  gap: 0.25rem;
+  margin-bottom: 0.25rem;
+  padding: 0 0.75rem;
+}
+
+.composerInput.composerInput {
+  min-width: 0;
+  flex: 1 1 0%;
+  /* 官方 --composer-editor-min-height = --min-height-composer = calc(--spacing*11) = 44px。
+     textarea 的行盒会被浏览器向上取整到 21px，所以上下各留 11.5px，总高正好落在 44px
+     （参考端实测输入区 44px，12px 内边距会量到 45px）。 */
+  min-height: 2.75rem;
+  max-height: 10rem;
+  resize: none;
+  border: 0;
+  outline: none;
+  box-shadow: none;
+  background: transparent;
+  padding: 11.5px 0;
+  font-family: var(--font-sans);
+  font-size: var(--chat-composer-size);
+  line-height: var(--chat-composer-line-height);
+  font-weight: var(--chat-body-weight);
+  color: var(--color-text, #dfdfdf);
+}
+
+.composerInput::placeholder {
+  /* 官方 --opacity-composer-placeholder = .5 */
+  color: color-mix(in oklab, var(--color-text, #dfdfdf) 50%, transparent);
+}
+
+.composerInput.composerInput:focus-visible {
+  outline: none;
+  border-color: transparent;
+  box-shadow: none;
+  --tw-ring-shadow: 0 0 #0000;
+}
+
+/* 工具行：官方 ._ComposerLayoutFooter_[data-composer-layout=multiline][data-composer-spacing=default]
+   { display:grid; grid-template-columns: minmax(0,auto) auto minmax(0,1fr);
+     column-gap:5px; margin-bottom:8px; padding-inline:8px } */
+.composerFooter {
+  display: grid;
+  align-items: center;
+  grid-template-columns: minmax(0, auto) auto minmax(0, 1fr);
+  column-gap: 5px;
+  margin-bottom: 0.5rem;
+  padding-inline: 0.5rem;
+  font-size: 13px;
+  line-height: 1.125rem;
+  color: var(--color-text-tertiary, rgb(255 255 255 / 0.498));
+}
+
+.composerFooterEnd {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+/* 工具行按钮：实测 28 高 / 9999px 药丸 / 13px·430 / rgba(255,255,255,.498) */
+.composerTool {
+  display: inline-flex;
+  height: var(--chat-control);
+  min-width: var(--chat-control);
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  border-radius: 9999px;
+  padding: 0 0.375rem;
+  color: var(--color-text-tertiary, rgb(255 255 255 / 0.498));
+  font-size: 13px;
+  font-weight: var(--chat-body-weight);
+  line-height: 1.125rem;
+  white-space: nowrap;
+  transition:
+    background-color var(--transition-duration-basic, 0.15s) var(--cubic-move, ease),
+    color var(--transition-duration-basic, 0.15s) var(--cubic-move, ease);
+}
+
+.composerTool:hover:not(:disabled) {
+  /* 官方 --color-background-primary-ghost-hover 暗色 = --alpha-12 */
+  background-color: color-mix(in oklab, var(--color-text, #dfdfdf) 12%, transparent);
+  color: var(--color-text, #dfdfdf);
+}
+
+.composerTool:active:not(:disabled) {
+  background-color: color-mix(in oklab, var(--color-text, #dfdfdf) 18%, transparent);
+}
+
+.composerTool:disabled {
+  opacity: 0.4;
+}
+
+/* 发送键：实测 28×28 / 9999px / bg rgb(223,223,223) / 图标 rgb(45,45,45)
+   官方类：size-token-button-composer + rounded-full + transition-opacity
+   官方 transition: opacity .15s cubic-bezier(.4, 0, .2, 1) */
+.sendButton {
+  display: inline-flex;
+  width: var(--chat-control);
+  height: var(--chat-control);
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  padding: 2px;
+  background-color: var(--chat-primary);
+  color: var(--chat-on-primary);
+  transition: opacity 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.sendButton:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.sendButton:disabled {
+  /* 参考端实测：首页空输入时发送键 opacity 0.5 */
+  opacity: 0.5;
+}
+
+/* 流式中：停止键（同尺寸，官方用 danger 实心圆 + 方形停止图标） */
+.stopButton {
+  display: inline-flex;
+  width: var(--chat-control);
+  height: var(--chat-control);
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  padding: 2px;
+  background-color: var(--red-400, #fa423e);
+  color: var(--gray-0, #0d0d0d);
+  transition:
+    background-color var(--transition-duration-basic, 0.15s) ease,
+    opacity var(--transition-duration-basic, 0.15s) ease;
+}
+
+.stopButton:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+/* 统一的 focus-visible ring（官方 --color-ring = blue-400 暗色） */
+.scope :focus-visible {
+  outline: 2px solid var(--color-ring, #0285ff);
+  outline-offset: 1px;
+}
+
+.sendButton:focus-visible,
+.stopButton:focus-visible,
+.composerTool:focus-visible {
+  outline: 2px solid var(--color-ring, #0285ff);
+  outline-offset: 2px;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+ * 消息渲染
+ * ══════════════════════════════════════════════════════════════════════════ */
+
+/* 一条消息的外层：官方 thread 里消息之间是 24px 间距（gap-6） */
+.turn {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+}
+
+.turnUser {
+  align-items: flex-end;
+}
+
+/* 用户消息气泡：官方 --color-background-user-message =
+   color-mix(in oklab, var(--color-text) 5%, transparent)；圆角 --radius-2xl(20px) */
+.userBubble {
+  max-width: 100%;
+  min-width: 0;
+  /* 参考端实测：radius 22px、corner-shape superellipse(1.5)、padding 10px 16px、
+     bg rgba(223,223,223,.05)（= color-mix(in oklab, var(--color-text) 5%, transparent)） */
+  border-radius: 22px;
+  corner-shape: superellipse(1.5);
+  background-color: color-mix(in oklab, var(--color-text, #dfdfdf) 5%, transparent);
+  padding: 10px 16px;
+  font-size: var(--chat-body-size);
+  line-height: var(--chat-body-line-height);
+  font-weight: var(--chat-body-weight);
+  color: var(--color-text, #dfdfdf);
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+/* 助手消息：无气泡、直接排版（官方 _MarkdownRoot_） */
+.assistant {
+  min-width: 0;
+  font-family: var(--font-content, var(--font-sans));
+  font-size: var(--chat-body-size);
+  line-height: var(--chat-body-line-height);
+  font-weight: var(--chat-body-weight);
+  color: var(--color-text, #dfdfdf);
+  overflow-wrap: anywhere;
+}
+
+.assistant > :first-child {
+  margin-top: 0;
+}
+
+.assistant > :last-child {
+  margin-bottom: 0;
+}
+
+/* ── Markdown 元素（官方 176oq 原文换算，--markdown-space = font-size/4 = 4px）── */
+.assistant p {
+  margin: 0 0 var(--chat-space);
+}
+
+.assistant > p:not(:first-child) {
+  margin-top: calc(var(--chat-space) * 2);
+}
+
+.assistant > p + p {
+  margin-block: calc(var(--chat-space) * 4);
+}
+
+.assistant h1,
+.assistant h2,
+.assistant h3,
+.assistant h4 {
+  font-weight: var(--font-weight-semibold, 600);
+  color: var(--color-text, #dfdfdf);
+}
+
+.assistant h1 {
+  margin: calc(var(--chat-space) * 4) 0 calc(var(--chat-space) * 2);
+  font-size: calc(var(--chat-body-size) * 1.5);
+  line-height: calc(var(--chat-space) * 8);
+}
+
+.assistant h2 {
+  margin: calc(var(--chat-space) * 4) 0 var(--chat-space);
+  font-size: calc(var(--chat-body-size) * 1.25);
+  line-height: calc(var(--chat-space) * 7);
+}
+
+.assistant h3 {
+  margin: calc(var(--chat-space) * 4) 0 var(--chat-space);
+  font-size: calc(var(--chat-body-size) * 1.125);
+  line-height: calc(var(--chat-space) * 7);
+}
+
+.assistant h4 {
+  margin: calc(var(--chat-space) * 4) 0 0;
+  font-size: var(--chat-body-size);
+  line-height: calc(var(--chat-space) * 6);
+}
+
+/* 列表：官方 padding-inline-start = --markdown-line-height */
+.assistant ul,
+.assistant ol {
+  margin: 0;
+  padding-inline-start: var(--chat-body-line-height);
+  list-style-position: outside;
+}
+
+.assistant ul {
+  list-style-type: disc;
+}
+
+.assistant ol {
+  list-style-type: decimal;
+}
+
+.assistant li {
+  padding-inline-start: calc(var(--chat-space) * 1.5);
+  display: list-item;
+}
+
+.assistant li > *:first-child {
+  margin-top: 0;
+}
+
+.assistant li > *:last-child {
+  margin-bottom: 0;
+}
+
+.assistant ul > li::marker,
+.assistant ol > li::marker {
+  color: var(--color-text, #dfdfdf);
+  font-weight: var(--font-weight-semibold, 600);
+}
+
+/* 引用块：官方 _Blockquote_ 原文 */
+.assistant blockquote {
+  position: relative;
+  margin: 0 0 calc(var(--chat-space) * 2);
+  padding-block: calc(var(--chat-space) * 2);
+  padding-inline-start: calc(var(--chat-space) * 6);
+  border: 0;
+  background: transparent;
+  color: var(--color-text, #dfdfdf);
+  font-style: normal;
+  line-height: calc(var(--chat-space) * 6);
+}
+
+.assistant blockquote::after {
+  content: "";
+  position: absolute;
+  inset-inline-start: 0;
+  top: calc(var(--chat-space) * 2);
+  bottom: calc(var(--chat-space) * 2);
+  width: var(--chat-space);
+  border-radius: calc(var(--chat-space) / 2);
+  background-color: var(--color-border-strong, rgb(255 255 255 / 0.156));
+}
+
+.assistant blockquote > *:first-child {
+  margin-top: 0;
+}
+
+.assistant blockquote > *:last-child {
+  margin-bottom: 0;
+}
+
+.assistant hr {
+  clear: both;
+  height: 0;
+  margin: calc(var(--chat-space) * 7) 0;
+  border: 0;
+  border-top: 1px solid var(--color-border-strong, rgb(255 255 255 / 0.156));
+}
+
+/* 行内代码：官方 _InlineCode_ */
+.inlineCode {
+  background: color-mix(
+    in srgb,
+    var(--color-background-primary-ghost-hover, rgb(255 255 255 / 0.12)) 60%,
+    var(--color-text, #dfdfdf) 6%
+  );
+  border-radius: 6px;
+  padding: 1px 6px;
+  font-family: var(--font-mono);
+  font-size: 0.92em;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+
+/* 链接：官方 _DecoratedExternalLink_ */
+.assistant a {
+  color: inherit;
+  cursor: pointer;
+  text-decoration: underline dotted var(--color-text-tertiary, rgb(255 255 255 / 0.498)) 1px;
+  text-underline-offset: 2px;
+  text-decoration-skip-ink: auto;
+}
+
+.assistant a:hover {
+  color: var(--color-text-info, #339cff);
+  text-decoration-color: currentColor;
+}
+
+/* 表格：官方 _Table_ / _TableHeaderCell_ / _TableCell_ */
+.tableScroller {
+  margin-top: calc(var(--chat-space) * 4);
+  width: 100%;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.mdTable {
+  width: fit-content;
+  min-width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  text-align: start;
+  font-size: max(12px, calc(var(--chat-body-size) * 0.875));
+  font-variant-numeric: tabular-nums;
+}
+
+.mdTable th,
+.mdTable td {
+  vertical-align: top;
+  white-space: normal;
+  padding-inline-end: calc(var(--chat-space) * 6);
+  overflow-wrap: break-word;
+}
+
+.mdTable th {
+  border-bottom: 1px solid var(--color-border-strong, rgb(255 255 255 / 0.156));
+  padding-block: calc(var(--chat-space) * 2);
+  text-align: start;
+  font-weight: var(--font-weight-semibold, 600);
+  line-height: calc(var(--chat-space) * 4);
+  color: var(--color-text, #dfdfdf);
+}
+
+.mdTable td {
+  padding-block: calc(var(--chat-space) * 2.5);
+}
+
+.mdTable th:last-child {
+  padding-inline-end: calc(var(--chat-space) * 10);
+}
+
+.mdTable td:last-child {
+  padding-inline-end: 0;
+}
+
+.mdTable tbody tr:not(:last-child) td {
+  border-bottom: 1px solid var(--color-border-subtle, rgb(255 255 255 / 0.06));
+}
+
+/* ── 代码块：官方 _CodeSurface_/_CodeContent_/_StickyActionBar_（snnl5）
+      + --codeblock-background-color = --gray-25 ─────────────────────────── */
+.codeBlock {
+  position: relative;
+  margin-block: calc(var(--chat-space) * 5);
+  border-radius: var(--radius-2xl, 20px);
+  /* 官方 ._Surface_snnl5_1 { corner-shape: superellipse(1.1) } */
+  corner-shape: superellipse(1.1);
+  /* 官方 _CodeSurface_: background-color: var(--color-surface) +
+     linear-gradient(var(--color-background-secondary-soft-alpha), …) */
+  background-color: var(--codeblock-background-color, var(--gray-25, #101010));
+  background-image: linear-gradient(
+    var(--color-background-secondary-soft-alpha, rgb(255 255 255 / 0.12)),
+    var(--color-background-secondary-soft-alpha, rgb(255 255 255 / 0.12))
+  );
+  overflow: hidden;
+}
+
+.codeToolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.375rem 0.5rem 0.375rem 0.75rem;
+  color: var(--color-text-tertiary, rgb(255 255 255 / 0.498));
+  font-size: 12px;
+  line-height: 1rem;
+}
+
+.codeLang {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-transform: lowercase;
+}
+
+.codeCopy {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  height: var(--chat-control);
+  /* 官方 jg414 toolbar: --button-size: var(--spacing-token-button-composer) */
+  min-width: var(--chat-control);
+  border-radius: 9999px;
+  color: var(--color-text-toolbar-action, var(--color-text-tertiary, rgb(255 255 255 / 0.498)));
+  transition:
+    background-color var(--transition-duration-basic, 0.15s) ease,
+    color var(--transition-duration-basic, 0.15s) ease;
+}
+
+.codeCopy:hover {
+  background-color: var(--color-background-primary-ghost-hover, rgb(255 255 255 / 0.12));
+  color: var(--color-text, #dfdfdf);
+}
+
+.codePre {
+  margin: 0;
+  padding: 0 0.75rem 0.75rem;
+  overflow-x: auto;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  /* 官方 ._CodeContent_snnl5_6 { line-height: max(1.5em, calc(var(--spacing) * 5)) } */
+  line-height: max(1.5em, 1.25rem);
+  color: var(--color-text, #dfdfdf);
+  tab-size: 2;
+}
+
+.codePre code {
+  font-family: inherit;
+  font-size: inherit;
+}
+
+/* ── 推理 / 思考块（折叠）：官方 ActivityText 风格；折叠行 13px·430 次要色 ── */
+.reasoning {
+  min-width: 0;
+  border-radius: var(--radius-lg, 12.5px);
+}
+
+.reasoningToggle {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.375rem;
+  border-radius: var(--radius-lg, 12.5px);
+  color: var(--color-text-tertiary, rgb(255 255 255 / 0.498));
+  font-size: 13px;
+  line-height: 1.125rem;
+  font-weight: var(--chat-body-weight);
+  text-align: left;
+  transition:
+    background-color var(--transition-duration-basic, 0.15s) var(--cubic-move, ease),
+    color var(--transition-duration-basic, 0.15s) var(--cubic-move, ease);
+}
+
+.reasoningToggle:hover {
+  background-color: color-mix(in oklab, var(--color-text, #dfdfdf) 8%, transparent);
+  color: var(--color-text-secondary, rgb(255 255 255 / 0.65));
+}
+
+.reasoningSummary {
+  min-width: 0;
+  flex: 1 1 0%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.reasoningBody {
+  margin: 0.25rem 0 0;
+  padding: 0 0.375rem 0 1.5rem;
+  color: var(--color-text-tertiary, rgb(255 255 255 / 0.498));
+  font-size: var(--chat-body-size);
+  line-height: var(--chat-body-line-height);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+/* ── 工具调用块：折叠行 + 展开体，卡片底 = surface + 细边框 ───────────────── */
+.toolCall {
+  min-width: 0;
+  margin-block: 0.25rem;
+  border: 1px solid var(--color-border, rgb(255 255 255 / 0.084));
+  border-radius: var(--radius-lg, 12.5px);
+  background-color: color-mix(in oklab, var(--color-text, #dfdfdf) 3%, transparent);
+  overflow: hidden;
+  corner-shape: superellipse(1.1);
+}
+
+.toolToggle {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.375rem 0.5rem;
+  text-align: left;
+  color: var(--color-text-secondary, rgb(255 255 255 / 0.65));
+  font-size: 13px;
+  line-height: 1.125rem;
+  transition: background-color var(--transition-duration-basic, 0.15s) var(--cubic-move, ease);
+}
+
+.toolToggle:hover {
+  background-color: color-mix(in oklab, var(--color-text, #dfdfdf) 8%, transparent);
+}
+
+.toolName {
+  flex-shrink: 0;
+  font-weight: var(--font-weight-medium, 500);
+  color: var(--color-text, #dfdfdf);
+}
+
+.toolCmd {
+  min-width: 0;
+  flex: 1 1 0%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--color-text-tertiary, rgb(255 255 255 / 0.498));
+}
+
+.toolStatus {
+  flex-shrink: 0;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.toolRunning {
+  color: var(--color-text-info, #339cff);
+}
+
+.toolOk {
+  color: var(--green-400, #40c977);
+}
+
+.toolFail {
+  color: var(--red-400, #fa423e);
+}
+
+.toolBody {
+  margin: 0;
+  max-height: 18rem;
+  overflow: auto;
+  border-top: 1px solid var(--color-border-subtle, rgb(255 255 255 / 0.06));
+  padding: 0.5rem 0.625rem;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--color-text-secondary, rgb(255 255 255 / 0.65));
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+/* ── 错误态：官方 --color-text-danger / --color-border-error ─────────────── */
+.errorBlock {
+  display: flex;
+  min-width: 0;
+  gap: 0.5rem;
+  margin-block: 0.25rem;
+  border: 1px solid color-mix(in oklab, var(--red-400, #fa423e) 40%, transparent);
+  border-radius: var(--radius-lg, 12.5px);
+  background-color: color-mix(in oklab, var(--red-400, #fa423e) 10%, transparent);
+  padding: 0.5rem 0.625rem;
+  color: var(--color-text-danger, #fa423e);
+  font-size: 13px;
+  line-height: 1.25rem;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.errorIcon {
+  flex-shrink: 0;
+  margin-top: 0.125rem;
+}
+
+/* ── 附件 chip（消息内） ─────────────────────────────────────────────────── */
+.msgAttachments {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+  margin-bottom: 0.25rem;
+}
+
+/* ── 轮次分隔（planner round）───────────────────────────────────────────── */
+.roundDivider {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-block: 0.5rem;
+  color: var(--color-text-tertiary, rgb(255 255 255 / 0.498));
+  font-size: 12px;
+  line-height: 1rem;
+}
+
+.roundDivider::before,
+.roundDivider::after {
+  content: "";
+  height: 1px;
+  flex: 1 1 0%;
+  background-color: var(--color-border, rgb(255 255 255 / 0.084));
+}
+
+/* ── 空态 / 加载骨架 ────────────────────────────────────────────────────── */
+.emptyState {
+  padding: 2.5rem 0;
+  text-align: center;
+  font-size: 13px;
+  color: var(--color-text-tertiary, rgb(255 255 255 / 0.498));
+}
+
+.skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding-top: 0.5rem;
+}
+
+.skeletonLine {
+  height: 0.75rem;
+  border-radius: 9999px;
+  background-color: color-mix(in oklab, var(--color-text, #dfdfdf) 8%, transparent);
+  animation: chat-shimmer 1.6s var(--cubic-move, ease-in-out) infinite;
+}
+
+.skeletonLine:nth-child(2) {
+  width: 82%;
+}
+
+.skeletonLine:nth-child(3) {
+  width: 61%;
+}
+
+
+/* 首页标题区：参考端实测（1280×816）标题块 [424,327,768,114]。
+   参考端主表面从 y=44 起、顶部 52px 是标题栏（--app-shell-header-height），
+   所以内容区从 96 起 → 标题块顶 = 96 + 231 = 327。
+   首页态也必须保留这 52px 标题栏（DraftChat 里那条），否则整块会正好高 52px。
+   垂直靠 padding 定位、水平居中。 */
+.homeTitleRegion {
+  display: flex;
+  min-height: 0;
+  flex: 1 1 0%;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding-top: 231px;
+}
+
+/* 标题块：768×114 = hero 56 + gap 24 + 标题 34（参考端 items-end 的等价排法） */
+.homeTitleBox {
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+}
+
+/* 首页 hero：参考端 [780,327,56,56] 居中、偏暗 */
+.homeHero {
+  width: 56px;
+  height: 56px;
+  flex-shrink: 0;
+  color: var(--color-text, #dfdfdf);
+  opacity: 0.3;
+}
+
+/* ── 输入面板正上方的「选择项目」条 ──────────────────────────────────────
+   参考端实测：条 [453,660,710,42] bg rgb(40,40,40) padding 0 4px 4px；
+   内层 [457,660,702,38] padding 5px 0；芯片 [457,665,91,28] r9999 padding 0 8px gap 6px；
+   13px/18px/430 rgba(255,255,255,.498)。条与输入面板重叠 4px（面板 698..796，
+   条 660..702），所以条的下边被面板盖住，视觉上只有上圆角。 */
+.projectBar {
+  position: relative;
+  z-index: 0;
+  width: 710px;
+  max-width: 100%;
+  margin: 16px auto -4px;
+  border-radius: 12px 12px 0 0;
+  background-color: rgb(40 40 40);
+  padding: 0 4px 4px;
+  overflow: clip;
+}
+
+.projectBarInner {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 5px 0;
+}
+
+.projectChip.projectChip {
+  display: inline-flex;
+  height: 1.75rem;
+  min-width: 0;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 6px;
+  border-radius: 9999px;
+  padding: 0 8px;
+  /* 参考端「选择项目」芯片文字 = 主文字色 rgb(223,223,223)（探针实测外壳同位置
+     span 的 computed color；此前写的 tertiary 50% 白偏暗一档）。 */
+  color: var(--color-text, #dfdfdf);
+  font-size: 13px;
+  font-weight: var(--chat-body-weight);
+  line-height: 1.125rem;
+  transition:
+    background-color var(--transition-duration-basic, 0.15s) var(--ease-move, ease),
+    color var(--transition-duration-basic, 0.15s) var(--ease-move, ease);
+}
+
+.projectChip.projectChip:hover {
+  background-color: color-mix(in oklab, var(--color-text, #dfdfdf) 12%, transparent);
+  color: var(--color-text, #dfdfdf);
+}
+
+/* SelectTrigger 默认带一个尾部 chevron；参考端「选择项目」芯片只有文件夹图标。 */
+.projectChip.projectChip svg:last-child {
+  display: none;
+}
+
+.projectChipLabel {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 有「选择项目」条时输入面板上移 4px 与条重叠（条下边被面板盖住） */
+.composerStacked {
+  position: relative;
+  z-index: 1;
+  margin-top: 0;
+}
+
+/* 工具行左侧组 */
+.composerFooterLead {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+/* 带文字的工具行药丸（官方模型选择器：内边距 0 8px） */
+.composerToolWide {
+  padding-inline: 0.5rem;
+  max-width: 12rem;
+}
+
+.composerToolLabel {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 会话态标题栏：参考端 main 区域顶部 52px（--app-shell-header-height），
+   左侧会话标题、右侧三个图标（… / 设置 / 面板）；标题 14px·430。 */
+.threadHeader {
+  display: flex;
+  min-width: 0;
+  flex-shrink: 0;
+  height: 52px;
+  align-items: center;
+  gap: 0.5rem;
+  /* 参考端标题栏右侧图标右缘 = 主表面右缘 - 12px */
+  padding: 0 12px 0 20px;
+}
+
+.threadTitle {
+  min-width: 0;
+  max-width: 22rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 14px;
+  font-weight: var(--chat-body-weight);
+  line-height: 1.25rem;
+  color: var(--color-text, #dfdfdf);
+}
+
+/* 标题栏右侧图标组 */
+.threadActions {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 0.25rem;
+  margin-inline-start: auto;
+}
+
+.threadAction {
+  display: inline-flex;
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-lg, 12.5px);
+  color: var(--color-text-tertiary, rgb(255 255 255 / 0.498));
+  transition:
+    background-color var(--transition-duration-basic, 0.15s) ease,
+    color var(--transition-duration-basic, 0.15s) ease;
+}
+
+.threadAction:hover {
+  background-color: color-mix(in oklab, var(--color-text, #dfdfdf) 10%, transparent);
+  color: var(--color-text, #dfdfdf);
+}
+
+/* 日期分隔：参考端 [286,128,736,52] justify-center py-4，13px/20px，日期部分 500 */
+.dateSeparator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-block: 1rem;
+  font-size: 13px;
+  font-weight: var(--chat-body-weight);
+  line-height: 1.25rem;
+  color: var(--color-text-tertiary, rgb(255 255 255 / 0.498));
+  user-select: none;
+}
+
+.dateSeparator b {
+  font-weight: var(--font-weight-medium, 500);
+}
+
+/* 底部渐隐：参考端 915×32 sticky 贴底，盖在滚动内容之上 */
+.transcriptFade {
+  pointer-events: none;
+  position: sticky;
+  bottom: 0;
+  z-index: 0;
+  height: 32px;
+  margin-top: -32px;
+  background-image: linear-gradient(to top, var(--color-surface, #181818), transparent);
+}
+
+/* 用户消息下方的操作条（复制/编辑）：默认透明，hover / focus-within 才显形 */
+.userActions {
+  display: flex;
+  flex-direction: row-reverse;
+  align-items: center;
+  gap: 1px;
+  opacity: 0;
+  transition: opacity var(--transition-duration-basic, 0.15s) ease;
+}
+
+.turn:hover .userActions,
+.turn:focus-within .userActions {
+  opacity: 1;
+}
+
+.userAction {
+  display: inline-flex;
+  width: 24px;
+  height: 24px;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-md, 10px);
+  color: var(--color-text-tertiary, rgb(255 255 255 / 0.498));
+}
+
+.userAction:hover {
+  background-color: color-mix(in oklab, var(--color-text, #dfdfdf) 12%, transparent);
+  color: var(--color-text, #dfdfdf);
+}
+
+/* 用户消息行：气泡 + 下方操作条/时间戳（参考端 gap-1、items-end） */
+.userRow {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.25rem;
+}
+
+.threadMeta {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-inline-start: auto;
+  font-size: 12px;
+  line-height: 1rem;
+  color: var(--color-text-tertiary, rgb(255 255 255 / 0.498));
+  font-variant-numeric: tabular-nums;
+}
+
+/* 转录列表：参考端实测消息之间 12px */
+.transcriptList {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+/* 滚动区顶部留白：参考端 thread-scroll-container padding 32px 0 0 */
+.transcriptViewport {
+  padding-top: 2rem;
+}
+
+/* 消息元信息（时间戳/操作条）：参考端默认 opacity:0，hover 或 focus-within 才显形 */
+.msgMeta {
+  display: flex;
+  align-items: center;
+  gap: 0.125rem;
+  margin-top: 0.25rem;
+  opacity: 0;
+  transition: opacity var(--transition-duration-basic, 0.15s) ease;
+}
+
+.turn:hover .msgMeta,
+.turn:focus-within .msgMeta,
+.msgMeta:focus-within {
+  opacity: 1;
+}
+
+.msgTime {
+  font-size: 12px;
+  line-height: 1rem;
+  color: var(--color-text-tertiary, rgb(255 255 255 / 0.498));
+  font-variant-numeric: tabular-nums;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+ * 动效
+ * ══════════════════════════════════════════════════════════════════════════ */
+
+/* 新消息进入：官方 fade-in 用 --transition-duration-basic + 自定义贝塞尔 */
+@keyframes chat-enter {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes chat-shimmer {
+  0%,
+  100% {
+    opacity: 0.45;
+  }
+  50% {
+    opacity: 0.9;
+  }
+}
+
+/* 流式光标：官方 AdaptiveStreaming（--animation-duration-streaming-text: .7s） */
+@keyframes chat-cursor {
+  0%,
+  45% {
+    opacity: 1;
+  }
+  55%,
+  100% {
+    opacity: 0.15;
+  }
+}
+
+.enter {
+  animation: chat-enter var(--transition-duration-relaxed, 0.3s) var(--cubic-enter, cubic-bezier(0.19, 1, 0.22, 1)) both;
+}
+
+.cursor {
+  display: inline-block;
+  width: 0.5em;
+  height: 1em;
+  margin-inline-start: 0.125rem;
+  vertical-align: text-bottom;
+  border-radius: 1px;
+  background-color: currentColor;
+  animation: chat-cursor var(--animation-duration-streaming-text, 0.7s) var(--cubic-move, ease-in-out) infinite;
+}
+
+/* 折叠体展开/收起 */
+.collapsible {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows var(--transition-duration-relaxed, 0.3s) var(--cubic-move, cubic-bezier(0.65, 0, 0.35, 1));
+}
+
+.collapsible[data-open="true"] {
+  grid-template-rows: 1fr;
+}
+
+.collapsibleInner {
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* ── reduced motion：照抄官方两段式 ─────────────────────────────────────── */
+:global(:root[data-reduced-motion="true"]) .enter,
+:global(:root[data-reduced-motion="true"]) .cursor,
+:global(:root[data-reduced-motion="true"]) .skeletonLine,
+:global(:root[data-reduced-motion="true"]) .collapsible {
+  animation: none;
+  transition: none;
+}
+
+:global(:root[data-reduced-motion="true"]) .enter {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :global(:root:not([data-reduced-motion])) .enter,
+  :global(:root:not([data-reduced-motion])) .cursor,
+  :global(:root:not([data-reduced-motion])) .skeletonLine,
+  :global(:root:not([data-reduced-motion])) .collapsible {
+    animation: none;
+    transition: none;
+  }
+
+  :global(:root:not([data-reduced-motion])) .enter {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ── 悬停/滚动时才出现的行内动作（官方 hover 才显示工具栏）──────────────── */
+.hoverActions {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  opacity: 0;
+  transition: opacity var(--transition-duration-basic, 0.15s) ease;
+}
+
+.turn:hover .hoverActions,
+.hoverActions:focus-within {
+  opacity: 1;
+}

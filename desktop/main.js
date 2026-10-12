@@ -1,7 +1,7 @@
 // ARTEX 桌面端（Electron 外壳）——参考 dsh-desktop 的组织方式：
 //   主进程负责拉起本机后端 + 一个窗口展示控制台 + 托盘图标，单实例。
 // 语义与托盘启动器一致：托盘图标存在 ⇔ ARTEX 在跑；退出时回收后端（只停自己拉起的库）。
-const { app, BrowserWindow, Menu, Tray, nativeImage, nativeTheme, session, shell } = require("electron");
+const { app, BrowserWindow, Menu, Tray, nativeImage, nativeTheme, session, shell, ipcMain } = require("electron");
 const fs = require("node:fs");
 const path = require("node:path");
 
@@ -65,17 +65,31 @@ function createWindow() {
     minWidth: 1024,
     minHeight: 680,
     show: false,
-    // 与主题一致，避免窗口先白后黑的闪一下
-    backgroundColor: dark ? "#0b0b0c" : "#ffffff",
+    // 与 Codex Desktop 同色：官方主进程窗口底 = 深色 #000000 / 浅色 #f9f9f9
+    // （codex-desktop-src electron/windows/window-options.ts 的 OPAQUE_BACKGROUND_* 常量；
+    //   页面里导轨/顶栏/外壳 4px 留白露出的就是这层，所以必须与页面配色一致，
+    //   否则加载瞬间会先闪一下另一种底色）
+    backgroundColor: dark ? "#000000" : "#f9f9f9",
     title: "ARTEX",
     icon: ICON_RUNNING,
     autoHideMenuBar: true,
-    webPreferences: { contextIsolation: true, nodeIntegration: false, spellcheck: false },
+    webPreferences: {
+      preload: path.join(__dirname, "preload.js"),
+      contextIsolation: true,
+      nodeIntegration: false,
+      spellcheck: false,
+      // 窗口被遮挡/最小化时 Chromium 会停掉出帧，CDP 截图会挂住。
+      // 桌面端本来就常驻托盘，关掉后台节流既符合常驻语义，也让自动化截图稳定。
+      backgroundThrottling: false,
+    },
   });
   Menu.setApplicationMenu(null);
   win.once("ready-to-show", () => {
     if (!SILENT) win.show();
   });
+  for (const ev of ["maximize", "unmaximize", "enter-full-screen", "leave-full-screen"]) {
+    win.on(ev, pushWindowState);
+  }
   // 关窗口 = 收进托盘（与 dsh-desktop 一致），真正退出走托盘菜单
   win.on("close", (e) => {
     if (!quitting) {
@@ -102,6 +116,93 @@ function createWindow() {
   });
   return win;
 }
+
+// ── 自绘菜单栏（Codex 的 ApplicationMenuTopBar 是 DOM，不是 Electron 原生菜单）──
+// 渲染层通过 preload 暴露的 window.artexDesktop.invoke(action) 调用这里。
+function windowState() {
+  if (!win || win.isDestroyed()) return { maximized: false, fullscreen: false };
+  return { maximized: win.isMaximized(), fullscreen: win.isFullScreen() };
+}
+
+function pushWindowState() {
+  if (!win || win.isDestroyed()) return;
+  win.webContents.send("artex:window-state", windowState());
+}
+
+ipcMain.handle("artex:menu", async (_e, action, payload) => {
+  if (!win || win.isDestroyed()) return false;
+  const wc = win.webContents;
+  switch (action) {
+    case "state":
+      return windowState();
+    case "getContentSize": {
+      const b = win.getContentBounds();
+      return { width: b.width, height: b.height };
+    }
+    case "setContentSize": {
+      const w = Math.round(Number(payload?.width));
+      const h = Math.round(Number(payload?.height));
+      if (!Number.isFinite(w) || !Number.isFinite(h) || w < 320 || h < 240) return false;
+      // setContentSize 用 DIP，与 CSS px 1:1，不会踩 DPI 缩放的坑
+      win.setContentSize(w, h);
+      return true;
+    }
+    case "reload":
+      wc.reload();
+      return true;
+    case "forceReload":
+      wc.reloadIgnoringCache();
+      return true;
+    case "toggleDevTools":
+      wc.toggleDevTools();
+      return true;
+    case "resetZoom":
+      wc.setZoomLevel(0);
+      return true;
+    case "zoomIn":
+      wc.setZoomLevel(wc.getZoomLevel() + 0.5);
+      return true;
+    case "zoomOut":
+      wc.setZoomLevel(wc.getZoomLevel() - 0.5);
+      return true;
+    case "toggleFullScreen":
+      win.setFullScreen(!win.isFullScreen());
+      return true;
+    case "minimize":
+      win.minimize();
+      return true;
+    case "maximize":
+      win.isMaximized() ? win.unmaximize() : win.maximize();
+      return true;
+    case "close":
+      win.close();
+      return true;
+    case "restart":
+      await restart();
+      return true;
+    case "about":
+      return {
+        name: app.getName(),
+        version: app.getVersion(),
+        electron: process.versions.electron,
+        chrome: process.versions.chrome,
+      };
+    case "quit":
+      quit();
+      return true;
+    case "log":
+      log("[menu] " + String(payload ?? ""));
+      return true;
+    default:
+      return false;
+  }
+});
+
+ipcMain.handle("artex:open-external", async (_e, url) => {
+  if (typeof url !== "string" || !/^https?:\/\//.test(url)) return false;
+  await shell.openExternal(url);
+  return true;
+});
 
 function showWindow() {
   if (!win || win.isDestroyed()) createWindow();

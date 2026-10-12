@@ -1,0 +1,44 @@
+{
+  "groups": [
+    {
+      "name": "topbar",
+      "selectors": [
+        "._ApplicationMenuTopBar_yl8z4_2",
+        "._ApplicationMenuTopBar_yl8z4_2 > div",
+        "[role=menubar]",
+        "#application-menu-trigger-file-menu",
+        "body > div.relative.flex.flex-col"
+      ],
+      "limit": 8
+    },
+    {
+      "name": "sidebar",
+      "selectors": [
+        "aside.app-shell-left-panel",
+        "#app-shell-sidebar",
+        "nav[class*=sidebar-rail]",
+        "[class*=panel-resizer]",
+        "[role=separator]",
+        ".sidebar-resize-handle-line",
+        "._PageSurface_yl8z4_2"
+      ],
+      "limit": 6
+    },
+    {
+      "name": "shell",
+      "selectors": [
+        "#root",
+        "#root > div",
+        "#root > div > div:nth-child(3)",
+        "._Workspace_yl8z4_2",
+        "._MainContentClip_yl8z4_2",
+        "main",
+        "._WorkspaceContent_yl8z4_2",
+        "._MainContentViewport_yl8z4_2",
+        "._MainContentFrame_yl8z4_2",
+        "header[class*=z-30]"
+      ],
+      "limit": 4
+    }
+  ]
+}

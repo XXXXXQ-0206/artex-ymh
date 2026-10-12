@@ -1,0 +1,7 @@
+{
+  "name": "artex-css-capability-probe",
+  "version": "1.0.0",
+  "private": true,
+  "main": "main.js",
+  "description": "Throwaway Electron window that reports CSS feature support of the ARTEX desktop shell, so nobody has to launch the real app or take the build lock."
+}

@@ -114,14 +114,14 @@ export function NavMain({ items }: NavMainProps) {
   return (
     <>
       {items.map((group) => (
-        <SidebarGroup key={group.id}>
+        <SidebarGroup key={group.id} className="codex-app-nav-group">
           {group.label && (
-            <SidebarGroupLabel className="group-data-[collapsible=icon]:pointer-events-none">
+            <SidebarGroupLabel className="codex-app-nav-group-label group-data-[collapsible=icon]:pointer-events-none">
               {group.label}
             </SidebarGroupLabel>
           )}
           <SidebarGroupContent>
-            <SidebarMenu>
+            <SidebarMenu className="codex-app-nav-menu">
               {group.items.map((item) => (
                 <NavItem
                   key={item.id}
@@ -188,7 +188,7 @@ function InterceptPendingBadge() {
 function NavLinkItem({ item, isActive, showIconFallback }: NavLinkItemProps) {
   return (
     <SidebarMenuItem>
-      <SidebarMenuButton asChild aria-disabled={item.disabled} tooltip={item.title} isActive={isActive}>
+      <SidebarMenuButton asChild className="codex-app-nav-link" aria-disabled={item.disabled} tooltip={item.title} isActive={isActive}>
         <Link
           prefetch={false}
           href={item.url}

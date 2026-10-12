@@ -7,7 +7,38 @@
 @import "../styles/presets/soft-pop.css";
 @import "../styles/presets/tangerine.css";
 
+/* ── Codex Desktop 官方 design token（原样搬用，用户已授权）──────────────────
+   1:1 复刻的地基：全部颜色阶 / 字号阶 / 行高 / 字重 / 字距 / 圆角基准 / 间距 /
+   阴影 / 动效曲线 / 组件 token（--dialog-* / --menu-* / --modal-* / --popover-*）
+   都直接来自官方样式表原文，不做手工近似。
+   随后由 codex-bridge.css 接上 ARTEX 的主题机制（明暗双值开关、超椭圆角、
+   字体栈、基准字重 430、语义变量对齐）。 */
+@import "../styles/codex/official-tokens.css";
+@import "../styles/codex/codex-bridge.css";
+@import "../styles/codex/workspace-pages.css";
+
+/* ── Codex 官方组件样式（原文，按 CSS-module 哈希分组）────────────────────────
+   配套组件在 web/src/codex-ui/**，使用官方原串 className，因此规则零改动生效。 */
+@import "../codex-ui/styles/index.css";
+
 @custom-variant dark (&:is(.dark *));
+
+/* ── Codex 官方窗口类型变体（官方 Tailwind 自定义变体，原样复刻）──────────────
+   官方语义：browser: = [data-codex-window-type=browser] 后代；electron: = 同前但 electron。
+   参考端实测会因此改变导轨宽度与底色（browser:w-13 browser:px-0 不生效、
+   electron:bg-transparent 生效 → 导轨底色是 --color-surface-tertiary 而非 secondary）。
+   根元素上的 data-codex-window-type 由 layout.tsx + 启动脚本共同维护。 */
+@custom-variant browser {
+  :where(html[data-codex-window-type="browser"]) & {
+    @slot;
+  }
+}
+
+@custom-variant electron {
+  :where(html[data-codex-window-type="electron"]) & {
+    @slot;
+  }
+}
 
 @theme inline {
   /* ── 半径阶梯 = Codex 官方 token（原样搬用，见本文件末尾的 @supports 块）──────
@@ -57,8 +88,52 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+  /* 官方字体栈字面量。这里以前写的是 --font-sans: var(--font-sans)（自引用），
+     在 CSS 里属于「循环依赖」→ computed value 失效 → 全站拿到空值再靠兜底。
+     现在直接写官方原值，与参考端 --font-sans 完全同串。 */
   --font-heading: var(--font-sans);
-  --font-sans: var(--font-sans);
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono: ui-monospace, "SFMono-Regular", "SF Mono", menlo, consolas, "Liberation Mono", monospace;
+
+  /* ── 官方 token 的 Tailwind 出口 ─────────────────────────────────────────
+     名字带 codex- 前缀避免与 ARTEX/shadcn 既有变量打架；
+     值一律指回官方 token，改一处全站生效。 */
+  --color-codex-surface: var(--color-surface);
+  --color-codex-surface-card: var(--color-surface-card);
+  --color-codex-surface-secondary: var(--color-surface-secondary);
+  --color-codex-surface-elevated: var(--color-surface-elevated);
+  --color-codex-elevated-secondary: var(--color-surface-elevated-secondary);
+  --color-codex-text: var(--color-text);
+  --color-codex-text-emphasis: var(--color-text-emphasis, var(--color-text));
+  --color-codex-text-secondary: var(--color-text-secondary);
+  --color-codex-text-tertiary: var(--color-text-tertiary);
+  --color-codex-text-danger: var(--color-text-danger);
+  --color-codex-text-success: var(--color-text-success);
+  --color-codex-text-warning: var(--color-text-warning);
+  --color-codex-border: var(--color-border);
+  --color-codex-border-subtle: var(--color-border-subtle);
+  --color-codex-border-strong: var(--color-border-strong);
+  --color-codex-accent: var(--blue-400);
+  --color-codex-ring: var(--color-ring);
+
+  /* 官方字号阶：text-codex-md → 1rem/1.5rem，与 Codex 正文同级 */
+  --text-codex-3xs: var(--font-text-3xs-size);
+  --text-codex-3xs--line-height: var(--font-text-3xs-line-height);
+  --text-codex-2xs: var(--font-text-2xs-size);
+  --text-codex-2xs--line-height: var(--font-text-2xs-line-height);
+  --text-codex-xs: var(--font-text-xs-size);
+  --text-codex-xs--line-height: var(--font-text-xs-line-height);
+  --text-codex-sm: var(--font-text-sm-size);
+  --text-codex-sm--line-height: var(--font-text-sm-line-height);
+  --text-codex-md: var(--font-text-md-size);
+  --text-codex-md--line-height: var(--font-text-md-line-height);
+  --text-codex-lg: var(--font-text-lg-size);
+  --text-codex-lg--line-height: var(--font-text-lg-line-height);
+
+  /* 官方动效曲线 */
+  --ease-codex-enter: var(--cubic-enter);
+  --ease-codex-exit: var(--cubic-exit);
+  --ease-codex-move: var(--cubic-move);
 }
 
 /* Default theme styles (used when no data-theme-preset is set or when 'default' is selected).
@@ -153,6 +228,19 @@ These serve as the fallback; there is no separate default.css file. */
 @layer base {
   * {
     @apply border-border outline-ring/50;
+  }
+
+  /* Codex 窗口底：官方页面侧 html/body 都是 transparent，导轨/顶栏/右缘露出的
+     "黑"来自**原生窗口底**——主进程 setBackgroundColor 深色 #000000 / 浅色 #f9f9f9
+     （对照：codex-desktop-src electron/windows/window-options.ts 的
+     OPAQUE_BACKGROUND_DARK / _LIGHT 与 docs/base.css 的 task-66 裁决）。
+     桌面端窗口底色同名；浏览器/iframe 场景由 html 兜底，保证与官方同构。 */
+  html {
+    background-color: #f9f9f9;
+  }
+
+  html.dark {
+    background-color: #000000;
   }
 
   body {
@@ -319,9 +407,11 @@ html {
   --font-mono: ui-monospace, "SFMono-Regular", "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
 }
 
+/* 与参考端完全同串（不含额外 CJK 名字）：Windows 上 sans-serif 本身就会落到
+   Microsoft YaHei 渲染中文，加显式 CJK 名反而会改变拉丁字形的回退顺序。 */
 html body,
 html[data-font] body {
-  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei UI", "Helvetica Neue", Arial, sans-serif;
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
 /* ── Codex Desktop 外壳几何（实测值，见 outputs/Codex桌面端-实测布局规格.md）────
@@ -338,6 +428,9 @@ html[data-font] body {
   /* 竖向：参考端顶部 36px 窗口条 + 8px 间距，主表面/导轨/面板都从 y=44 起，
      底部再留 4px。1280×816 时表面正好 768 高（44 → 812）。 */
   --codex-shell-top: 2.75rem; /* 44px */
+  /* 窗口底（导轨/顶栏/右缘露出的那层）= 官方主进程 setBackgroundColor 常量：
+     深色 #000000 / 浅色 #f9f9f9。见 .dark 覆盖与 codex-shell.css 的说明。 */
+  --codex-window-base: #f9f9f9;
 
   /* ── Codex 设计语言（样式普查值：outputs/codex-style-census/01-codex-chat.json）──
      正文 16px/430；次要文字 13px / 白 49.8%；分组标题 14px/500；小标题 18px/600 白 85%；
@@ -361,6 +454,12 @@ html[data-font] body {
   --codex-composer-radius: 22px;
   --codex-composer-bg: rgba(255, 255, 255, 0.15);
   --codex-composer-shadow: inset 0 0 1px rgba(255, 255, 255, 0.2);
+}
+
+/* 深色档窗口底用 html.dark 提一档权重：本文件更前面还有一个 `.dark {}` 主题块，
+   同权重(0,1,0)下靠后的 `:root` 会把它压掉（踩过：深色档仍取到浅色 #f9f9f9）。 */
+html.dark {
+  --codex-window-base: #000000;
 }
 
 /* 浅色主题下输入区反过来压黑，保持"比表面深一档"的层次 */
@@ -454,6 +553,15 @@ button,
   font-size: 20px;
   font-weight: 600;
   line-height: 28px;
+}
+
+/* 官方 .codex-dialog .heading-dialog 有一条 letter-spacing: normal 重置，
+   所以表单类弹窗（alert-dialog）的字距是 normal；600 宽的快捷键弹窗才是 -0.36px。 */
+[data-slot="alert-dialog-title"] {
+  letter-spacing: normal;
+}
+
+[data-slot="dialog-title"] {
   letter-spacing: -0.36px;
 }
 
@@ -620,20 +728,23 @@ button,
   width: 1.5rem;
   height: 1.5rem;
   border-radius: var(--codex-radius-chip);
-  color: var(--muted-foreground);
+  /* 参考端导轨图标：未选中 rgba(255,255,255,.498)，选中 rgb(223,223,223) +
+     底色 rgba(255,255,255,.08)（同环境五点像素采样与外壳裁决一致；此前用的
+     --accent(#282828) 是照旧截图抄的窗口底，已于 task-66 被证伪）。 */
+  color: rgba(255, 255, 255, 0.498);
   transition:
     background-color 0.15s ease,
     color 0.15s ease;
 }
 
 .codex-rail-item:hover {
-  background: var(--accent);
-  color: var(--accent-foreground);
+  background: color-mix(in oklab, var(--color-text, #dfdfdf) 8%, transparent);
+  color: rgb(223, 223, 223);
 }
 
 .codex-rail-item-active {
-  background: var(--accent);
-  color: var(--foreground);
+  background: rgba(255, 255, 255, 0.08);
+  color: rgb(223, 223, 223);
 }
 
 /* 圆角主表面（Codex 的 _PageSurface_）：卡片底色 + 16px 圆角 + 细边框 */
@@ -681,6 +792,12 @@ html[data-settings-nav="on"] [data-slot="sidebar-header"] {
 }
 
 html[data-settings-nav="on"] #chat-conversations-slot {
+  display: none;
+}
+
+/* 业务页的面板只承载工作区导航。对话页会把历史列表 portal 进这个插槽，
+   其它路由必须把空插槽彻底收起，避免 flex-1 把“工作区”分组推到面板中部。 */
+html:not([data-chat-list="on"]):not([data-settings-nav="on"]) #chat-conversations-slot {
   display: none;
 }
 

@@ -1,0 +1,582 @@
+/* ============================================================================
+ * Codex Desktop 外壳 chrome（R3 · shared shell · 导轨 / 288 面板 / 顶部 36px 菜单栏）
+ *
+ * 数值出处（逐条可复算）：
+ *   - 参考端 1280×816 实测：evidence/codex-desktop/captures/tree-topbar.json、
+ *     tree-aside.json、tokens.runtime.json（ref-capture 采）
+ *   - 官方 token 原文：web/src/styles/codex/official-tokens.css
+ *   - 官方 electron 档 token：web/src/styles/codex/codex-bridge.css
+ * 只作用于 (main) 外壳，不动 globals.css（Lead 独占）。
+ * ========================================================================== */
+
+/* ── 顶部 36px 应用程序菜单栏 ────────────────────────────────────────────────
+   参考端 _ApplicationMenuTopBar_ = [0,0,1276,36]，计算样式 padding 0 0 0 6px，
+   整条可拖拽（子元素 .no-drag）。 */
+.codex-app-menu-bar {
+  display: flex;
+  flex: none;
+  align-items: center;
+  height: var(--height-toolbar-sm); /* 官方 --height-toolbar-sm = 36px */
+  padding-inline-start: 6px; /* 实测 padding-left 6px */
+  /* 顶栏不铺底色：与导轨同理，露出原生窗口底（深色 #000）。
+     旧代码写的 rgb(40,40,40) 来自已证伪的旧截图。 */
+  background-color: transparent;
+  -webkit-app-region: drag;
+  app-region: drag;
+  user-select: none;
+}
+
+/* 菜单栏里的交互元素一律不拖拽（官方类名 no-drag 的语义） */
+.codex-app-menu-bar button,
+.codex-app-menu-bar a,
+.codex-app-menu-popup,
+.codex-app-menu-popup button {
+  -webkit-app-region: no-drag;
+  app-region: no-drag;
+}
+
+/* 图标按钮：参考端 _Button_ 28×28 / 圆角 9.375px（实测值；= --radius-sm 7.5px × 1.25，
+   与 @theme 的 --radius-sm 不是同一个数，按实测钉死）/
+   图标 16×16 @ (12,10)(46,10)(80,10) / 前景色 rgba(255,255,255,.498) = --color-text-tertiary */
+.codex-app-menu-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 9.375px;
+  corner-shape: superellipse(1.5);
+  color: var(--color-text-tertiary);
+  transition:
+    background-color var(--transition-duration-basic) var(--cubic-enter),
+    color var(--transition-duration-basic) var(--cubic-enter);
+}
+
+.codex-app-menu-icon:hover {
+  background-color: color-mix(in oklab, var(--color-text) 5%, transparent);
+  color: var(--color-text);
+}
+
+.codex-app-menu-icon[data-active="true"] {
+  background-color: color-mix(in oklab, var(--color-text) 8%, transparent);
+  color: var(--color-text);
+}
+
+.codex-app-menu-icon:focus-visible {
+  outline: 2px solid var(--color-ring);
+  outline-offset: -1px;
+}
+
+/* 顶级菜单项：参考端
+   "no-drag rounded-md border border-transparent px-2.5 py-1 text-base font-normal
+    leading-none text-tertiary hover:bg-text/5 hover:text-codex-description"
+   → 实测 49.33×23.33 @ y=6.33，圆角 10px(--radius-md)，字号 14px(--text-base)，
+     行高 1，前景 rgba(255,255,255,.498)。 */
+.codex-app-menu-trigger {
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  corner-shape: superellipse(1.5);
+  /* 参考实测顶级菜单项 49.33×23.33；用 3.5px/9.5px 抵消浏览器整数字体盒。 */
+  padding: 3.5px 9.67px;
+  font-size: var(--text-base); /* electron 档 --text-base = 14px */
+  font-weight: 400;
+  line-height: 1;
+  color: var(--color-text-tertiary);
+  white-space: nowrap;
+  transition:
+    background-color var(--transition-duration-basic) var(--cubic-enter),
+    color var(--transition-duration-basic) var(--cubic-enter);
+}
+
+.codex-app-menu-trigger:hover,
+.codex-app-menu-trigger[data-state="open"],
+.codex-app-menu-trigger:focus-visible {
+  /* SPEC §4 实测：hover/打开态 bg rgba(255,255,255,.03)，色 rgb(223,223,223) */
+  background-color: rgb(255 255 255 / 0.03);
+  color: var(--color-text);
+  outline: none;
+}
+
+/* ── 顶部菜单栏的下拉（SPEC §5 实测：专属皮肤，不是 radix 弹层那套）──────────────
+   定位 x = 触发按钮 x，y = 30（= 36 − 6，向上叠 6px）；背景
+   --app-color-background-application-menu = rgb(31,31,31)；圆角 7.5px(--radius-sm)，
+   corner-shape round（superellipse(1)，不是 SE1.5）；无边框；
+   阴影 rgba(0,0,0,.42) 0 4px 12px；内边距 4px 0（条目左右再内缩 4px）；
+   条目 212×28 / padding 5px 16px / 圆角 7.5px / 12px·18px·400 / rgb(223,223,223)；
+   分隔线满宽 1px / rgba(255,255,255,.157) / 上下各 8px 外边距。 */
+.codex-app-menu-popup {
+  position: fixed;
+  z-index: 80;
+  min-width: 220px; /* 实测 文件/编辑/帮助 三张都是 220；视图 300（条目更长） */
+  max-width: 360px;
+  padding: 4px 0;
+  border: 0;
+  border-radius: var(--radius-sm);
+  corner-shape: superellipse(1);
+  /* Reference application menu surface is an opaque #1f1f1f layer. */
+  background-color: rgb(31 31 31);
+  box-shadow: rgba(0, 0, 0, 0.42) 0 4px 12px 0;
+  color: var(--color-text);
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 18px;
+  outline: none;
+  transform-origin: top left;
+  animation: codex-menu-in 100ms var(--cubic-enter);
+}
+
+.codex-app-menu-popup[data-closing="true"] {
+  animation: codex-menu-out 80ms var(--cubic-exit) forwards;
+}
+
+@keyframes codex-menu-in {
+  from {
+    opacity: 0;
+    transform: scale(0.98) translateY(-2px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes codex-menu-out {
+  to {
+    opacity: 0;
+    transform: scale(0.99);
+  }
+}
+
+/* 条目：212 宽 = 220 − 4 − 4（左右各内缩 4px） */
+.codex-app-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: calc(100% - 8px);
+  min-height: 28px;
+  margin-inline: 4px;
+  padding: 5px 16px;
+  border-radius: var(--radius-sm);
+  corner-shape: superellipse(1.5);
+  color: var(--color-text);
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 18px;
+  text-align: start;
+  cursor: default;
+  transition: background-color var(--transition-duration-basic) var(--cubic-enter);
+}
+
+.codex-app-menu-item:hover,
+.codex-app-menu-item:focus,
+.codex-app-menu-item:focus-visible {
+  background-color: var(--color-background-primary-ghost-hover);
+  outline: none;
+}
+
+.codex-app-menu-item[data-disabled="true"] {
+  color: var(--color-text-tertiary);
+  pointer-events: none;
+}
+
+.codex-app-menu-shortcut {
+  margin-inline-start: auto;
+  padding-inline-start: calc(var(--spacing) * 4);
+  color: var(--color-text-tertiary);
+  font-variant-numeric: tabular-nums;
+}
+
+/* 分隔线：满宽 1px / rgba(255,255,255,.157) / 上下各 8px */
+.codex-app-menu-separator {
+  height: 0.5px;
+  margin: 8px 0;
+  border: 0;
+  background-color: rgb(255 255 255 / 0.157);
+}
+
+/* ── 52px 图标导轨 ──────────────────────────────────────────────────────────
+   参考端 nav[aria-label=应用导航] = [0,44,52,768]，padding 8px 8px 4px，gap 8px；
+   条目 _Button_ 36×36 / 圆角 12.5px / svg 20×20（x=8，首个 y=52）。 */
+.codex-rail {
+  gap: 0.5rem; /* 实测 gap 8px */
+  padding-inline: 0.5rem; /* 实测 padding 8px 8px 4px */
+  /* 导轨不铺底色：官方 html/body 与导轨本身都是 rgba(0,0,0,0)，
+     那一层"黑"来自**原生窗口底**（主进程 setBackgroundColor 深色 #000000 / 浅色 #f9f9f9）。
+     曾按旧 reference 截图写过 rgb(40,40,40)，同环境三视图无法复现，已按新证据撤掉
+     （对照：codex-desktop-src docs/base.css 的 task-66/task-68 裁决）。 */
+  background: transparent;
+}
+
+/* 外壳根 = 官方那层「窗口底」：页面侧 html/body/壳根在官方都是 transparent，
+   真正上色的是原生窗口（主进程 setBackgroundColor）。浏览器/iframe 里没有原生窗口，
+   由壳根兜底铺同名常量色（--codex-window-base：深色 #000 / 浅色 #f9f9f9），
+   这样导轨/顶栏/右缘露出的颜色与官方逐像素相同。 */
+.codex-shell-root {
+  background-color: var(--codex-window-base, #000000);
+}
+
+.codex-rail .codex-rail-item {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--codex-radius-control); /* 12.5px */
+  corner-shape: superellipse(1.5);
+}
+
+.codex-rail .codex-rail-item svg {
+  width: 20px;
+  height: 20px;
+}
+
+.codex-rail .codex-rail-item:hover {
+  background: color-mix(in oklab, var(--color-text) 5%, transparent);
+  color: var(--color-text);
+}
+
+.codex-rail .codex-rail-item:focus-visible {
+  outline: 2px solid var(--color-ring);
+  outline-offset: -1px;
+}
+
+/* ── 288px 对话面板 ─────────────────────────────────────────────────────────
+   参考端面板本体 div.sidebar = [52,44,288,768]，
+   background oklab(0.209 … / .65)（= --color-surface #181818 的 65%），
+   border-radius 12px 0 0 12px（右缘与主表面贴合，所以右边是直角）。 */
+[data-slot="sidebar-container"] {
+  padding: 0;
+}
+
+/* Codex 的浮动面板基准位置在 52px 导轨右侧；offcanvas 收起时整体滑到导轨后方，
+   面板本身保持 288px 宽，避免内容被压扁。 */
+[data-slot="sidebar-container"][data-side="left"] {
+  left: 3.25rem;
+}
+
+[data-slot="sidebar"][data-state="collapsed"][data-collapsible="offcanvas"]
+  [data-slot="sidebar-container"][data-side="left"] {
+  left: calc(3.25rem - var(--sidebar-width));
+}
+
+[data-variant="floating"] [data-slot="sidebar-inner"] {
+  border-radius: 12px 0 0 12px;
+  /* 面板底 = 官方计算值 oklab(0.209035 0 0 / .65) ≈ rgb(25,25,25) @65%，
+     叠在**主表面 #181818** 上 → 合成 rgb(25,25,25)。
+     实测对照（1280×816、dpr1.5，官方参考截图五点采样）：
+       导轨/顶栏/右缘 = rgb(0,0,0)（原生窗口底）
+       面板 (100,500)/(200,600)/(300,150) = rgb(25,25,25)
+       主表面 (600,400) = rgb(24,24,24)
+     所以这里不能再写死合成值 rgb(30,30,30)（那是叠在错误窗口底 40 上的结果）。 */
+  background-color: rgb(25 25 25 / 0.65);
+  box-shadow: none;
+  --tw-ring-shadow: 0 0 #0000;
+}
+
+/* 面板头：参考端 _header_ [52,44,288,90]，内边距 0 8px，行内 52px（Codex 字标行），
+   并带 -38px 负下边距 —— 所以面板列表的第一行从 y=96 开始（与参考端
+   div[60,96,272,30] 逐像素一致）。头本身 z-10 浮在列表之上但不吃点击。 */
+[data-slot="sidebar-header"] {
+  position: relative;
+  z-index: 10;
+  height: 90px;
+  padding: 0 8px;
+  gap: 0;
+  margin-bottom: -38px;
+  pointer-events: none;
+}
+
+[data-slot="sidebar-header"] a,
+[data-slot="sidebar-header"] button {
+  pointer-events: auto;
+}
+
+/* 面板头右侧的 24×24 图标按钮（参考端铃铛 / 搜索）：圆角 9.375px、图标 16、次要色 */
+.codex-panel-icon-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 9.375px;
+  corner-shape: superellipse(1.5);
+  color: var(--color-text-tertiary);
+  transition:
+    background-color var(--transition-duration-basic) var(--cubic-enter),
+    color var(--transition-duration-basic) var(--cubic-enter);
+}
+
+.codex-panel-icon-button:hover {
+  background-color: color-mix(in oklab, var(--color-text) 5%, transparent);
+  color: var(--color-text);
+}
+
+/* 对话面板滚动区（SPEC §3）：padding 4px 0 8px、gap 16px。
+   只在 chat 列表形态下生效 —— 设置页的滚动区是 div[52,140,288,672]，不能被挤。 */
+html[data-chat-list="on"] [data-slot="sidebar-content"] {
+  padding: 0;
+  gap: 0;
+}
+
+/* 设置页的面板没有底部账户行（参考端滚动区一直到 812：div[52,140,288,672]）。 */
+html[data-settings-nav="on"] [data-slot="sidebar-footer"] {
+  display: none;
+}
+
+/* 对话列表形态的面板同样没有账户行 —— 官方账户入口在导轨底部（[8,772] 那个人像），
+   面板底边一直到 812。ARTEX 原先在面板底部放了一行「A ARTEX ⋯」，属于自造。 */
+html[data-chat-list="on"] [data-slot="sidebar-footer"] {
+  display: none;
+}
+
+/* 桌面应用导航与内容面共用 288px 面板。让两个工作区分组从面板头下方直接排布，
+   设置入口贴在最底部；各路由使用同一位置和尺寸。 */
+.codex-app-nav {
+  display: flex;
+  min-height: 0;
+  height: 100%;
+  flex-direction: column;
+}
+
+.codex-app-nav-group {
+  flex: 0 0 auto;
+  padding: 0 8px;
+}
+
+.codex-app-nav-group + .codex-app-nav-group {
+  margin-top: auto;
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+
+.codex-app-nav-group-label {
+  height: 30px;
+  min-height: 30px;
+  padding: 0 8px;
+  border-radius: 0;
+  color: rgba(255, 255, 255, 0.498);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 18px;
+}
+
+.codex-app-nav-menu {
+  gap: 1px;
+}
+
+.codex-app-nav-link {
+  height: 30px;
+  min-height: 30px;
+  gap: 8px;
+  padding: 5px 8px;
+  border-radius: 10px;
+  color: rgba(255, 255, 255, 0.65);
+  font-size: 13px;
+  font-weight: 430;
+  line-height: 18px;
+  transition: background-color 0.15s linear, color 0.15s linear;
+}
+
+.codex-app-nav-link[data-active="true"],
+.codex-app-nav-link[aria-current="page"] {
+  background: rgb(255 255 255 / 0.08);
+  color: rgb(223 223 223);
+}
+
+.codex-app-nav-link:hover:not([data-active="true"]):not([aria-current="page"]) {
+  background: rgb(255 255 255 / 0.05);
+  color: rgb(223 223 223);
+}
+
+.codex-app-nav-link svg {
+  width: 16px;
+  height: 16px;
+  color: rgba(255, 255, 255, 0.498);
+}
+
+/* 面板右缘 16px resizer：参考端 panel-resizer 16 × 768 @ x=332，
+   即中心落在面板右缘（340）上 → 相对面板 -right-2 / w-4。不可见，仅可拖拽。 */
+.codex-panel-resizer {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  inset-inline-end: -8px;
+  width: 16px;
+  z-index: 20;
+  cursor: col-resize;
+  touch-action: none;
+  background: transparent;
+  -webkit-app-region: no-drag;
+}
+
+.codex-panel-resizer::after {
+  content: "";
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 7px;
+  width: 2px;
+  background: transparent;
+  transition: background-color var(--transition-duration-basic) var(--cubic-enter);
+}
+
+.codex-panel-resizer:hover::after,
+.codex-panel-resizer[data-resizing="true"]::after {
+  background: color-mix(in oklab, var(--color-text) 12%, transparent);
+}
+
+/* 拖拽期间禁用过渡与文本选择（官方 --transition-duration-basic = .15s） */
+html[data-panel-resizing="true"] {
+  cursor: col-resize;
+  user-select: none;
+}
+
+html[data-panel-resizing="true"] [data-slot="sidebar-container"] {
+  transition: none !important;
+}
+
+/* 窄窗口：面板整块收起，导轨保留（Codex 桌面端行为） */
+@media (max-width: 899px) {
+  .codex-rail {
+    display: flex;
+  }
+}
+
+/* 面板展开/收起的动效曲线用官方 --cubic-enter / --cubic-exit
+   （shadcn 默认 ease-linear，与参考端不一致）。 */
+[data-slot="sidebar-container"] {
+  transition:
+    inset-inline-start var(--transition-duration-relaxed) var(--cubic-enter),
+    left var(--transition-duration-relaxed) var(--cubic-enter),
+    width var(--transition-duration-relaxed) var(--cubic-enter);
+}
+
+/* ── Codex-style conversation history ───────────────────────────────────── */
+.codex-history-item {
+  min-height: 30px;
+  height: 30px;
+  border-radius: 12.5px;
+}
+
+.codex-history-item-button {
+  min-height: 30px;
+  height: 30px;
+  padding: 5px 8px;
+  border-radius: 12.5px;
+}
+
+.codex-history-item-title {
+  font-size: 14px;
+  font-weight: 430;
+  line-height: 20px;
+}
+
+.codex-history-item-meta,
+.codex-history-agent-header {
+  display: none;
+}
+
+.codex-history-actions {
+  opacity: 0;
+  width: 52px;
+  height: 30px;
+  gap: 2px;
+  transition: opacity var(--transition-duration-basic) var(--ease-basic);
+}
+
+.codex-history-action {
+  width: 20px;
+  height: 20px;
+  border-radius: 6px;
+}
+
+.codex-history-action svg {
+  width: 14px;
+  height: 14px;
+  stroke-width: 1.75;
+}
+
+.codex-history-item:hover .codex-history-actions,
+.codex-history-item:focus-within .codex-history-actions,
+.codex-history-item[data-active="true"] .codex-history-actions {
+  opacity: 1;
+}
+
+.codex-history-toolbar {
+  min-height: 38px;
+  height: 38px;
+  padding: 0 8px;
+  border-bottom: 0;
+  gap: 0;
+}
+
+.codex-history-new-chat {
+  height: 30px;
+  min-height: 30px;
+  padding: 5px 8px;
+  border-radius: 12.5px;
+  background: rgb(255 255 255 / 0.08);
+  font-size: 13px;
+  line-height: 18.57px;
+  font-weight: 430;
+}
+
+.codex-history-new-chat:hover {
+  background: rgb(255 255 255 / 0.11);
+}
+
+/* SelectTrigger 自带 [data-slot][data-slot] 的 display:flex，需要同等级选择器才能隐藏。 */
+.codex-history-toolbar .codex-history-agent-filter,
+.codex-history-toolbar .codex-history-secondary-controls {
+  display: none;
+}
+
+.codex-history-scroll {
+  border-top: 0;
+}
+
+.codex-history-list {
+  /* The reference sidebar uses contiguous section rows. Conversation rows
+     keep their one-pixel rhythm through the row margins below. */
+  gap: 0;
+  padding: 4px 8px 8px;
+}
+
+.codex-history-section-label,
+.codex-history-no-project {
+  height: 30px;
+  min-height: 30px;
+  display: flex;
+  align-items: center;
+  padding: 5px 8px;
+  border-radius: 12.5px;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+}
+
+.codex-history-no-project {
+  height: 37px;
+  min-height: 37px;
+  margin-top: 4px;
+  align-items: flex-start;
+  padding: 8px;
+  color: rgba(255, 255, 255, 0.65);
+  font-weight: 430;
+}
+
+.codex-history-recent-label {
+  margin-top: 16px;
+  gap: 4px;
+}
+
+/* The real navigation section reserves 4px between the "最近" heading and
+   its first row, then uses a 1px rhythm for subsequent conversation rows. */
+.codex-history-item {
+  margin-top: 1px;
+}
+
+.codex-history-recent-label + .codex-history-item {
+  margin-top: 4px;
+}
+
+.codex-history-list > p {
+  padding: 6px 8px;
+}

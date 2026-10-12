@@ -5,30 +5,32 @@ import * as React from "react";
 import { createPortal } from "react-dom";
 
 import {
-  ArrowUpIcon,
   Bot,
-  ChevronDownIcon,
   ChevronRightIcon,
   ListChecksIcon,
   Loader2Icon,
-  MoreHorizontalIcon,
   PaperclipIcon,
-  PencilIcon,
   PinIcon,
   PinOffIcon,
-  PlusIcon,
-  Square,
   Trash2Icon,
   XIcon,
-  ZapIcon,
 } from "lucide-react";
 import { toast } from "sonner";
 
+import {
+  CodexArrowUp,
+  CodexChevronDown,
+  CodexEllipsis,
+  CodexFolder,
+  CodexGear,
+  CodexHomeHero,
+  CodexPlus,
+  CodexSidebar,
+} from "@/components/icons/codex";
 import { MentionTextarea } from "@/components/mention-textarea";
 import { SideQuestionButton, SideQuestionWorkspace } from "@/components/side-question-workspace";
 import { TodoPopover } from "@/components/todo-popover";
 import { ApprovalExecutionFocus, useApprovalFocus, useApprovalHistory } from "@/components/approval-execution-focus";
-import { Transcript } from "@/components/transcript";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -42,17 +44,10 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useSidebar } from "@/components/ui/sidebar";
 import { Spinner } from "@/components/ui/spinner";
 import { useSideQuestions } from "@/hooks/use-side-questions";
 import { mergeActivities } from "@/lib/activity-merge";
@@ -62,6 +57,9 @@ import { getLocalStorageValue, setLocalStorageValue } from "@/lib/local-storage.
 import { isBtwCommand } from "@/lib/side-questions";
 import type { Activity, Agent, ChatAttachment, Conversation, LLMProfile } from "@/lib/types";
 import { cn } from "@/lib/utils";
+
+import styles from "./_components/codex-chat.module.css";
+import { ChatTranscript } from "@/codex-ui/chat";
 
 // fmtBytes renders a human file size for attachment chips (mirrors transcript.tsx).
 function fmtBytes(n: number): string {
@@ -144,8 +142,11 @@ function LiveBadge() {
   );
 }
 
-// Composer is the shared bottom input (textarea grows to a cap, Enter sends,
-// Shift+Enter newlines) — the same affordance across DraftChat and ChatView.
+// Composer 是 Codex 官方 _ComposerLayout_ 的 1:1 复刻（数值见 codex-chat.module.css）：
+//   面板 736×98 / 圆角 22px / rgb(54,54,54) / inset 0 0 1px rgba(255,255,255,.2)；
+//   竖向 = 附件区 14px（空态也是 8px + 6px 内边距）+ 输入行 44px（+4px 间距）+ 工具行 28px（+8px）。
+//   工具行按钮 28 高 / 9999px 药丸 / 13px·430 / rgba(255,255,255,.498)；
+//   发送键 28×28 药丸 rgb(223,223,223)，箭头 16px 反色；流式中换成停止键。
 function Composer({
   value,
   onChange,
@@ -162,6 +163,7 @@ function Composer({
   uploading,
   allowBtw,
   footerSlot,
+  className,
 }: {
   value: string;
   onChange: (v: string) => void;
@@ -169,10 +171,11 @@ function Composer({
   disabled: boolean;
   placeholder: string;
   leftSlot?: React.ReactNode;
+  className?: string;
   running?: boolean;
   onStop?: () => void;
   stopDisabled?: boolean;
-  // 方式1 文件上传:传了 onPickFiles 才显示回形针按钮 + 附件 chip 预览。
+  // 方式1 文件上传:传了 onPickFiles 才显示「+」按钮 + 附件 chip 预览。
   attachments?: ChatAttachment[];
   onPickFiles?: (files: File[]) => void;
   onRemoveAttachment?: (path: string) => void;
@@ -190,67 +193,33 @@ function Composer({
     onSend();
   }
   return (
-    // Codex 实测：输入区是一块独立的圆角面板（736×92、圆角 22px、底色 #363636 =
-    // 表面叠 15% 白、内阴影 inset 0 0 1px rgba(255,255,255,.2)），
-    // 上 8px / 输入行 44px / 间距 4px / 工具行 28px / 下 8px；
-    // 输入框本身透明融进面板，底部工具行的按钮统一 28px 圆。
-    <div className="codex-composer rounded-[var(--codex-composer-radius)] px-2 pt-2 pb-2 transition-[background-color,box-shadow]">
-      {atts.length > 0 && (
-        <div className="mb-2 flex flex-wrap gap-1.5">
-          {atts.map((a) => (
-            <div
-              key={a.path}
-              className="flex items-center gap-1.5 rounded-md border bg-muted/50 px-2 py-1 text-xs"
-              title={a.path}
-            >
-              <PaperclipIcon className="size-3 shrink-0 text-primary" />
-              <span className="max-w-[160px] truncate">{a.name}</span>
-              <span className="text-muted-foreground">{fmtBytes(a.size)}</span>
-              {onRemoveAttachment && (
-                <button
-                  type="button"
-                  className="ml-0.5 text-muted-foreground hover:text-foreground"
-                  onClick={() => onRemoveAttachment(a.path)}
-                  title="移除"
-                >
-                  <XIcon className="size-3" />
-                </button>
-              )}
-            </div>
-          ))}
-        </div>
-      )}
-      <div className="flex flex-wrap items-center gap-1">
-        {leftSlot ? <div className="w-full sm:w-auto">{leftSlot}</div> : null}
-        {onPickFiles && (
-          <>
-            <input
-              ref={fileInputRef}
-              type="file"
-              multiple
-              className="hidden"
-              onChange={(e) => {
-                // FileList 与 input 元素活绑定:必须先快照成数组,再清空 value,
-                // 否则异步的 onPickFiles(比如草稿态要先建会话)恢复执行时会拿到空列表。
-                const picked = Array.from(e.target.files ?? []);
-                e.target.value = ""; // allow re-picking the same file
-                if (picked.length > 0) onPickFiles(picked);
-              }}
-            />
-            <Button
-              size="icon"
-              variant="ghost"
-              className="rounded-full"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={disabled || uploading}
-              title="上传文件"
-            >
-              {uploading ? <Loader2Icon className="size-4 animate-spin" /> : <PaperclipIcon className="size-4" />}
-            </Button>
-          </>
-        )}
+    <div className={cn(styles.composer, className)} data-slot="codex-composer">
+      {/* 附件区：官方空态也有 padding（8px 8px 6px），所以永远渲染 */}
+      <div className={styles.composerAttachments}>
+        {atts.map((a) => (
+          <div key={a.path} className={styles.attachmentChip} title={a.path}>
+            <PaperclipIcon className="size-3 shrink-0" />
+            <span className={styles.attachmentChipName}>{a.name}</span>
+            <span className={styles.attachmentChipMeta}>{fmtBytes(a.size)}</span>
+            {onRemoveAttachment && (
+              <button
+                type="button"
+                className={styles.chipRemove}
+                onClick={() => onRemoveAttachment(a.path)}
+                title="移除"
+                aria-label={`移除附件 ${a.name}`}
+              >
+                <XIcon className="size-3" />
+              </button>
+            )}
+          </div>
+        ))}
+      </div>
+
+      {/* 输入行：官方 padding 0 12px、margin-bottom 4px、编辑区最小高 44px */}
+      <div className={styles.composerInputRow} data-slot="codex-composer-input-row">
         <MentionTextarea
-          className="max-h-40 min-h-11 min-w-0 flex-1 resize-none border-0 bg-transparent px-2 py-2 shadow-none focus-visible:border-transparent focus-visible:ring-0 dark:bg-transparent"
+          className={styles.composerInput}
           rows={1}
           placeholder={placeholder}
           value={value}
@@ -258,45 +227,91 @@ function Composer({
           onValueChange={onChange}
           onKeyDown={onKeyDown}
         />
-        {running && allowBtw && isBtwCommand(value) && (
-          <Button size="icon" className="rounded-full" onClick={onSend} aria-label="发送旁路问题" title="发送旁路问题">
-            <ArrowUpIcon />
-          </Button>
-        )}
-        {running ? (
-          // while a run is in flight the send button becomes a stop button —
-          // aborts just this session (the trigger queue keeps going).
-          <Button
-            size="icon"
-            variant="destructive"
-            className="rounded-full"
-            onClick={onStop}
-            disabled={stopDisabled}
-            title="停止本次运行"
-          >
-            <Square className="size-3.5 fill-current" />
-          </Button>
-        ) : (
-          <Button
-            size="icon"
-            // Codex 实测：发送键是 28px 浅色圆（底色 = 前景色，箭头反色），不是品牌蓝。
-            className="bg-foreground text-background hover:bg-foreground/90 size-7 rounded-full"
-            onClick={onSend}
-            disabled={disabled || (!value.trim() && atts.length === 0)}
-            title="发送消息"
-            aria-label="发送消息"
-          >
-            <ArrowUpIcon />
-          </Button>
-        )}
       </div>
-      {footerSlot}
+
+      {/* 工具行：官方 grid minmax(0,auto) auto minmax(0,1fr)、column-gap 5px、
+          padding-inline 8px、margin-bottom 8px */}
+      <div className={styles.composerFooter} data-slot="codex-composer-footer">
+        <div className={styles.composerFooterLead}>
+          {leftSlot}
+          {onPickFiles && (
+            <>
+              <input
+                ref={fileInputRef}
+                type="file"
+                multiple
+                className="hidden"
+                onChange={(e) => {
+                  // FileList 与 input 元素活绑定:必须先快照成数组,再清空 value,
+                  // 否则异步的 onPickFiles(比如草稿态要先建会话)恢复执行时会拿到空列表。
+                  const picked = Array.from(e.target.files ?? []);
+                  e.target.value = ""; // allow re-picking the same file
+                  if (picked.length > 0) onPickFiles(picked);
+                }}
+              />
+              <button
+                type="button"
+                className={styles.composerTool}
+                onClick={() => fileInputRef.current?.click()}
+                disabled={disabled || uploading}
+                title="添加文件等内容"
+                aria-label="添加文件等内容"
+              >
+                {uploading ? (
+                  <Loader2Icon className="size-4 animate-spin" />
+                ) : (
+                  <CodexPlus size={16} />
+                )}
+              </button>
+            </>
+          )}
+        </div>
+        <div />
+        <div className={styles.composerFooterEnd}>
+          {running && allowBtw && isBtwCommand(value) && (
+            <button
+              type="button"
+              className={styles.sendButton}
+              onClick={onSend}
+              aria-label="发送旁路问题"
+              title="发送旁路问题"
+            >
+              <CodexArrowUp size={16} />
+            </button>
+          )}
+          {footerSlot}
+          {running ? (
+            // 流式中：发送键换成停止键（只中断本次运行，触发队列不受影响）
+            <button
+              type="button"
+              className={styles.stopButton}
+              onClick={onStop}
+              disabled={stopDisabled}
+              title="停止本次运行"
+              aria-label="停止生成"
+            >
+              <span className="block size-3 rounded-[3px] bg-current" />
+            </button>
+          ) : (
+            <button
+              type="button"
+              className={styles.sendButton}
+              onClick={onSend}
+              disabled={disabled || (!value.trim() && atts.length === 0)}
+              title="发送消息"
+              aria-label="发送消息"
+            >
+              <CodexArrowUp size={16} />
+            </button>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
 
-// LLMProfileRow shows the active LLM config below the composer and lets the user
-// switch it via a Popover. `selected` is the profile id or null for default.
+// LLMProfileRow 是输入区工具行右侧的「模型」药丸（官方那颗 "5.6 Sol Ultra"）：
+// 28 高 / 9999px 药丸 / 内边距 0 8px / 13px·430 / 次要色，点开切换 ARTEX 的 LLM 配置。
 function LLMProfileRow({
   profiles,
   selected,
@@ -313,29 +328,25 @@ function LLMProfileRow({
   const [open, setOpen] = React.useState(false);
   const activeDefault = profiles.find((p) => p.is_default);
   const current = selected != null ? profiles.find((p) => Number(p.id) === selected) : null;
-  const label = current ? current.name : `默认${activeDefault ? `（${activeDefault.name}）` : ""}`;
+  const label = current ? current.name : activeDefault ? activeDefault.name : "默认模型";
 
   return (
-    // Codex 实测：输入区底部工具行 28px 高，里面的按钮一律 9999px 药丸 / 13px。
-    <div className="flex h-7 min-w-0 shrink-0 items-center gap-1 px-1 pt-0.5 pb-1">
-      <ZapIcon className="text-muted-foreground/50 size-3 shrink-0" />
-      <span className="truncate text-muted-foreground/70 text-xs" title={label}>
-        {label}
-      </span>
+    <>
       <Popover open={open} onOpenChange={disabled ? undefined : setOpen}>
         <PopoverTrigger asChild>
           <button
             type="button"
             disabled={disabled}
-            className="text-muted-foreground hover:text-foreground flex shrink-0 items-center gap-0.5 rounded-full text-[13px] disabled:pointer-events-none disabled:opacity-40"
+            className={`${styles.composerTool} ${styles.composerToolWide}`}
+            title={label}
+            aria-label="切换模型"
           >
-            更换
-            <ChevronDownIcon className="size-3" />
+            <span className={styles.composerToolLabel}>{label}</span>
+            <CodexChevronDown size={12} />
           </button>
         </PopoverTrigger>
-        <PopoverContent align="start" className="w-64 p-1">
+        <PopoverContent align="end" className="w-64 p-1">
           <p className="text-muted-foreground px-2 py-1 text-[11px] font-medium">选择 LLM 配置</p>
-          {/* default option */}
           <button
             type="button"
             onClick={() => {
@@ -376,7 +387,7 @@ function LLMProfileRow({
         </PopoverContent>
       </Popover>
       {rightSlot}
-    </div>
+    </>
   );
 }
 
@@ -393,6 +404,7 @@ function DraftChat({
   profiles: LLMProfile[];
   onStarted: (c: Conversation, pending?: { input?: string; attachments?: ChatAttachment[] }) => void;
 }) {
+  const { toggleSidebar } = useSidebar();
   const [agentKey, setAgentKey] = React.useState("");
   const [llmProfileId, setLlmProfileId] = React.useState<number | null>(null);
   const [input, setInput] = React.useState("");
@@ -440,8 +452,13 @@ function DraftChat({
 
   const agentPicker = (
     <Select value={agentKey} onValueChange={setAgentKey}>
-      <SelectTrigger className="w-full sm:w-40">
-        <SelectValue placeholder="选择 Agent…" />
+      <SelectTrigger
+        size="sm"
+        aria-label="选择 Agent"
+        className={cn(styles.projectChip, "!h-7 w-auto border-0 bg-transparent shadow-none")}
+      >
+        <CodexFolder size={16} />
+        <SelectValue placeholder="选择项目" />
       </SelectTrigger>
       <SelectContent>
         <SelectGroup>
@@ -465,27 +482,51 @@ function DraftChat({
 
   return (
     <>
-      {/* 落地态排版 = Codex 首页实测：内容列 max-w 768px、左右 20px；
-          品牌标 56px / 30% 不透明度，标题 28px / 行高 34px / 字重 400。 */}
-      <div className="mx-auto flex min-h-0 w-full max-w-[768px] flex-1 flex-col items-center justify-center gap-6 px-5 text-center">
-        <Bot className="text-foreground size-14 shrink-0 opacity-30" />
-        <div className="text-[28px] leading-[34px] font-[400]">开始和「{agent?.name ?? "Agent"}」对话</div>
-        {agent?.description && (
-          <p className="text-muted-foreground max-w-md text-[13px] leading-5">{agent.description}</p>
-        )}
+      {/* 首页也有一条 52px 标题栏（参考端 --app-shell-header-height，主表面 44..96）：
+          右端是面板切换键（28×28，右缘 = 主表面右缘 - 12px）。它同时把内容区推到 y=96，
+          否则标题块会整体高 52px（实测踩过这个坑）。 */}
+      <div className={styles.threadHeader} data-slot="codex-home-header">
+        <div className={styles.threadActions}>
+          <button
+            type="button"
+            className={styles.threadAction}
+            title="显示/隐藏面板"
+            aria-label="显示/隐藏面板"
+            onClick={toggleSidebar}
+          >
+            <CodexSidebar size={16} />
+          </button>
+        </div>
       </div>
 
-      {/* Codex 实测：输入区与转录同列（768px、水平 16px、底部 16px） */}
-      <div className="sticky bottom-0 mx-auto w-full max-w-[768px] px-4 pb-4">
+      {/* 首页态 = Codex 参考端实测（1280×816）：
+          标题块 [424,327,768,114] = hero 56＋间距 24＋标题 34（标题 407..441）；
+          标题 heading-xl 28px / 400 / 行高 33.6px；左右 20px 内边距。 */}
+      <div className={styles.homeTitleRegion} data-slot="codex-home-title-region">
+        <div className={cn(styles.column, "px-5 text-center")} data-slot="codex-home-title-box">
+          <div className={styles.homeTitleBox}>
+            <CodexHomeHero className={styles.homeHero} size={56} />
+            <h1 className={styles.homeTitle}>我们要构建什么？</h1>
+          </div>
+          {agent?.description && <p className={styles.homeSubtitle}>{agent.description}</p>}
+        </div>
+      </div>
+
+      {/* 输入区列：实测 [424,644,768,152]、padding 0 16px
+          （「选择项目」条 710×42 @660 + 输入面板 736×98 @698，条被面板压住 4px） */}
+      <div className={cn(styles.composerColumn, styles.column)} data-slot="codex-composer-column">
+        <div className={styles.projectBar} data-slot="codex-project-bar">
+          <div className={styles.projectBarInner}>{agentPicker}</div>
+        </div>
         <Composer
           value={input}
           onChange={setInput}
           onSend={send}
           disabled={sending || uploading || !agentKey}
-          placeholder="输入消息，@ 引用记录，Enter 发送"
-          leftSlot={agentPicker}
+          placeholder="随心输入"
           onPickFiles={pickFiles}
           uploading={uploading}
+          className={styles.composerStacked}
           footerSlot={
             <LLMProfileRow
               profiles={profiles}
@@ -520,6 +561,7 @@ function ChatView({
   onTitleMaybeChanged: () => void;
   onConvUpdated: () => void;
 }) {
+  const { toggleSidebar } = useSidebar();
   const approvalFocus = useApprovalFocus({ conversationId: conv.id });
   const [messages, setMessages] = React.useState<Activity[]>([]);
   const [running, setRunning] = React.useState(false);
@@ -787,65 +829,84 @@ function ChatView({
 
   return (
     <SideQuestionWorkspace side={side} label={agent?.name ?? conv.agent_key} composerLayout="inline">
-      {/* header: which agent + live + token meta */}
-      <div className="flex min-w-0 flex-wrap items-center gap-2 border-b px-4 py-2.5">
-        <Bot className="text-muted-foreground size-4 shrink-0" />
-        <span className="min-w-0 max-w-48 truncate text-sm font-medium">{agent?.name ?? conv.agent_key}</span>
-        <span className="text-muted-foreground hidden shrink-0 font-mono text-xs sm:inline">{conv.agent_key}</span>
-        {agent && !agent.builtin && (
-          <Badge variant="outline" className="shrink-0 px-1.5 py-0 text-[10px]">
-            自定义
-          </Badge>
-        )}
-        {agent?.description && (
-          <span className="text-muted-foreground min-w-0 truncate text-xs">{agent.description}</span>
-        )}
+      {/* 会话标题栏：参考端 main 顶部 52px（--app-shell-header-height），
+          左侧会话标题 14px·430，右侧图标组（更多 / 设置 / 面板）。 */}
+      <div className={styles.threadHeader} data-slot="codex-thread-header">
+        <span className={styles.threadTitle} title={conv.title || agent?.name || conv.agent_key}>
+          {conv.title || agent?.name || conv.agent_key}
+        </span>
         {running && <LiveBadge />}
         <SideQuestionButton side={side} />
-        <div className="text-muted-foreground ml-auto flex min-w-0 max-w-full items-center justify-end gap-x-3 gap-y-1 text-xs max-sm:w-full max-sm:flex-wrap">
-          {tokenTotal.turns > 0 && (
-            <span title="agent 循环轮次（模型调用次数）" className="tabular-nums">
-              {tokenTotal.turns} 轮
-            </span>
-          )}
-          {tokenTotal.any && (
-            <span title="input / cache(read) / output tokens" className="min-w-0 truncate tabular-nums">
-              input {fmtTokens(tokenTotal.i)} · cache {fmtTokens(tokenTotal.cr)} · output {fmtTokens(tokenTotal.o)}
-            </span>
-          )}
+        <div className={styles.threadActions}>
+          <Popover>
+            <PopoverTrigger asChild>
+              <button type="button" className={styles.threadAction} title="会话信息" aria-label="会话信息">
+                <CodexEllipsis size={16} />
+              </button>
+            </PopoverTrigger>
+            <PopoverContent align="end" className="w-60 p-3 text-xs">
+              <p className="text-muted-foreground mb-1 font-medium">本会话用量</p>
+              <p className="tabular-nums">
+                {tokenTotal.turns > 0 ? `${tokenTotal.turns} 轮 · ` : ""}
+                {tokenTotal.any
+                  ? `input ${fmtTokens(tokenTotal.i)} · cache ${fmtTokens(tokenTotal.cr)} · output ${fmtTokens(tokenTotal.o)}`
+                  : "暂无用量"}
+              </p>
+            </PopoverContent>
+          </Popover>
+          <a className={styles.threadAction} href="/system/settings/" title="设置" aria-label="设置">
+            <CodexGear size={16} />
+          </a>
+          <button
+            type="button"
+            className={styles.threadAction}
+            title="显示/隐藏面板"
+            aria-label="显示/隐藏面板"
+            onClick={toggleSidebar}
+          >
+            <CodexSidebar size={16} />
+          </button>
         </div>
       </div>
 
       <ApprovalExecutionFocus focus={approvalFocus} history={focusHistory} />
 
-      {/* messages */}
+      {/* 消息滚动区：转录列 768px 居中、padding 0 16px 32px */}
       <ScrollArea type="auto" className="min-h-0 min-w-0 flex-1 [&_[data-slot=scroll-area-viewport]>div]:block!">
-        {/* Codex 实测：转录列 768px 居中，padding 0 16px 32px（顶部不留白，滚动区内已含） */}
-        <div className="mx-auto w-full min-w-0 max-w-[768px] px-4 pt-0 pb-8" ref={contentRef}>
+        <div
+          className={cn(styles.column, styles.transcriptColumn, styles.transcriptViewport)}
+          data-slot="codex-transcript-column"
+          ref={contentRef}
+        >
           {messages.length === 0 && !running ? (
-            <div className="text-muted-foreground py-10 text-center text-sm">
-              开始和「{agent?.name ?? conv.agent_key}」对话
-            </div>
+            <ChatTranscript
+              activity={[]}
+              fetchDetail={fetchDetail}
+              emptyText={`开始和「${agent?.name ?? conv.agent_key}」对话`}
+            />
           ) : (
             <>
-              {hasMore && (
-                <div className="text-muted-foreground/70 pb-2 text-center text-[11px]">向上滚动加载更早的消息…</div>
-              )}
-              <Transcript activity={messages} live={running} chat fetchDetail={fetchDetail} focusedSeq={focusHistory.ready ? approvalFocus.state?.source?.seq : undefined} />
+              {hasMore && <div className={styles.emptyState}>向上滚动加载更早的消息…</div>}
+              <ChatTranscript activity={messages} live={running} fetchDetail={fetchDetail} />
             </>
           )}
+          {/* 底部渐隐：参考端 915×32 sticky 贴底 */}
+          <div className={styles.transcriptFade} aria-hidden="true" />
         </div>
       </ScrollArea>
 
-      {/* Codex 实测：输入区与转录同列（768px、水平 16px、底部 16px，sticky 贴底） */}
-      <div className="sticky bottom-0 mx-auto w-full max-w-[768px] px-4 pb-4">
+      {/* 输入区列：768px、padding 0 16px 16px（sticky 贴底） */}
+      <div
+        className={cn(styles.composerColumn, styles.composerColumnConversation, styles.column)}
+        data-slot="codex-composer-column"
+      >
         <Composer
           value={input}
           onChange={setInput}
           onSend={send}
           disabled={running || sending}
           allowBtw
-          placeholder={running ? "Agent 正在回复，可输入 /btw 提问…" : "输入消息，@ 引用记录，Enter 发送"}
+          placeholder={running ? "Agent 正在回复，可输入 /btw 提问…" : "随心输入"}
           running={running}
           onStop={stop}
           stopDisabled={stopping}
@@ -920,9 +981,11 @@ const ConversationItem = React.memo(function ConversationItem({
 
   return (
     <div
+      data-codex-history-item
+      data-active={active ? "true" : undefined}
       className={cn(
-        "group flex min-w-0 items-center gap-1 rounded-md pr-1 transition-colors",
-        active ? "bg-accent text-accent-foreground" : "hover:bg-accent/50",
+        "codex-history-item group flex min-w-0 items-center gap-1 rounded-md pr-0.5 transition-colors",
+        active ? "bg-[rgb(255_255_255_/_0.08)] text-foreground" : "hover:bg-[rgb(255_255_255_/_0.05)]",
       )}
     >
       {selectionMode && (
@@ -957,11 +1020,11 @@ const ConversationItem = React.memo(function ConversationItem({
           onClick={() => onSelect(conv.id)}
           onDoubleClick={() => onStartRename(conv)}
           title="双击重命名"
-          className="min-w-0 flex-1 rounded-md px-2 py-1.5 text-left"
+          className="codex-history-item-button min-w-0 flex-1 rounded-md px-2 py-1.5 text-left"
         >
           <div className="flex min-w-0 items-center gap-1.5">
             {pinned && <PinIcon className="text-primary size-3 shrink-0" aria-label="已置顶" />}
-            <div className="truncate text-sm">{conv.title || "新对话"}</div>
+            <div className="codex-history-item-title truncate text-sm">{conv.title || "新对话"}</div>
             {conv.running ? (
               <Badge variant="secondary" className="shrink-0 gap-1" title="Agent 正在运行">
                 <Spinner className="size-3" aria-hidden="true" />
@@ -969,7 +1032,7 @@ const ConversationItem = React.memo(function ConversationItem({
               </Badge>
             ) : null}
           </div>
-          <div className="text-muted-foreground flex min-w-0 items-center gap-1 text-[11px]">
+          <div className="codex-history-item-meta text-muted-foreground flex min-w-0 items-center gap-1 text-[11px]">
             {showAgent && (
               <>
                 <Bot className="size-3 shrink-0" />
@@ -989,37 +1052,27 @@ const ConversationItem = React.memo(function ConversationItem({
           </div>
         </button>
       )}
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            className="text-muted-foreground shrink-0"
-            aria-label={`管理对话「${conv.title || "新对话"}」`}
-          >
-            <MoreHorizontalIcon />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuGroup>
-            <DropdownMenuItem onSelect={() => onStartRename(conv)}>
-              <PencilIcon />
-              重命名
-            </DropdownMenuItem>
-            <DropdownMenuItem onSelect={() => onTogglePinned(conv)}>
-              {pinned ? <PinOffIcon /> : <PinIcon />}
-              {pinned ? "取消置顶" : "置顶"}
-            </DropdownMenuItem>
-          </DropdownMenuGroup>
-          <DropdownMenuSeparator />
-          <DropdownMenuGroup>
-            <DropdownMenuItem variant="destructive" onSelect={() => setDeleteOpen(true)}>
-              <Trash2Icon />
-              删除
-            </DropdownMenuItem>
-          </DropdownMenuGroup>
-        </DropdownMenuContent>
-      </DropdownMenu>
+      {/* 参考端行尾是 2 个 20×20 图标按钮（置顶 / 删除）；悬停或当前选中时出现。 */}
+      <div className="codex-history-actions flex shrink-0 items-center justify-center">
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          className="codex-history-action text-muted-foreground"
+          aria-label={pinned ? `取消置顶「${conv.title || "新对话"}」` : `置顶「${conv.title || "新对话"}」`}
+          onClick={() => onTogglePinned(conv)}
+        >
+          {pinned ? <PinOffIcon /> : <PinIcon />}
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          className="codex-history-action text-muted-foreground hover:text-destructive"
+          aria-label={`删除对话「${conv.title || "新对话"}」`}
+          onClick={() => setDeleteOpen(true)}
+        >
+          <Trash2Icon />
+        </Button>
+      </div>
       <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -1056,7 +1109,7 @@ function AgentGroupHeader({
       aria-expanded={!collapsed}
       title={collapsed ? `展开「${group.name}」` : `收起「${group.name}」`}
       className={cn(
-        "sticky top-0 z-10 flex min-w-0 items-center gap-1.5 rounded-md bg-card px-1.5 py-1 text-left font-medium text-[11px] transition-colors hover:bg-accent/50",
+        "codex-history-agent-header sticky top-0 z-10 flex min-w-0 items-center gap-1.5 rounded-md bg-[rgb(30_30_30)] px-1.5 py-1 text-left font-medium text-[11px] transition-colors hover:bg-[rgb(38_38_38)]",
         collapsed && hasActive ? "text-foreground" : "text-muted-foreground",
       )}
     >
@@ -1403,23 +1456,24 @@ export default function ChatPage() {
         {/* left: conversation list */}
         {listSlot
           ? createPortal(
-              <div className="bg-card flex min-h-0 flex-col overflow-hidden border-r">
-          <div className="flex flex-col gap-2 border-b p-2">
-            {/* Codex 实测：新聊天是「图标 + 文字」的行，无实心填充（14px / 次要色） */}
+              <div className="codex-history-root flex min-h-0 flex-col overflow-hidden">
+          <div className="codex-history-toolbar flex flex-col gap-2 border-b p-2">
+            {/* Codex 实测：新聊天是「图标 + 文字」的行 —— 272×30、圆角 12.5px、
+                底色 rgba(255,255,255,.08)、文字 13px/430 且为**白 85%**（不是次要色 49.8%） */}
             <Button
               size="sm"
               variant="ghost"
-              className="text-muted-foreground hover:text-foreground w-full justify-start font-normal"
+              className="codex-history-new-chat w-full justify-start font-normal text-[color:var(--codex-text-strong)] hover:text-foreground"
               onClick={() => selectConversation(null)}
             >
-              <PlusIcon data-icon="inline-start" /> 新建对话
+              <CodexPlus data-icon="inline-start" size={14} /> 新聊天
             </Button>
             <Select
               value={agentFilter === null ? "all" : `agent:${agentFilter}`}
               onValueChange={(value) => changeAgentFilter(value === "all" ? null : value.slice(6))}
               disabled={bulkDeleting}
             >
-              <SelectTrigger size="sm" className="w-full min-w-0" aria-label="按 Agent 筛选对话">
+              <SelectTrigger size="sm" className="codex-history-agent-filter w-full min-w-0" aria-label="按 Agent 筛选对话">
                 <Bot />
                 <SelectValue placeholder="全部 Agent" />
               </SelectTrigger>
@@ -1436,7 +1490,7 @@ export default function ChatPage() {
             </Select>
             {convs.length > 0 &&
               (selectionMode ? (
-                <div className="flex items-center gap-2 px-1">
+                <div className="codex-history-secondary-controls flex items-center gap-2 px-1">
                   <Checkbox
                     checked={conversationHeaderChecked}
                     onCheckedChange={(checked) => toggleAllConversations(checked === true)}
@@ -1462,7 +1516,7 @@ export default function ChatPage() {
                   </Button>
                 </div>
               ) : (
-                <div className="flex items-center gap-2 px-1">
+                <div className="codex-history-secondary-controls flex items-center gap-2 px-1">
                   <span className="text-muted-foreground min-w-0 flex-1 text-xs tabular-nums">
                     {conversationCountLabel}
                   </span>
@@ -1482,9 +1536,15 @@ export default function ChatPage() {
           <ScrollArea
             key={agentFilter === null ? "all" : `agent:${agentFilter}`}
             type="auto"
-            className="min-h-0 min-w-0 flex-1 [&_[data-slot=scroll-area-viewport]>div]:block!"
+              className="codex-history-scroll min-h-0 min-w-0 flex-1 [&_[data-slot=scroll-area-viewport]>div]:block!"
           >
-            <div className="flex min-w-0 flex-col gap-0.5 p-2">
+            <div className="codex-history-list flex min-w-0 flex-col gap-0.5 p-2">
+              <div className="codex-history-section-label">项目</div>
+              <div className="codex-history-no-project">没有项目</div>
+              <div className="codex-history-section-label codex-history-recent-label">
+                <span>最近</span>
+                <CodexChevronDown size={16} />
+              </div>
               {filteredConversations.length === 0 && (
                 <p className="text-muted-foreground px-2 py-6 text-center text-xs">
                   {agentFilter === null ? "暂无对话" : "该 Agent 暂无对话"}
@@ -1563,8 +1623,8 @@ export default function ChatPage() {
             )
           : null}
 
-        {/* right: chat view */}
-        <div className="flex min-w-0 flex-col overflow-hidden">
+        {/* right: chat view（styles.scope 提供对话面的官方局部变量） */}
+        <div className={cn(styles.scope, "flex min-w-0 flex-col overflow-hidden")}>
           {selected ? (
             <ChatView
               key={selected.id}

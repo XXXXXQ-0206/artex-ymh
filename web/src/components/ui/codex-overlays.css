@@ -1,0 +1,905 @@
+/* ============================================================================
+ * R5 · 弹层与控件规格（Codex Desktop 1:1）
+ *
+ * 数值出处（可复算）：
+ *   [RT] evidence/codex-desktop/captures/tokens.runtime.json —— 参考端 1280×816 /
+ *        dark / data-codex-window-type=electron 下的**运行时生效值**
+ *   [SH] evidence/codex-desktop/captures/css-pretty/shell-shared.css（官方原文，行号见注释）
+ *   [IN] evidence/codex-desktop/captures/css-pretty/shell-initial.css（官方原文）
+ *   [C6] outputs/codex-style-census/06-codex-dialog.json（参考端实测矩形/计算样式）
+ *   [C4] outputs/codex-style-census/04-codex-settings-view.json（同上）
+ *
+ * 选择器一律写成 [data-slot="x"][data-slot] 这类"双属性"形式：特异性 0,2,0，
+ * 稳定压过 globals.css 的非分层规则（分层 utilities 本来就输给非分层）。
+ * ========================================================================== */
+
+/* ── 1. 浮层开机/退场动画（官方 [IN]4974-4995）────────────────────────────
+ *   entering         : opacity 0 / scale(.95)
+ *   entering-active  : opacity 1 / scale(1)   transition .15s var(--cubic-enter)
+ *   exiting-active   : opacity 0 / scale(.95) transition .1s  var(--cubic-exit)
+ *   Radix 用 data-state=open|closed 表达同一件事，这里落成 keyframes。      */
+@keyframes codex-overlay-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes codex-overlay-out {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+}
+
+[data-slot="dialog-content"][data-slot],
+[data-slot="alert-dialog-content"][data-slot],
+[data-slot="popover-content"][data-slot],
+[data-slot="hover-card-content"][data-slot],
+[data-slot="tooltip-content"][data-slot],
+[data-slot="dropdown-menu-content"][data-slot],
+[data-slot="dropdown-menu-sub-content"][data-slot],
+[data-slot="context-menu-content"][data-slot],
+[data-slot="context-menu-sub-content"][data-slot],
+[data-slot="menubar-content"][data-slot],
+[data-slot="menubar-sub-content"][data-slot],
+[data-slot="select-content"][data-slot],
+[data-slot="command"][data-slot] {
+  animation: codex-overlay-in 0.15s var(--cubic-enter) both;
+}
+
+[data-slot="dialog-content"][data-slot][data-state="closed"],
+[data-slot="alert-dialog-content"][data-slot][data-state="closed"],
+[data-slot="popover-content"][data-slot][data-state="closed"],
+[data-slot="hover-card-content"][data-slot][data-state="closed"],
+[data-slot="tooltip-content"][data-slot][data-state="closed"],
+[data-slot="dropdown-menu-content"][data-slot][data-state="closed"],
+[data-slot="dropdown-menu-sub-content"][data-slot][data-state="closed"],
+[data-slot="context-menu-content"][data-slot][data-state="closed"],
+[data-slot="context-menu-sub-content"][data-slot][data-state="closed"],
+[data-slot="menubar-content"][data-slot][data-state="closed"],
+[data-slot="menubar-sub-content"][data-slot][data-state="closed"],
+[data-slot="select-content"][data-slot][data-state="closed"],
+[data-slot="command"][data-slot][data-state="closed"] {
+  animation: codex-overlay-out 0.1s var(--cubic-exit) both;
+}
+
+/* 遮罩用纯淡入淡出（官方 overlay 只有背景色，没有缩放） */
+@keyframes codex-overlay-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes codex-overlay-fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+[data-slot="dialog-overlay"][data-slot],
+[data-slot="alert-dialog-overlay"][data-slot] {
+  animation: codex-overlay-fade-in 0.15s var(--cubic-enter) both;
+}
+
+[data-slot="dialog-overlay"][data-slot][data-state="closed"],
+[data-slot="alert-dialog-overlay"][data-slot][data-state="closed"] {
+  animation: codex-overlay-fade-out 0.1s var(--cubic-exit) both;
+}
+
+/* data-reduced-motion 分支：官方用 <html data-reduced-motion>，未显式 false 时
+ * 跟随系统 prefers-reduced-motion（与 codex-bridge.css 的语义保持一致）。 */
+html[data-reduced-motion="true"] [data-slot][data-slot],
+html[data-reduced-motion="true"] [data-slot="dialog-overlay"][data-slot],
+html[data-reduced-motion="true"] [data-slot="alert-dialog-overlay"][data-slot] {
+  animation: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html:not([data-reduced-motion="false"]) [data-slot="dialog-content"][data-slot],
+  html:not([data-reduced-motion="false"]) [data-slot="alert-dialog-content"][data-slot],
+  html:not([data-reduced-motion="false"]) [data-slot="popover-content"][data-slot],
+  html:not([data-reduced-motion="false"]) [data-slot="hover-card-content"][data-slot],
+  html:not([data-reduced-motion="false"]) [data-slot="tooltip-content"][data-slot],
+  html:not([data-reduced-motion="false"]) [data-slot="dropdown-menu-content"][data-slot],
+  html:not([data-reduced-motion="false"]) [data-slot="dropdown-menu-sub-content"][data-slot],
+  html:not([data-reduced-motion="false"]) [data-slot="context-menu-content"][data-slot],
+  html:not([data-reduced-motion="false"]) [data-slot="context-menu-sub-content"][data-slot],
+  html:not([data-reduced-motion="false"]) [data-slot="menubar-content"][data-slot],
+  html:not([data-reduced-motion="false"]) [data-slot="menubar-sub-content"][data-slot],
+  html:not([data-reduced-motion="false"]) [data-slot="select-content"][data-slot],
+  html:not([data-reduced-motion="false"]) [data-slot="command"][data-slot],
+  html:not([data-reduced-motion="false"]) [data-slot="dialog-overlay"][data-slot],
+  html:not([data-reduced-motion="false"]) [data-slot="alert-dialog-overlay"][data-slot] {
+    animation: none;
+  }
+}
+
+/* ── 2. 对话框 dialog（官方 600×560 快捷键弹窗实测 [C6]）───────────────────
+ *   容器 600 宽 / 圆角 25px（= --radius-3xl）/ 底色 rgb(45 45 45 / .9) /
+ *   无 ring 无阴影；内边距 20；标题 20·600·28；关闭键 24×24（图标 16，top-4 right-4）；
+ *   遮罩整屏 rgba(0,0,0,.133)、**无** backdrop-blur。                        */
+[data-slot="dialog-overlay"][data-slot],
+[data-slot="alert-dialog-overlay"][data-slot] {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background-color: rgb(0 0 0 / 0.133);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+[data-slot="dialog-content"][data-slot] {
+  width: 600px;
+  max-width: min(600px, calc(100vw - 2rem));
+  padding: 20px;
+  gap: 0;
+  background-color: rgb(45 45 45 / 0.9);
+  border-radius: 25px;
+  corner-shape: superellipse(1);
+  box-shadow: none;
+  --tw-ring-shadow: 0 0 #0000;
+  --tw-inset-ring-shadow: 0 0 #0000;
+}
+
+[data-slot="dialog-title"][data-slot],
+[data-slot="alert-dialog-title"][data-slot] {
+  /* 官方 .heading-dialog = 20px / 28px / -.36px（[SH]2368-2373）。
+     字距按 Lead 裁决：600 宽 dialog 保留 -.36px、alert-dialog 用 normal，
+     由 globals.css 定，这里不覆盖。 */
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 28px;
+}
+
+[data-slot="dialog-description"][data-slot],
+[data-slot="alert-dialog-description"][data-slot] {
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--color-text-secondary, var(--muted-foreground));
+}
+
+/* 关闭键：实测 [C6] 24×24、padding 4、图标 16、圆角 4px、色 白 80%、hover 白 8% 底 */
+[data-slot="dialog-close"][data-slot] {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  width: 1.5rem;
+  height: 1.5rem;
+  min-width: 1.5rem;
+  padding: 0.25rem;
+  border-radius: 4px;
+  background-color: transparent;
+  color: color-mix(in oklab, var(--color-text) 80%, transparent);
+  transition: background-color var(--transition-duration-basic, 0.15s) linear;
+}
+
+[data-slot="dialog-close"][data-slot]:hover {
+  background-color: var(--color-background-primary-ghost-hover, rgb(255 255 255 / 0.078));
+  color: var(--color-text);
+}
+
+[data-slot="dialog-close"][data-slot] svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+/* ── 3. 确认框 alert-dialog（官方 form-dialog 档 [RT]）─────────────────────
+ *   --dialog-min-width 250 / --dialog-max-width 450 / --dialog-radius 15 /
+ *   --dialog-container-inner-padding 20。                                     */
+[data-slot="alert-dialog-content"][data-slot] {
+  width: auto;
+  min-width: var(--dialog-min-width, 250px);
+  max-width: min(var(--dialog-max-width, 450px), calc(100vw - 2rem));
+  padding: var(--dialog-container-inner-padding, 20px);
+  background-color: rgb(45 45 45 / 0.9);
+  border-radius: var(--dialog-radius, 15px);
+  corner-shape: superellipse(1);
+  box-shadow: none;
+  --tw-ring-shadow: 0 0 #0000;
+  --tw-inset-ring-shadow: 0 0 #0000;
+}
+
+[data-slot="alert-dialog-description"][data-slot] {
+  text-wrap: pretty;
+}
+
+/* ── 4. 菜单族（dropdown / context / menubar / select / command）───────────
+ *   官方 _MenuList_[IN]4938-4958 与 _MenuItem_[IN]4999-5059 + 运行时 token：
+ *     容器 padding var(--menu-gutter)=4 / 圆角 var(--menu-radius)=20 /
+ *          底色 var(--menu-background-color)=rgb(45,45,45) /
+ *          阴影 0 0 0 .5px rgba(255,255,255,.084), 0 8px 16px -4px #0000001f /
+ *          backdrop-filter: var(--menu-backdrop-filter, none) → 运行时该 token 不存在 = none
+ *          字号 var(--menu-font-size)=13px / 行高 calc(1.25/.875)
+ *     条目 padding var(--menu-item-padding)=5px 8px / 圆角 var(--menu-item-radius)=15 /
+ *          gap var(--menu-item-gap)=6 / 高亮是 ::before 缩放 .98→1（.15s cubic-enter）
+ *     分隔线 height 1 / margin var(--menu-separator-gutter)=4px 8px             */
+[data-slot="dropdown-menu-content"][data-slot],
+[data-slot="dropdown-menu-sub-content"][data-slot],
+[data-slot="context-menu-content"][data-slot],
+[data-slot="context-menu-sub-content"][data-slot],
+[data-slot="menubar-content"][data-slot],
+[data-slot="menubar-sub-content"][data-slot],
+[data-slot="select-content"][data-slot] {
+  z-index: 50;
+  min-width: 8rem;
+  padding: var(--menu-gutter, 4px);
+  /* 参考端实测（ref-capture captures/views-model-picker.json / views-permission-menu.json）：
+     应用内的 radix 弹层 = rgba(45,45,45,.9) + backdrop-filter blur(8px)，圆角 20px、padding 4px。
+     token --menu-background-color 本身是不透明的 rgb(45,45,45)（那是 _MenuList_ 用的），
+     两者取实测渲染值 —— 半透明 + 模糊才是屏幕上看到的样子。 */
+  background-color: rgb(45 45 45 / 0.9);
+  color: var(--color-text);
+  border-radius: var(--menu-radius, 20px);
+  corner-shape: var(--menu-corner-shape, round);
+  box-shadow: var(--menu-box-shadow);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  font-size: var(--menu-font-size, 13px);
+  line-height: var(--menu-line-height, calc(1.25 / 0.875));
+  overflow: auto;
+  --tw-ring-shadow: 0 0 #0000;
+  --tw-inset-ring-shadow: 0 0 #0000;
+}
+
+[data-slot="dropdown-menu-content"][data-slot] {
+  transform-origin: var(--radix-dropdown-menu-content-transform-origin);
+}
+
+[data-slot="context-menu-content"][data-slot] {
+  transform-origin: var(--radix-context-menu-content-transform-origin);
+}
+
+[data-slot="menubar-content"][data-slot] {
+  transform-origin: var(--radix-menubar-content-transform-origin);
+}
+
+[data-slot="select-content"][data-slot] {
+  transform-origin: var(--radix-select-content-transform-origin);
+}
+
+[data-slot="dropdown-menu-sub-content"][data-slot],
+[data-slot="context-menu-sub-content"][data-slot],
+[data-slot="menubar-sub-content"][data-slot] {
+  box-shadow: var(--menu-box-shadow);
+}
+
+/* 条目本体 */
+[data-slot="dropdown-menu-item"][data-slot],
+[data-slot="dropdown-menu-checkbox-item"][data-slot],
+[data-slot="dropdown-menu-radio-item"][data-slot],
+[data-slot="dropdown-menu-sub-trigger"][data-slot],
+[data-slot="context-menu-item"][data-slot],
+[data-slot="context-menu-checkbox-item"][data-slot],
+[data-slot="context-menu-radio-item"][data-slot],
+[data-slot="context-menu-sub-trigger"][data-slot],
+[data-slot="menubar-item"][data-slot],
+[data-slot="menubar-checkbox-item"][data-slot],
+[data-slot="menubar-radio-item"][data-slot],
+[data-slot="menubar-sub-trigger"][data-slot],
+[data-slot="select-item"][data-slot],
+[data-slot="command-item"][data-slot] {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  align-items: center;
+  gap: var(--menu-item-gap, 6px);
+  padding: var(--menu-item-padding, 5px 8px);
+  border-radius: var(--menu-item-radius, 15px);
+  color: var(--color-text);
+  font-size: var(--menu-font-size, 13px);
+  font-weight: var(--font-ui-weight, 430);
+  line-height: var(--menu-line-height, calc(1.25 / 0.875));
+  cursor: pointer;
+  user-select: none;
+  outline: none;
+}
+
+/* 官方高亮 = ::before 圆角块从 .98 放大到 1（[IN]5019-5049） */
+[data-slot="dropdown-menu-item"][data-slot]::before,
+[data-slot="dropdown-menu-checkbox-item"][data-slot]::before,
+[data-slot="dropdown-menu-radio-item"][data-slot]::before,
+[data-slot="dropdown-menu-sub-trigger"][data-slot]::before,
+[data-slot="context-menu-item"][data-slot]::before,
+[data-slot="context-menu-checkbox-item"][data-slot]::before,
+[data-slot="context-menu-radio-item"][data-slot]::before,
+[data-slot="context-menu-sub-trigger"][data-slot]::before,
+[data-slot="menubar-item"][data-slot]::before,
+[data-slot="menubar-checkbox-item"][data-slot]::before,
+[data-slot="menubar-radio-item"][data-slot]::before,
+[data-slot="menubar-sub-trigger"][data-slot]::before,
+[data-slot="select-item"][data-slot]::before,
+[data-slot="command-item"][data-slot]::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: var(--menu-item-radius, 15px);
+  corner-shape: var(--menu-corner-shape, round);
+  background-color: var(--menu-item-background-color, rgb(255 255 255 / 0.078));
+  opacity: 0;
+  transform: scale(0.98);
+  transition:
+    opacity var(--transition-duration-basic, 0.15s) linear,
+    transform var(--transition-duration-basic, 0.15s) var(--cubic-enter);
+  pointer-events: none;
+}
+
+/* 内容必须盖在高亮块之上（官方用 ._PressableInner_{position:relative}） */
+[data-slot="dropdown-menu-item"][data-slot] > *,
+[data-slot="dropdown-menu-checkbox-item"][data-slot] > *,
+[data-slot="dropdown-menu-radio-item"][data-slot] > *,
+[data-slot="dropdown-menu-sub-trigger"][data-slot] > *,
+[data-slot="context-menu-item"][data-slot] > *,
+[data-slot="context-menu-checkbox-item"][data-slot] > *,
+[data-slot="context-menu-radio-item"][data-slot] > *,
+[data-slot="context-menu-sub-trigger"][data-slot] > *,
+[data-slot="menubar-item"][data-slot] > *,
+[data-slot="menubar-checkbox-item"][data-slot] > *,
+[data-slot="menubar-radio-item"][data-slot] > *,
+[data-slot="menubar-sub-trigger"][data-slot] > *,
+[data-slot="select-item"][data-slot] > *,
+[data-slot="command-item"][data-slot] > * {
+  position: relative;
+}
+
+[data-slot="dropdown-menu-item"][data-slot][data-highlighted]::before,
+[data-slot="dropdown-menu-item"][data-slot]:hover::before,
+[data-slot="dropdown-menu-item"][data-slot][data-state="open"]::before,
+[data-slot="dropdown-menu-checkbox-item"][data-slot][data-highlighted]::before,
+[data-slot="dropdown-menu-checkbox-item"][data-slot]:hover::before,
+[data-slot="dropdown-menu-radio-item"][data-slot][data-highlighted]::before,
+[data-slot="dropdown-menu-radio-item"][data-slot]:hover::before,
+[data-slot="dropdown-menu-sub-trigger"][data-slot][data-highlighted]::before,
+[data-slot="dropdown-menu-sub-trigger"][data-slot]:hover::before,
+[data-slot="dropdown-menu-sub-trigger"][data-slot][data-state="open"]::before,
+[data-slot="context-menu-item"][data-slot][data-highlighted]::before,
+[data-slot="context-menu-item"][data-slot]:hover::before,
+[data-slot="context-menu-checkbox-item"][data-slot][data-highlighted]::before,
+[data-slot="context-menu-checkbox-item"][data-slot]:hover::before,
+[data-slot="context-menu-radio-item"][data-slot][data-highlighted]::before,
+[data-slot="context-menu-radio-item"][data-slot]:hover::before,
+[data-slot="context-menu-sub-trigger"][data-slot][data-highlighted]::before,
+[data-slot="context-menu-sub-trigger"][data-slot]:hover::before,
+[data-slot="context-menu-sub-trigger"][data-slot][data-state="open"]::before,
+[data-slot="menubar-item"][data-slot][data-highlighted]::before,
+[data-slot="menubar-item"][data-slot]:hover::before,
+[data-slot="menubar-checkbox-item"][data-slot][data-highlighted]::before,
+[data-slot="menubar-checkbox-item"][data-slot]:hover::before,
+[data-slot="menubar-radio-item"][data-slot][data-highlighted]::before,
+[data-slot="menubar-radio-item"][data-slot]:hover::before,
+[data-slot="menubar-sub-trigger"][data-slot][data-highlighted]::before,
+[data-slot="menubar-sub-trigger"][data-slot]:hover::before,
+[data-slot="menubar-sub-trigger"][data-slot][data-state="open"]::before,
+[data-slot="select-item"][data-slot][data-highlighted]::before,
+[data-slot="select-item"][data-slot]:hover::before,
+[data-slot="select-item"][data-slot][data-state="checked"]::before,
+[data-slot="command-item"][data-slot][data-selected="true"]::before,
+[data-slot="command-item"][data-slot]:hover::before {
+  opacity: 1;
+  transform: scale(1);
+}
+
+[data-slot="dropdown-menu-item"][data-slot]:active::before,
+[data-slot="context-menu-item"][data-slot]:active::before,
+[data-slot="menubar-item"][data-slot]:active::before,
+[data-slot="select-item"][data-slot]:active::before,
+[data-slot="command-item"][data-slot]:active::before {
+  transform: scale(0.98);
+}
+
+/* 危险项：官方 --color-background-danger-soft-alpha + --color-text-danger-soft */
+[data-slot="dropdown-menu-item"][data-slot][data-variant="destructive"]::before,
+[data-slot="context-menu-item"][data-slot][data-variant="destructive"]::before,
+[data-slot="menubar-item"][data-slot][data-variant="destructive"]::before {
+  background-color: color-mix(in oklab, var(--red-400, #fa423e) 50%, transparent);
+}
+
+/* 条目禁用：官方 opacity .5 且不显示高亮块 */
+[data-slot="dropdown-menu-item"][data-slot][data-disabled],
+[data-slot="context-menu-item"][data-slot][data-disabled],
+[data-slot="menubar-item"][data-slot][data-disabled],
+[data-slot="select-item"][data-slot][data-disabled],
+[data-slot="command-item"][data-slot][data-disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+[data-slot="dropdown-menu-item"][data-slot][data-disabled]::before,
+[data-slot="context-menu-item"][data-slot][data-disabled]::before,
+[data-slot="menubar-item"][data-slot][data-disabled]::before,
+[data-slot="select-item"][data-slot][data-disabled]::before,
+[data-slot="command-item"][data-slot][data-disabled]::before {
+  display: none;
+}
+
+/* 分组标签 / 快捷键 / 子菜单箭头 */
+[data-slot="dropdown-menu-label"][data-slot],
+[data-slot="context-menu-label"][data-slot],
+[data-slot="menubar-label"][data-slot],
+[data-slot="select-label"][data-slot],
+[data-slot="command-group"] [cmdk-group-heading] {
+  padding: var(--menu-item-content-padding, 4px 8px);
+  color: var(--color-text-tertiary, var(--muted-foreground));
+  font-size: var(--menu-font-size, 13px);
+  font-weight: var(--font-ui-weight, 430);
+}
+
+[data-slot="dropdown-menu-shortcut"][data-slot],
+[data-slot="context-menu-shortcut"][data-slot],
+[data-slot="menubar-shortcut"][data-slot],
+[data-slot="command-shortcut"][data-slot] {
+  color: var(--color-text-tertiary, var(--muted-foreground));
+  font-size: 12px;
+  font-weight: var(--font-ui-weight, 430);
+  letter-spacing: 0.6px;
+}
+
+[data-slot="dropdown-menu-separator"][data-slot],
+[data-slot="context-menu-separator"][data-slot],
+[data-slot="menubar-separator"][data-slot],
+[data-slot="select-separator"][data-slot],
+[data-slot="command-separator"][data-slot] {
+  height: 1px;
+  margin: var(--menu-separator-gutter, 4px 8px);
+  background-color: var(--menu-separator-background-color, var(--color-border));
+}
+
+/* 子菜单箭头：官方 ._SubTriggerIcon_ opacity .75 / margin-right -2px */
+[data-slot="dropdown-menu-sub-trigger"][data-slot] > svg:last-child,
+[data-slot="context-menu-sub-trigger"][data-slot] > svg:last-child,
+[data-slot="menubar-sub-trigger"][data-slot] > svg:last-child {
+  opacity: 0.75;
+  margin-right: -2px;
+}
+
+[data-slot="dropdown-menu-sub-trigger"][data-slot][data-state="open"] > svg:last-child,
+[data-slot="dropdown-menu-sub-trigger"][data-slot][data-highlighted] > svg:last-child,
+[data-slot="context-menu-sub-trigger"][data-slot][data-state="open"] > svg:last-child,
+[data-slot="context-menu-sub-trigger"][data-slot][data-highlighted] > svg:last-child,
+[data-slot="menubar-sub-trigger"][data-slot][data-state="open"] > svg:last-child,
+[data-slot="menubar-sub-trigger"][data-slot][data-highlighted] > svg:last-child {
+  opacity: 1;
+}
+
+/* 菜单里的勾选指示器：官方 --menu-checkbox-indicator-size = 16 /
+ * --menu-radio-indicator-size = 18 / 圆点 8（[RT] + [IN]）*/
+[data-slot="dropdown-menu-checkbox-item"] > span:first-child,
+[data-slot="context-menu-checkbox-item"] > span:first-child,
+[data-slot="menubar-checkbox-item"] > span:first-child {
+  width: var(--menu-checkbox-indicator-size, 16px);
+  height: var(--menu-checkbox-indicator-size, 16px);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ── 5. popover / hover-card（官方 --popover-radius = 15px + 抬升表面）───── */
+[data-slot="popover-content"][data-slot],
+[data-slot="hover-card-content"][data-slot] {
+  z-index: 50;
+  padding: var(--menu-gutter, 4px);
+  /* 同菜单：实测 rgba(45,45,45,.9) + blur(8px) */
+  background-color: rgb(45 45 45 / 0.9);
+  color: var(--color-text);
+  border-radius: var(--popover-radius, 20px);
+  corner-shape: var(--menu-corner-shape, round);
+  box-shadow: var(--menu-box-shadow);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  font-size: var(--menu-font-size, 13px);
+  line-height: var(--menu-line-height, calc(1.25 / 0.875));
+  outline: none;
+  --tw-ring-shadow: 0 0 #0000;
+  --tw-inset-ring-shadow: 0 0 #0000;
+}
+
+[data-slot="popover-content"][data-slot] {
+  transform-origin: var(--radix-popover-content-transform-origin);
+}
+
+[data-slot="hover-card-content"][data-slot] {
+  transform-origin: var(--radix-hover-card-content-transform-origin);
+}
+
+/* ── 6. tooltip（官方 ._Tooltip_ [SH]771-808 + [RT]）──────────────────────
+ *   圆角 --tooltip-border-radius=10 / 底 rgba(54,54,54,.96) / 字 #dfdfdf /
+ *   14px / normal / 1.45 / padding 8px 12px / 阴影 var(--tooltip-box-shadow)。 */
+[data-slot="tooltip-content"][data-slot] {
+  z-index: 50;
+  padding: var(--tooltip-padding-sm, 8px 12px);
+  background-color: var(--tooltip-background-color, rgb(54 54 54 / 0.96));
+  color: var(--color-text);
+  border-radius: var(--tooltip-border-radius, 10px);
+  corner-shape: var(--menu-corner-shape, round);
+  box-shadow: var(--tooltip-box-shadow);
+  font-size: var(--tooltip-font-size, 0.875rem);
+  font-weight: var(--tooltip-font-weight, 400);
+  line-height: var(--tooltip-line-height, 1.45);
+  transform-origin: var(--radix-tooltip-content-transform-origin);
+}
+
+[data-slot="tooltip-content"][data-slot] [data-slot="kbd"] {
+  background-color: rgb(255 255 255 / 0.1);
+  color: var(--color-text);
+}
+
+/* ── 7. kbd（官方快捷键胶囊实测 [C6]）──────────────────────────────────────
+ *   48×16（按内容宽）· 圆角 10 · 白 10% 底 · 12px / 430 / 行高 12 · padding 2px 6px。 */
+[data-slot="kbd"][data-slot] {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  height: 1rem;
+  min-width: 0;
+  width: fit-content;
+  padding: 2px 6px;
+  border: 0;
+  border-radius: 10px;
+  background-color: rgb(255 255 255 / 0.1);
+  box-shadow: none;
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: var(--font-ui-weight, 430);
+  line-height: 12px;
+  letter-spacing: normal;
+  pointer-events: none;
+  user-select: none;
+}
+
+[data-slot="kbd"][data-slot] svg {
+  width: 0.75rem;
+  height: 0.75rem;
+}
+
+/* ── 8. 控件：switch / checkbox / radio / slider ──────────────────────────
+ *   官方组件原文（[IN] 的 ._SwitchIndicator_ / ._SwitchThumb_ / ._Checkbox_ /
+ *   ._RadioIndicator_）+ 运行时 token [RT]。                                  */
+[data-slot="switch"][data-slot] {
+  position: relative;
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  width: var(--switch-track-width, 32px);
+  height: var(--switch-track-height, 19px);
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-full, 9999px);
+  corner-shape: round;
+  background-color: var(--switch-track-color);
+  transition: background-color 0.175s linear 50ms;
+  cursor: pointer;
+  outline: none;
+}
+
+[data-slot="switch"][data-slot]:hover {
+  background-color: var(--switch-track-color-hover);
+}
+
+[data-slot="switch"][data-slot][data-state="checked"] {
+  background-color: var(--switch-track-color-checked, #339cff);
+}
+
+[data-slot="switch"][data-slot][data-disabled] {
+  background-color: var(--switch-track-color-disabled);
+  cursor: not-allowed;
+}
+
+[data-slot="switch"][data-slot]:focus-visible {
+  outline: 2px solid var(--color-ring, #339cff);
+  outline-offset: 2px;
+}
+
+[data-slot="switch-thumb"][data-slot] {
+  position: absolute;
+  top: var(--switch-thumb-offset, 3px);
+  inset-inline-start: var(--switch-thumb-offset, 3px);
+  width: var(--switch-thumb-size, 13px);
+  height: var(--switch-thumb-size, 13px);
+  border-radius: var(--radius-full, 9999px);
+  background-color: var(--switch-thumb-color, #fff);
+  box-shadow: var(--switch-thumb-shadow, 0 1px 2px #0003);
+  transition: inset-inline-start 0.25s var(--cubic-move, cubic-bezier(0.65, 0, 0.35, 1));
+  transform: none;
+}
+
+[data-slot="switch"][data-slot][data-state="checked"] [data-slot="switch-thumb"] {
+  inset-inline-start: calc(
+    var(--switch-track-width, 32px) - var(--switch-thumb-size, 13px) - var(--switch-thumb-offset, 3px)
+  );
+}
+
+/* checkbox：官方 ._Checkbox_ = 18×18 / 圆角 --radius-xs=5 / 边框 gray-500 /
+ * 选中 gray-900（dark = #ededed）底 + gray-0（dark = #0d0d0d）勾 */
+[data-slot="checkbox"][data-slot] {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  max-width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  padding: 0;
+  border: 1px solid var(--gray-500, #5d5d5d);
+  border-radius: var(--radius-xs, 5px);
+  background-color: transparent;
+  transition:
+    border-color 0.15s,
+    background-color 0.15s;
+  cursor: pointer;
+  outline: none;
+}
+
+[data-slot="checkbox"][data-slot]:hover {
+  border-color: var(--gray-600, #8f8f8f);
+}
+
+[data-slot="checkbox"][data-slot][data-state="checked"],
+[data-slot="checkbox"][data-slot][data-state="indeterminate"] {
+  border-color: var(--gray-900, #ededed);
+  background-color: var(--gray-900, #ededed);
+  color: var(--gray-0, #0d0d0d);
+}
+
+[data-slot="checkbox"][data-slot]:focus-visible {
+  outline: 2px solid var(--color-ring, #339cff);
+  outline-offset: 2px;
+}
+
+[data-slot="checkbox"][data-slot] svg {
+  width: 0.75rem;
+  height: 0.75rem;
+  stroke-width: 2.5;
+}
+
+/* radio：官方 --radio-group-indicator-size=1rem / 边框白 15.6% /
+ * 选中底 #dfdfdf + 圆点 6px（深灰） */
+[data-slot="radio-group"][data-slot] {
+  display: grid;
+  gap: var(--radio-group-row-gap, 20px);
+}
+
+[data-slot="radio-group-item"][data-slot] {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--radio-group-indicator-size, 1rem);
+  height: var(--radio-group-indicator-size, 1rem);
+  flex-shrink: 0;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-full, 9999px);
+  background-color: transparent;
+  box-shadow: 0 0 0 1px var(--radio-group-indicator-border-color, rgb(255 255 255 / 0.156)) inset;
+  cursor: pointer;
+  outline: none;
+}
+
+[data-slot="radio-group-item"][data-slot]:hover {
+  box-shadow: 0 0 0 1px var(--alpha-25, rgb(255 255 255 / 0.25)) inset;
+}
+
+[data-slot="radio-group-item"][data-slot][data-state="checked"] {
+  background-color: var(--radio-group-indicator-background-color, #dfdfdf);
+  box-shadow: none;
+}
+
+[data-slot="radio-group-item"][data-slot]:focus-visible {
+  outline: 2px solid var(--color-ring, #339cff);
+  outline-offset: 2px;
+}
+
+[data-slot="radio-group-indicator"][data-slot] span {
+  width: var(--radio-group-indicator-hole-size, 0.375rem);
+  height: var(--radio-group-indicator-hole-size, 0.375rem);
+  border-radius: var(--radius-full, 9999px);
+  background-color: var(--radio-group-indicator-hole-background-color, rgb(45 45 45));
+}
+
+/* slider：官方 --slider-track-color=#414141 / --slider-range-color=#8f8f8f */
+[data-slot="slider-track"][data-slot] {
+  height: 4px;
+  border-radius: var(--radius-full, 9999px);
+  background-color: var(--slider-track-color, #414141);
+}
+
+[data-slot="slider-range"][data-slot] {
+  background-color: var(--slider-range-color, #8f8f8f);
+}
+
+[data-slot="slider-thumb"][data-slot] {
+  width: 12px;
+  height: 12px;
+  border: 0;
+  border-radius: var(--radius-full, 9999px);
+  background-color: var(--color-background-primary-solid, #dfdfdf);
+  box-shadow: var(--switch-thumb-shadow, 0 1px 2px #0003);
+}
+
+[data-slot="slider-thumb"][data-slot]:focus-visible {
+  outline: 2px solid var(--color-ring, #339cff);
+  outline-offset: 2px;
+}
+
+/* ── 9. select 触发器 / input / textarea（官方 outline 控件语法）───────────
+ *   --input-outline-border-color = rgba(255,255,255,.156)
+ *   --color-background-primary-outline-hover = #dfdfdf 4% / focus border 白 30%
+ *   --select-control-font-weight = 500 / --control-font-size-sm = 12px        */
+[data-slot="select-trigger"][data-slot] {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--control-gutter-2xs, 0.375rem);
+  width: fit-content;
+  height: var(--control-size-md, 2rem);
+  padding: 0 var(--control-gutter-2xs, 0.375rem) 0 var(--control-gutter-sm, 0.625rem);
+  border: 1px solid var(--color-border-primary-outline, rgb(255 255 255 / 0.156));
+  border-radius: var(--control-radius-md, 10px);
+  background-color: transparent;
+  color: var(--color-text);
+  font-size: var(--text-base, 14px);
+  font-weight: var(--select-control-font-weight, 500);
+  line-height: 1;
+  white-space: nowrap;
+  outline: none;
+  transition:
+    background-color var(--transition-duration-basic, 0.15s) linear,
+    border-color var(--transition-duration-basic, 0.15s) linear;
+}
+
+[data-slot="select-trigger"][data-slot]:hover {
+  background-color: var(--color-background-primary-outline-hover, rgb(223 223 223 / 0.04));
+}
+
+[data-slot="select-trigger"][data-slot][data-state="open"] {
+  background-color: var(--color-background-primary-outline-active, rgb(223 223 223 / 0.06));
+}
+
+[data-slot="select-trigger"][data-slot]:focus-visible {
+  border-color: var(--color-border-primary-outline-hover, rgb(255 255 255 / 0.3));
+}
+
+/* 下拉条目右侧要给勾选指示器留位（官方 --menu-item-extra-padding-end 的用法） */
+[data-slot="select-item"][data-slot] {
+  padding-right: 1.625rem;
+}
+
+[data-slot="select-value"][data-slot] {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+[data-slot="input"][data-slot],
+[data-slot="textarea"][data-slot] {
+  border: 1px solid var(--input-outline-border-color, rgb(255 255 255 / 0.156));
+  border-radius: var(--control-radius-sm, 7.5px);
+  background-color: transparent;
+  color: var(--color-text);
+  font-size: var(--text-base, 14px);
+  font-weight: var(--font-ui-weight, 430);
+  outline: none;
+  transition:
+    border-color var(--transition-duration-basic, 0.15s) linear,
+    background-color var(--transition-duration-basic, 0.15s) linear;
+}
+
+[data-slot="input"][data-slot] {
+  height: var(--control-size-md, 2rem);
+  padding: 0 var(--control-gutter-sm, 0.625rem);
+}
+
+[data-slot="input"][data-slot]:hover,
+[data-slot="textarea"][data-slot]:hover {
+  border-color: var(--input-outline-border-color-hover, rgb(255 255 255 / 0.2));
+}
+
+[data-slot="input"][data-slot]:focus-visible,
+[data-slot="textarea"][data-slot]:focus-visible {
+  border-color: var(--input-outline-border-color-focus, rgb(255 255 255 / 0.3));
+}
+
+[data-slot="input"][data-slot]::placeholder,
+[data-slot="textarea"][data-slot]::placeholder {
+  color: var(--input-placeholder-text-color, var(--color-text-tertiary));
+}
+
+/* ── 10. command palette（官方 --command-menu-* [RT]）──────────────────────
+ *   --command-menu-list-max-height = min(440px, max(120px, 90vh - 64px))
+ *   --command-menu-max-height      = list + 64px                              */
+/* 命令面板挂在 dialog 里：外层让位，视觉全交给 [data-slot=command] */
+[data-slot="dialog-content"][data-slot]:has(> [data-slot="command"]) {
+  padding: 0;
+  background-color: transparent;
+  border-radius: var(--menu-radius, 20px);
+  box-shadow: none;
+}
+
+[data-slot="command"][data-slot] {
+  width: 600px;
+  max-width: min(600px, calc(100vw - 2rem));
+  max-height: var(--command-menu-max-height, calc(min(440px, max(120px, 90vh - 64px)) + 64px));
+  padding: var(--menu-gutter, 4px);
+  gap: 0;
+  background-color: var(--menu-background-color, rgb(45 45 45));
+  color: var(--color-text);
+  border-radius: var(--menu-radius, 20px);
+  corner-shape: var(--menu-corner-shape, round);
+  box-shadow: var(--menu-box-shadow);
+  font-size: var(--menu-font-size, 13px);
+  outline: none;
+  --tw-ring-shadow: 0 0 #0000;
+  --tw-inset-ring-shadow: 0 0 #0000;
+}
+
+[data-slot="command-input-wrapper"][data-slot] {
+  height: 40px;
+  padding: 0 8px;
+  gap: 8px;
+  border-bottom: 1px solid var(--color-border, rgb(255 255 255 / 0.084));
+}
+
+[data-slot="command-input"][data-slot] {
+  height: 100%;
+  background-color: transparent;
+  color: var(--color-text);
+  font-size: var(--text-base, 14px);
+  font-weight: var(--font-ui-weight, 430);
+  outline: none;
+}
+
+[data-slot="command-list"][data-slot] {
+  max-height: var(--command-menu-list-max-height, min(440px, max(120px, 90vh - 64px)));
+  padding: var(--menu-gutter, 4px);
+  overflow-y: auto;
+}
+
+[data-slot="command-group"] [cmdk-group-heading] {
+  color: var(--color-text-tertiary, var(--muted-foreground));
+  font-size: var(--menu-font-size, 13px);
+}
+
+/* ── 11. toast（sonner）：官方表面 + --shadow-xl ─────────────────────────── */
+[data-sonner-toast][data-styled="true"] {
+  padding: 12px 16px;
+  background-color: var(--color-surface-elevated, rgb(54 54 54 / 0.96));
+  color: var(--color-text);
+  border: 0;
+  border-radius: var(--radius-xl, 15px);
+  corner-shape: var(--menu-corner-shape, round);
+  box-shadow: var(--menu-box-shadow);
+  font-size: var(--text-base, 14px);
+  font-weight: var(--font-ui-weight, 430);
+  gap: 8px;
+}
+
+[data-sonner-toast][data-styled="true"] [data-title] {
+  font-size: var(--text-base, 14px);
+  font-weight: var(--font-ui-weight, 430);
+}
+
+[data-sonner-toast][data-styled="true"] [data-description] {
+  color: var(--color-text-secondary, var(--muted-foreground));
+  font-size: 13px;
+}

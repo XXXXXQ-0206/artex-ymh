@@ -1,0 +1,23 @@
+/* ============================================================================
+ * Codex 官方组件样式（原样搬用，用户已授权）
+ *
+ * 这里引入的都是**官方 CSS 原文**，按 CSS-module 哈希分组从
+ *   codex-desktop-electron/src/renderer/assets/app-initial-c43288484373.css
+ * 抽离而来，未做任何数值改写。
+ *
+ * 配套的 React 组件在 web/src/codex-ui/{shell,chat,overlays}/**，
+ * 它们使用**官方原串 className**（如 _Layout_yl8z4_2），
+ * 因此这些规则不需要任何适配即可生效 —— 这是 1:1 复刻的根本。
+ *
+ * 抽离脚本：tools/codex-split-components.mjs（可重跑复算）
+ * ========================================================================== */
+
+/* 共享原语层：_Button_eg66f_2 等被所有组件依赖的按钮/控件原语（来自 app-shared） */
+@import "./shared-components.css";
+
+@import "./shell.css";
+@import "./composer.css";
+@import "./markdown.css";
+@import "./overlays.css";
+@import "./keyframes.css";
+@import "./misc-components.css";

@@ -76,3 +76,14 @@ Thumbs.db
 # 运行时杂项
 /ligolo-ng.yaml
 /.sock.lock
+.build-lock
+
+# ── Codex 前端移植的"本地产物"，不入库 ───────────────────────────────────────
+# 72MB 的上一版二进制（构建中间产物）
+/artex.exe~
+# 打包出来的壳层客户端（9500+ 文件 / 600MB，可复现重建）
+/desktop-codex/
+# 取证与验收截图（按需保留在本机；要归档再单独 add -f）
+/evidence/
+# 本地 dev server 日志
+/web/dev-3007.log
