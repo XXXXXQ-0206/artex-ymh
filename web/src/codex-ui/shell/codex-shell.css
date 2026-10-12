@@ -334,10 +334,42 @@ html[data-page-list="on"] [data-slot="sidebar-nav-main"] {
   display: none;
 }
 
-/* 面板里同时挂着两套内容（chat 列表 / 页面列表）时按属性只显示一套：
-   非 chat 与非设置页时，对话插槽不参与布局（它只在 chat 路由有内容）。 */
-html[data-page-list="on"] #chat-conversations-slot {
+/* ── 面板形态收口 ──────────────────────────────────────────────────────────
+   官方面板永远是「对话列表 / 当前页列表 / 设置导航」三者之一，**从不放全站导航**
+   （导航只在 52px 导轨上；对照 shell-plugins.png：/plugins 的面板就是对话列表）。
+   所以这里把面板里的 NavMain 一律收起，并让对话列表面板在
+   chat（页面自己 portal）/ 设置 / 页面列表 三种形态下让位。 */
+/* 用 html 前缀提一档权重：同一文件里 .codex-app-nav{display:flex} 与它是同权重(0,1,0)，
+   靠文件内先后顺序决定胜负太脆（实测就出现过 navMain=flex 压过 none）。 */
+html [data-slot="sidebar-nav-main"] {
   display: none;
+}
+
+html[data-chat-list="on"] [data-slot="sidebar-conv-panel"],
+html[data-settings-nav="on"] [data-slot="sidebar-conv-panel"],
+html[data-page-list="on"] [data-slot="sidebar-conv-panel"] {
+  display: none;
+}
+
+/* 面板底部的账户行同样一律收起：官方账户入口在导轨底部（[8,772]）。 */
+[data-slot="sidebar-footer"] {
+  display: none;
+}
+
+/* 面板里挂着三个插槽（对话页 portal / 页面列表 portal / 默认对话列表面板）。
+   空插槽也是 flex-1，会把有内容的那个顶到底部（实测：/dashboard 的对话列表面板
+   被推到 y=469）。所以默认全收起，只按属性放出对应那一个。 */
+#chat-conversations-slot,
+#page-list-slot {
+  display: none;
+}
+
+html[data-chat-list="on"] #chat-conversations-slot {
+  display: flex;
+}
+
+html[data-page-list="on"] #page-list-slot {
+  display: flex;
 }
 
 html[data-page-list="on"] [data-slot="sidebar-footer"] {

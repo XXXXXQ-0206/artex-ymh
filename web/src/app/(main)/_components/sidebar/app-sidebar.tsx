@@ -14,6 +14,7 @@ import { usePreferencesStore } from "@/stores/preferences/preferences-provider";
 import { NavMain } from "./nav-main";
 import { NavUser } from "./nav-user";
 import { SettingsNav } from "./settings-nav";
+import { ConversationsPanel } from "./conversations-panel";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const router = useRouter();
@@ -73,6 +74,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         {/* Codex 页面范式：面板放**当前页的列表**（任务/发现/内网…各自 portal 进来）。
             打开 html[data-page-list="on"] 时隐藏下面的全站导航，见 codex-shell.css。 */}
         <div id="page-list-slot" className="flex min-h-0 min-w-0 flex-1 flex-col" />
+        {/* 官方在非列表页（/plugins、/explore…）的面板放的也是**对话列表**，
+            导航只在 52px 导轨上。chat / 设置 / 页面列表三种形态各自覆盖它（见 codex-shell.css）。 */}
+        <div data-slot="sidebar-conv-panel" className="flex min-h-0 min-w-0 flex-1 flex-col">
+          <ConversationsPanel />
+        </div>
         {/* Codex 设置页会把面板换成"设置导航"（搜索 + 分组 + 条目），见 globals.css 的
             html[data-settings-nav="on"] 规则：该属性下隐藏主导航。 */}
         <div data-slot="sidebar-settings-nav" className="hidden min-h-0 min-w-0 flex-1 flex-col">

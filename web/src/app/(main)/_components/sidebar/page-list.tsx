@@ -62,18 +62,23 @@ export function PageList({
   items,
   empty = "暂无内容",
 }: {
-  title: string;
+  /** 页标题行（52px，18px/600）。不传则不渲染这一行（官方面板头已有字标时用它）。 */
+  title?: string;
   action?: React.ReactNode;
   items: PageListItem[];
   empty?: string;
 }) {
   return (
     <div className="flex min-h-0 min-w-0 flex-1 flex-col">
-      <div className="flex h-[52px] shrink-0 items-center px-2">
-        <h1 className="truncate text-[18px] leading-6 font-semibold text-[color:var(--codex-text-strong)]">{title}</h1>
-      </div>
+      {title ? (
+        <div className="flex h-[52px] shrink-0 items-center px-2">
+          <h1 className="truncate text-[18px] leading-6 font-semibold text-[color:var(--codex-text-strong)]">
+            {title}
+          </h1>
+        </div>
+      ) : null}
       {action ? <div className="shrink-0 px-2 pb-2">{action}</div> : null}
-      <nav aria-label={`${title}列表`} className="min-h-0 flex-1 overflow-y-auto px-2 pb-2">
+      <nav aria-label={`${title ?? "面板"}列表`} className="min-h-0 flex-1 overflow-y-auto px-2 pb-2">
         {items.length === 0 ? (
           <p className="px-2 py-3 text-[13px] text-[color:var(--codex-text-secondary)]">{empty}</p>
         ) : (
