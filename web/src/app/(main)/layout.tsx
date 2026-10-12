@@ -144,11 +144,11 @@ export default function Layout({ children }: Readonly<{ children: ReactNode }>) 
  *     routed here or the switch does nothing.
  */
 function ShellBridge() {
-  const { toggleSidebar } = useSidebar();
+  const { setOpen, toggleSidebar } = useSidebar();
   return (
     <>
       <ShellShortcuts />
-      <CodexHostPanelBridge onToggle={toggleSidebar} />
+      <CodexHostPanelBridge onSetOpen={setOpen} onToggle={toggleSidebar} />
     </>
   );
 }

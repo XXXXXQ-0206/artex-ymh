@@ -22,13 +22,20 @@ import { isHostToGuestMessage } from "./protocol";
  * 且**只认直接嵌入者**（`event.source === window.parent`）。同源的兄弟帧即使拿到本窗口句柄，
  * 也会在 source 这一步被丢掉。
  */
-export function CodexHostPanelBridge({ onToggle }: { onToggle: () => void }) {
+export function CodexHostPanelBridge({
+  onToggle,
+  onSetOpen,
+}: {
+  onToggle: () => void;
+  /** 幂等设置面板开合（`{ open: boolean }` 载荷）；外壳自己画面板时用。 */
+  onSetOpen?: (open: boolean) => void;
+}) {
   // handler 每次渲染都可能是新的（toggleSidebar 来自 context），用 ref 取值，
   // 免得每渲染一次就拆装一遍监听。
-  const handlerRef = React.useRef(onToggle);
+  const handlerRef = React.useRef({ onToggle, onSetOpen });
   React.useEffect(() => {
-    handlerRef.current = onToggle;
-  }, [onToggle]);
+    handlerRef.current = { onToggle, onSetOpen };
+  }, [onToggle, onSetOpen]);
 
   React.useEffect(() => {
     if (!isEmbedded()) return;
@@ -38,7 +45,12 @@ export function CodexHostPanelBridge({ onToggle }: { onToggle: () => void }) {
         if (event.source !== window.parent) return;
         if (!isHostToGuestMessage(event.data)) return;
         if (event.data.type !== "codex-host:panel") return;
-        handlerRef.current();
+        const payload = (event.data.payload ?? {}) as { toggle?: true; open?: boolean };
+        if (typeof payload.open === "boolean") {
+          handlerRef.current.onSetOpen?.(payload.open);
+          return;
+        }
+        handlerRef.current.onToggle();
       } catch {
         // 监听器里的异常在宿主页面里是不可见的，按桥的规矩一律吞掉。
       }

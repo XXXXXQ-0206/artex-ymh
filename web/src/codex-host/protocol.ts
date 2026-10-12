@@ -138,6 +138,13 @@ export interface CodexHostNavigatePayload {
 }
 
 /** `codex-host:panel` — the shell asking the guest to toggle its own panel. */
+/**
+ * `codex-host:panel` 的载荷：
+ *  · `{ toggle: true }` —— 菜单栏那个显示/隐藏开关（原语义）；
+ *  · `{ open: false }` —— **幂等收敛**：外壳自己画 288px 面板时（对话页的混合档），
+ *    要求访客把自己的面板收起。用 open 而不是再 toggle 一次，是为了不依赖两边对
+ *    「当前是开还是关」的判断一致。
+ */
 export interface CodexHostPanelPayload {
   /**
    * `true` means "flip the panel" (the shell's switch is a toggle, not a set-target-state call).
@@ -145,6 +152,11 @@ export interface CodexHostPanelPayload {
    * be added without breaking v1 senders.
    */
   toggle?: true;
+  /**
+   * 幂等收敛：`{ open: false }` = 要求访客把面板收起（外壳自己画面板时用）。
+   * 与 `toggle` 二选一；两个都带时以 `open` 为准。
+   */
+  open?: boolean;
 }
 
 export interface CodexHostPingPayload {
