@@ -5,6 +5,7 @@ import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
+import { Button } from "@/codex-ui/codex/ui";
 import { CodexPlus } from "@/components/icons/codex";
 import { api } from "@/lib/api";
 import type { Conversation } from "@/lib/types";
@@ -46,14 +47,15 @@ export function ConversationsPanel() {
   return (
     <PageList
       action={
-        <Link
-          prefetch={false}
-          href="/chat"
-          className="flex h-[30px] w-full items-center gap-2 rounded-[12.5px] bg-[rgb(255_255_255_/_0.08)] px-2 text-[14px] leading-5 text-[color:var(--codex-text-strong)] hover:bg-[rgb(255_255_255_/_0.12)]"
-        >
-          <CodexPlus size={16} />
-          新聊天
-        </Link>
+        /* 最小验证点（goal ②）：这里改用逐字节复制来的壳 Button，并且是 `asChild` 档 ——
+           它正是之前整页崩的那条 Slot 路径。样式（高 30 / 圆角 12.5 / 8% 底 / 14·430）
+           全部由壳的 .cx-btn[data-size] 承担，页面不再自写数值。 */
+        <Button asChild block size="md" variant="soft">
+          <Link prefetch={false} href="/chat">
+            <CodexPlus size={16} />
+            新聊天
+          </Link>
+        </Button>
       }
       items={convs.slice(0, 80).map((c) => ({
         key: String(c.id),

@@ -65,9 +65,40 @@ export function Button({
   children,
   ...props
 }: ButtonProps) {
-  const Comp = asChild ? Slot.Root : "button";
+  /**
+   * ⚠️ 有意偏离壳原文（其余逐字节相同，2026-10-13）：壳这里无论 asChild 与否都渲染
+   * 「inner span + loader 槽」两个 child。asChild 档 Comp = Radix Slot，而 Slot 要求**恰好一个**
+   * child —— 连 `false`/`null` 都算一个槽位，于是 `<Button asChild>` 必抛
+   * 「Slot failed to slot onto its children. Expected a single React element child or Slottable.」
+   * （真机堆栈实测）。这里把 asChild 档独立出来、只渲染 inner 一个 child；
+   * 非 asChild 档与原版逐字节等价。这条偏离应回灌壳仓库 src/ui/button.tsx。
+   */
+  if (asChild) {
+    return (
+      <Slot.Root
+        className={cn("cx-btn", "cx-anim", className)}
+        data-color={color}
+        data-size={size}
+        data-variant={variant}
+        data-gutter-size={gutterSize}
+        data-icon-size={iconSize}
+        data-optically-align={opticallyAlign}
+        data-pill={pill ? "" : undefined}
+        data-squircle={squircle ? "" : undefined}
+        data-block={block ? "" : undefined}
+        data-uniform={uniform ? "" : undefined}
+        data-loading={loading ? "" : undefined}
+        data-disabled={disabled ? "" : undefined}
+        // 不传 disabled：Slot.Root 的 props 是 HTMLAttributes（无 disabled），
+        // 链接式按钮的可用性由子元素自己表达（data-disabled 已给样式用）。
+        {...props}
+      >
+        <span className="cx-btn__inner">{children}</span>
+      </Slot.Root>
+    );
+  }
   return (
-    <Comp
+    <button
       className={cn("cx-btn", "cx-anim", className)}
       data-color={color}
       data-size={size}
@@ -84,20 +115,15 @@ export function Button({
       disabled={disabled}
       {...props}
     >
-      {/* 有意偏离壳原文（其余逐字节相同，2026-10-13）：壳这里写的是「inner span + loader 槽」两个
-          child，而 Radix Slot 要求恰好一个 child —— 于是 <Button asChild> 一律抛
-          「Slot failed to slot onto its children」（真机堆栈已确认）。asChild 档只渲染 inner，
-          非 asChild 档行为与原版完全一致；这条偏离应回灌壳仓库 src/ui/button.tsx。 */}
       <span className="cx-btn__inner">{children}</span>
-      {!asChild && loading ? (
+      {loading ? (
         <span aria-hidden className="cx-btn__loader">
           <Spinner />
         </span>
       ) : null}
-    </Comp>
+    </button>
   );
 }
-
 /** 载入指示器：官方 --animate-spin = spin 2s steps(60,end) infinite（shell-shared:2856） */
 export function Spinner({ className, size = "sm" }: { className?: string; size?: "sm" | "md" | "lg" }) {
   return (
