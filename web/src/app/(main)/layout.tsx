@@ -11,6 +11,7 @@ import { getClientCookie } from "@/lib/cookie.client";
 import { cn } from "@/lib/utils";
 
 import { MainContent } from "./_components/main-content";
+import { ShellShortcuts } from "./_components/shell/shell-shortcuts";
 
 // 外壳 chrome 的样式（导轨 / 面板 / 顶部菜单栏），只作用于 (main) 分组
 import "@/codex-ui/shell/codex-shell.css";
@@ -71,6 +72,8 @@ export default function Layout({ children }: Readonly<{ children: ReactNode }>) 
     // 覆盖 _Layout_ 的 4px 右/下留白（参考端 (2,812) 采样）。
     <div className="codex-shell-root flex h-svh flex-col pr-[4px] pb-[4px]">
       <SidebarProvider defaultOpen={defaultOpen} className="min-h-0 flex-1 flex-col">
+        {/* 壳级快捷键（菜单栏里显示的加速键在这里生效：Ctrl/Cmd+Shift+S 面板、Ctrl/Cmd+N 新聊天、Ctrl/Cmd+, 设置） */}
+        <ShellShortcuts />
         <AppMenuBar />
         <div className="relative flex max-h-full min-h-0 w-full flex-1">
           <CodexRail />

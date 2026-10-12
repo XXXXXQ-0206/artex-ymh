@@ -26,7 +26,8 @@ type Item = { id: string; label: string; group: string; target?: string };
 const ITEMS: Item[] = [
   { id: "general", label: "常规", group: "个人", target: "traffic" },
   { id: "import", label: "导入", group: "个人", target: "panel" },
-  { id: "appearance", label: "外观", group: "个人", target: "panel" },
+  // 「外观」有真实落点：设置页的 #appearance 卡片（主题模式/预设、字体、布局、侧边栏行为）
+  { id: "appearance", label: "外观", group: "个人", target: "appearance" },
   { id: "archived", label: "Archived chats", group: "个人", target: "panel" },
   { id: "voice", label: "语音", group: "个人", target: "sendkey" },
   { id: "configuration", label: "配置", group: "个人", target: "panel" },

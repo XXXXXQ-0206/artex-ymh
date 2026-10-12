@@ -1,20 +1,11 @@
 "use client";
 
-import { type ReactNode, useEffect, useState } from "react";
+import type { ReactNode } from "react";
 
 import { usePathname } from "next/navigation";
 
-import { Separator } from "@/components/ui/separator";
-import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
-import { useCurrentUser } from "@/hooks/use-current-user";
-import { api } from "@/lib/api";
+import { useSidebar } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
-
-import { AccountSwitcher } from "./sidebar/account-switcher";
-import { LayoutControls } from "./sidebar/layout-controls";
-import { SearchDialog } from "./sidebar/search-dialog";
-import { ThemeSwitcher } from "./sidebar/theme-switcher";
-import { UpdateBadge } from "./update-badge";
 
 // 任务详情页保持原样：它自带头部/Tabs 与内边距，这里不再叠加全局头部和 padding。
 //
@@ -34,39 +25,9 @@ function isFullBleed(pathname: string) {
   return /^\/function\/tasks\/detail(\/|$)/.test(p);
 }
 
-// /chat 是 Codex 的对话面：参考端主表面上方没有 ARTEX 式全局头部
-// （搜索框 / 版本徽标 / 主题与布局开关 / 头像），整块不渲染，避免多出一条工具栏。
-function isHeaderless(pathname: string) {
-  const p = (() => {
-    try {
-      return decodeURIComponent(pathname);
-    } catch {
-      return pathname;
-    }
-  })();
-  // 设置页与对话页一样使用 Codex 的整面布局：主表面没有 ARTEX 全局头部，
-  // 面板顶部保留「设置 / 搜索」自己的导航头。
-  return p.startsWith("/chat") || p.startsWith("/system/settings");
-}
-
-// Codex 工作区页（任务 / 发现 / 内网）的顶栏是 52px，内容从它下面开始；
-// 这与对话页/设置页的整面布局不同。
-function isWorkspacePage(pathname: string) {
-  const p = (() => {
-    try {
-      return decodeURIComponent(pathname);
-    } catch {
-      return pathname;
-    }
-  })();
-  return p.startsWith("/function/tasks") || p.startsWith("/function/findings") || p.startsWith("/intranet");
-}
-
 export function MainContent({ children }: { children: ReactNode }) {
-  const currentUser = useCurrentUser();
   const pathname = usePathname();
   const { open, isMobile } = useSidebar();
-  const [version, setVersion] = useState("");
 
   // 左侧 288px 面板是「浮」在主表面之上的，不占布局宽度（Codex 实测几何）。
   // 所以主内容必须自己让开这段宽度，否则每页左侧 288px 会被面板盖住。
@@ -78,56 +39,21 @@ export function MainContent({ children }: { children: ReactNode }) {
     ? "md:pl-[var(--sidebar-width)] md:has-data-[content-padding=false]:pl-[var(--sidebar-width)]"
     : undefined;
 
-  useEffect(() => {
-    api
-      .health()
-      .then((h) => setVersion((h.version ?? "").replace(/^v(?=\d)/, "")))
-      .catch(() => setVersion(""));
-  }, []);
-
   if (isFullBleed(pathname)) {
     return <>{children}</>;
   }
 
-  const headerless = isHeaderless(pathname);
   const settingsPage = pathname.startsWith("/system/settings");
-  const workspacePage = isWorkspacePage(pathname);
 
   return (
     <>
-      {!headerless && (
-        <header
-          className={cn(
-            "flex shrink-0 items-center gap-2 border-b transition-[width,height] ease-linear",
-            workspacePage
-              ? "h-[52px] group-has-data-[collapsible=icon]/sidebar-wrapper:h-[52px]"
-              : "h-12 group-has-data-[collapsible=icon]/sidebar-wrapper:h-12",
-            "[html[data-navbar-style=sticky]_&]:sticky [html[data-navbar-style=sticky]_&]:top-0 [html[data-navbar-style=sticky]_&]:z-50 [html[data-navbar-style=sticky]_&]:overflow-hidden [html[data-navbar-style=sticky]_&]:rounded-t-[inherit] [html[data-navbar-style=sticky]_&]:bg-background/50 [html[data-navbar-style=sticky]_&]:backdrop-blur-md",
-            // 顶部工具栏属于主表面；打开面板时让它从面板右缘开始，避免压在面板头上。
-            panelOpen && "md:ml-[var(--sidebar-width)]",
-          )}
-        >
-          <div className={cn("flex w-full items-center justify-between", workspacePage ? "px-2" : "px-4 lg:px-6")}>
-            <div className="flex items-center gap-1 lg:gap-2">
-              <SidebarTrigger className="-ml-1" />
-              <Separator
-                orientation="vertical"
-                className="mx-2 data-[orientation=vertical]:h-4 data-[orientation=vertical]:self-center"
-              />
-              <SearchDialog />
-            </div>
-            <div className="flex items-center gap-2">
-              {version && (
-                <span className="font-medium text-muted-foreground text-xs tabular-nums">版本 · {version}</span>
-              )}
-              <UpdateBadge />
-              <LayoutControls />
-              <ThemeSwitcher />
-              <AccountSwitcher users={[currentUser]} />
-            </div>
-          </div>
-        </header>
-      )}
+      {/* 主表面里**没有** ARTEX 自造的全局页头：官方的等价入口各自在正确的位置 ——
+          面板开关：菜单栏「视图 → 显示/隐藏侧边栏」+ Ctrl/Cmd+Shift+S（ShellShortcuts）
+          搜索：面板头右上的搜索图标 + Ctrl/Cmd+J（SearchDialog 自己绑）
+          外观/主题/字体/布局：设置页「外观」分区（AppearanceControls）
+          账户：52px 导轨底部的人像按钮
+          版本/更新：设置页「版本与更新」卡片
+          见 docs：2026-10-12 的页头撤销说明。 */}
       <div
         data-codex-settings-scroll={settingsPage ? "true" : undefined}
         className={cn(

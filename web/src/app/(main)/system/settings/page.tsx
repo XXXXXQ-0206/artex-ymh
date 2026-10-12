@@ -2,7 +2,7 @@
 
 import * as React from "react";
 
-import { CpuIcon, KeyboardIcon, RadioTowerIcon, SearchIcon, ShieldAlertIcon } from "lucide-react";
+import { CpuIcon, KeyboardIcon, PaletteIcon, RadioTowerIcon, SearchIcon, ShieldAlertIcon } from "lucide-react";
 import { toast } from "sonner";
 
 import Link from "next/link";
@@ -18,6 +18,7 @@ import { Switch } from "@/components/ui/switch";
 import { api } from "@/lib/api";
 import { CHAT_SEND_MODE_OPTIONS, type ChatSendMode, setChatSendMode, useChatSendMode } from "@/lib/chat-send-mode";
 import { settingsPanelItems } from "@/navigation/sidebar/sidebar-items";
+import { AppearanceControls } from "@/app/(main)/_components/sidebar/layout-controls";
 import type { Settings } from "@/lib/types";
 
 import "./codex-settings.css";
@@ -276,6 +277,22 @@ export default function SystemSettingsPage() {
 
       {/* 单列设置卡片保留真实 ARTEX 配置能力，并按 Codex 的轻量分区节奏排列。 */}
       <div className="flex flex-col gap-10">
+        {/* 外观：官方把「模式 / 字体 / 布局」这类偏好放在 设置 → 个人 → 外观；
+            ARTEX 原先放在主表面那条自造页头的 Popover 里，2026-10-12 撤页头后搬到这里，
+            控件与持久化逻辑原样复用（AppearanceControls）。 */}
+        <Card id="appearance" className="scroll-mt-6">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <PaletteIcon className="size-4" />
+              外观
+            </CardTitle>
+            <CardDescription>主题模式与预设、字体、页面布局、导航栏与侧边栏行为。</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <AppearanceControls />
+          </CardContent>
+        </Card>
+
         <div id="update" className="scroll-mt-6"><UpdateCard /></div>
 
         <Card id="traffic" className="scroll-mt-6">
