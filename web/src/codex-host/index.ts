@@ -19,6 +19,8 @@
 
 export type { CodexHostClient, CodexHostClientOptions } from "./host-client";
 export { CodexHostBridge, createCodexHostClient, startCodexHostClient, useCodexHost } from "./host-client";
+export { CodexHostNavBridge } from "./nav-bridge";
+export { CodexHostPanelBridge } from "./panel-bridge";
 export type {
   CodexHostEnvelope,
   CodexHostErrorPayload,
@@ -29,6 +31,7 @@ export type {
   CodexHostNavigatePayload,
   CodexHostNotifyLevel,
   CodexHostNotifyPayload,
+  CodexHostPanelPayload,
   CodexHostPingPayload,
   CodexHostPongPayload,
   CodexHostReadyPayload,

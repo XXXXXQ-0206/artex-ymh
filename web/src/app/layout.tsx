@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 
 import type { Metadata } from "next";
 
-import { CodexHostBridge } from "@/codex-host";
+import { CodexHostNavBridge } from "@/codex-host";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { APP_CONFIG } from "@/config/app-config";
@@ -59,8 +59,10 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
             {children}
             <Toaster />
             {/* Codex 外壳宿主桥：仅在「被外壳托管」时激活（独立打开本控制台时完全惰性，
-                不发任何消息、不抛异常）。协议见 src/codex-host/protocol.ts。 */}
-            <CodexHostBridge />
+                不发任何消息、不抛异常）。协议见 src/codex-host/protocol.ts。
+                用 NavBridge 变体：它同时把 codex-host:navigate 接到应用路由 ——
+                托管态下外壳的导轨就是靠这条通道驱动本控制台的（2026-10-13）。 */}
+            <CodexHostNavBridge />
           </PreferencesStoreProvider>
         </TooltipProvider>
       </body>

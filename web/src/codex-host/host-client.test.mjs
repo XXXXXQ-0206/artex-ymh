@@ -481,6 +481,46 @@ test("error forwarding cannot re-enter itself", () => {
   }
 });
 
+test("a guest-driven full navigation (referrer = the guest itself) still posts to the host", () => {
+  // 2026-10-13 真机复现：guest 自己整页导航（登录回跳 / location.assign）之后，新文档的
+  // document.referrer 变成 guest 自己的 URL，而 location.ancestorOrigins 仍指向宿主。
+  // 旧实现优先用 referrer ⇒ targetOrigin 打偏 ⇒ 浏览器静默丢弃所有出站消息
+  // （ready/route/pong 全断，入站因走 ancestorOrigins 白名单不受影响）。
+  const h = createHarness({ referrer: `${GUEST_ORIGIN}/chat/`, ancestorOrigins: [HOST_ORIGIN] });
+  install(h);
+  try {
+    const client = startCodexHostClient({ routeDebounceMs: 5 });
+    assert.equal(client.active, true);
+    const [ready] = messagesOfType(h, CODEX_HOST_TYPES.ready);
+    assert.ok(ready, "自我导航后的新文档仍必须发出 ready");
+    assert.equal(ready.targetOrigin, HOST_ORIGIN);
+    client.dispose();
+  } finally {
+    uninstall();
+  }
+});
+
+test("a self-referrer is never admitted as a host, and never used as the post target", () => {
+  // 非 Chromium（没有 ancestorOrigins）：referrer 指向自己时既不能进白名单、
+  // 也不能被当成 targetOrigin；此时只能回落到 "*"。
+  const h = createHarness({ referrer: `${GUEST_ORIGIN}/chat/`, ancestorOrigins: null });
+  install(h);
+  const originalWarn = console.warn;
+  try {
+    console.warn = () => {};
+    const client = startCodexHostClient({ routeDebounceMs: 5 });
+    const [ready] = messagesOfType(h, CODEX_HOST_TYPES.ready);
+    assert.equal(ready.targetOrigin, "*");
+    // 自身 origin 不在白名单里 ⇒ host 侧伪造的「自己发给自己」不会被受理
+    h.win.dispatch("message", hostEvent(CODEX_HOST_TYPES.init, {}, { origin: GUEST_ORIGIN, source: h.parent }));
+    assert.equal(client.active, true);
+    client.dispose();
+  } finally {
+    console.warn = originalWarn;
+    uninstall();
+  }
+});
+
 test("an undetectable host origin falls back to a wildcard target, gated by window identity", () => {
   const h = createHarness({ referrer: "", ancestorOrigins: null });
   const originalWarn = console.warn;

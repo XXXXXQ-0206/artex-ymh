@@ -141,7 +141,7 @@ export function createCodexHostClient(options: CodexHostClientOptions = {}): Cod
     const resolved = resolveAllowedOrigins(win, doc, options);
     allowedOrigins = resolved.origins;
     allowAnyOrigin = resolved.allowAny;
-    targetOrigin = resolveTargetOrigin(doc, options, allowedOrigins);
+    targetOrigin = resolveTargetOrigin(win, doc, options, allowedOrigins);
     runtimeWindow = win;
     active = true;
 
@@ -461,14 +461,22 @@ function resolveAllowedOrigins(win: Window, doc: Document, options: CodexHostCli
     const normalized = normalizeOrigin(origin);
     if (normalized) detected.add(normalized);
   }
+  // A referrer pointing at the guest itself is not a host: that is what a guest-driven full
+  // navigation leaves behind (2026-10-13 真机实测), and letting it into the allowlist would also
+  // poison the target-origin fallback below.
   const referrerOrigin = normalizeOrigin(doc.referrer);
-  if (referrerOrigin) detected.add(referrerOrigin);
+  if (referrerOrigin && referrerOrigin !== selfOriginOf(win)) detected.add(referrerOrigin);
   const allowAny = detected.size === 0;
   if (allowAny) {
     devWarn("host origin could not be detected; only the embedding window may send messages");
   }
   detected.add(NULL_ORIGIN);
   return { origins: [...detected], allowAny };
+}
+
+/** 本帧自己的 origin（normalizeOrigin 口径：file:/about:blank 归一到 "null"）。 */
+function selfOriginOf(win: Window): string | undefined {
+  return normalizeOrigin(win.location?.origin);
 }
 
 function readConfiguredOrigins(loc: Location | undefined): string[] {
@@ -526,15 +534,40 @@ function normalizeOrigin(value: unknown): string | undefined {
 }
 
 /**
- * Picks the origin we post to. `document.referrer` is preferred because it is the origin of the
- * frame that actually loaded us (the direct parent), while ancestorOrigins may list a whole chain.
+ * Picks the origin we post to.
+ *
+ * Order (2026-10-13 changed): **the nearest ancestor origin wins over `document.referrer`.**
+ * Why: `referrer` describes the document that loaded *this* navigation. When the guest navigates
+ * itself (login bounce, a plain link, `location.assign`) the new document's referrer is the
+ * guest's *own* URL, so posting with it makes the browser drop every outbound message silently
+ * (targetOrigin mismatch) — measured in the real shell: `ready`/`route`/`pong` all stopped while
+ * inbound kept working (`ancestorOrigins` still pointed at the host). `location.ancestorOrigins`
+ * is ordered closest-first in Chromium (the shell), so index 0 is the direct parent regardless of
+ * who started the navigation.
  */
-function resolveTargetOrigin(doc: Document, options: CodexHostClientOptions, allowed: readonly string[]): string {
+function resolveTargetOrigin(
+  win: Window,
+  doc: Document,
+  options: CodexHostClientOptions,
+  allowed: readonly string[],
+): string {
   const configured = normalizeOrigin(options.targetOrigin);
   if (configured && configured !== NULL_ORIGIN) return configured;
+
+  const ancestors = readAncestorOrigins(win)
+    .map((origin) => normalizeOrigin(origin))
+    .filter((origin): origin is string => Boolean(origin) && origin !== NULL_ORIGIN);
+  if (ancestors.length > 0) return ancestors[0];
+
+  // Fallback for engines without ancestorOrigins: the referrer is only usable when it is not the
+  // guest itself (a self-referrer means the guest started this navigation → posting would miss).
+  const selfOrigin = selfOriginOf(win);
   const referrerOrigin = normalizeOrigin(doc.referrer);
-  if (referrerOrigin && referrerOrigin !== NULL_ORIGIN) return referrerOrigin;
-  const specific = allowed.filter((origin) => origin !== NULL_ORIGIN);
+  if (referrerOrigin && referrerOrigin !== NULL_ORIGIN && referrerOrigin !== selfOrigin) {
+    return referrerOrigin;
+  }
+
+  const specific = allowed.filter((origin) => origin !== NULL_ORIGIN && origin !== selfOrigin);
   if (specific.length === 1) return specific[0];
   // "null" is not a valid target origin, so file:/srcdoc parents need "*".
   return ANY_ORIGIN;

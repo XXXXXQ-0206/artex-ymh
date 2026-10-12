@@ -636,3 +636,27 @@ html[data-panel-resizing="true"] [data-slot="sidebar-container"] {
 .codex-history-list > p {
   padding: 6px 8px;
 }
+/* ── 被外壳托管（desktop 的 /artex 宿主）时的定位修正 ──────────────────────────
+   托管态下最左边那一列是**外壳的** 52px 导轨（codex-desktop-src 的 SidebarRail），
+   宿主 iframe 因此从 x=52 起：面板要从**面板自己的 x=0** 起（独立打开时是 3.25rem），
+   主表面也去掉 mt-2/ml-[3.25rem]（那 8px/52px 由外壳的行与导轨提供）。
+   导轨本身在托管态下不渲染（见 app/(main)/layout.tsx 的 embedded 分支）。 */
+[data-codex-embedded] [data-slot="sidebar-container"][data-side="left"] {
+  left: 0;
+}
+
+/* 竖向上同理：独立态的 44px 上边（36 菜单栏 + 8 间隙，globals.css:883 的
+   top: var(--codex-shell-top)）与 4px 下边（--codex-gap 窗口留白）**都由外壳提供**
+   （宿主 iframe 从 y=44 起、底边就是 812），访客这边必须归零。
+   2026-10-13 真机实测（iframe 1224×768）：不归零时面板 computed 是
+   position:fixed / top:44px / bottom:4px / height:720px ⇒ 比主表面矮 48px 且整体下移 44px
+   （量到 [0,44,288,720]，期望 [0,0,288,768]）。 */
+[data-codex-embedded] [data-slot="sidebar-container"] {
+  top: 0;
+  bottom: 0;
+}
+
+[data-codex-embedded] [data-slot="sidebar"][data-state="collapsed"][data-collapsible="offcanvas"]
+  [data-slot="sidebar-container"][data-side="left"] {
+  left: calc(-1 * var(--sidebar-width));
+}

@@ -4,8 +4,9 @@ import type { ReactNode } from "react";
 import * as React from "react";
 
 import { AppSidebar } from "@/app/(main)/_components/sidebar/app-sidebar";
+import { CodexHostPanelBridge } from "@/codex-host";
 import { AppMenuBar, CodexRail } from "@/codex-ui/shell";
-import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+import { SidebarInset, SidebarProvider, useSidebar } from "@/components/ui/sidebar";
 import { auth } from "@/lib/auth";
 import { getClientCookie } from "@/lib/cookie.client";
 import { cn } from "@/lib/utils";
@@ -55,9 +56,41 @@ export default function Layout({ children }: Readonly<{ children: ReactNode }>) 
 
   if (!authed) return null;
 
-  // 被托管时：只给上下文（对话页要用 useSidebar），不渲染任何 chrome —— 壳由宿主提供。
+  // 被托管时：**菜单栏与 52px 导轨归外壳**（desktop/main.js 把窗口指向壳的 /artex，
+  // 壳画出 36px 菜单栏 + 52px 导轨 + 窗口留白），本控制台只画官方首页里剩下的那两块 ——
+  // 288px 浮动面板 + 圆角主表面，合起来正好是官方 _PageSurface_ [52,44,1224,768]。
+  //
+  // 2026-10-13 改前：这里只渲染 children（面板也一并撤掉）⇒ 托管态下没有任何应用导航
+  // （对话/任务/发现/内网/设置全在面板与导轨里），而且主内容被外壳的嵌套 PageSurface
+  // 压成 647px 宽。改后由 codex-ui/shell/codex-shell.css 的 [data-codex-embedded] 段
+  // 把面板钉到 x=0（外壳导轨右缘）、主表面去掉 mt-2/ml-[3.25rem]。
   if (embedded) {
-    return <SidebarProvider className="min-h-0 flex-1 flex-col">{children}</SidebarProvider>;
+    return (
+      <div className="codex-shell-root flex h-svh flex-col" data-codex-embedded="true">
+        {/* 面板/导航归访客画，但开关可能来自外壳：外壳菜单栏左簇的「显示/隐藏侧边栏」
+            发 codex-host:panel，这里接到 useSidebar().toggleSidebar。
+            快捷键（Ctrl/Cmd+Shift+S 面板、Ctrl/Cmd+N 新聊天、Ctrl/Cmd+, 设置）在托管态同样要
+            生效——独立态的分支一直是有的，这里之前漏了。 */}
+        <SidebarProvider defaultOpen={defaultOpen} className="min-h-0 flex-1 flex-col">
+          <ShellBridge />
+          <div className="relative flex max-h-full min-h-0 w-full flex-1">
+            <AppSidebar resizable variant="floating" collapsible="offcanvas" />
+            <SidebarInset
+              className={cn(
+                "codex-surface",
+                "[html[data-content-layout=centered]_&>*]:mx-auto",
+                "[html[data-content-layout=centered]_&>*]:w-full",
+                "[html[data-content-layout=centered]_&>*]:max-w-screen-2xl",
+                "[--dashboard-header-height:--spacing(12)]",
+                "min-w-0 overflow-x-hidden",
+              )}
+            >
+              <MainContent>{children}</MainContent>
+            </SidebarInset>
+          </div>
+        </SidebarProvider>
+      </div>
+    );
   }
 
   // Codex Desktop 复刻（参考端 1280×816 实测几何）：
@@ -97,5 +130,25 @@ export default function Layout({ children }: Readonly<{ children: ReactNode }>) 
         </div>
       </SidebarProvider>
     </div>
+  );
+}
+
+/**
+ * The two shell-level bindings that need `useSidebar()`, so they can only live **inside**
+ * `SidebarProvider`:
+ *   - {@link ShellShortcuts}: the menu-bar accelerators (Ctrl/Cmd+Shift+S panel, Ctrl/Cmd+N new
+ *     chat, Ctrl/Cmd+, settings). The standalone branch always had it; the hosted branch was
+ *     missing it, which made every shortcut dead under the shell (2026-10-13).
+ *   - {@link CodexHostPanelBridge}: `codex-host:panel` from the shell's 28x28 menu-bar switch.
+ *     Under the shell the 288px panel is drawn by the guest, so the shell's own toggle has to be
+ *     routed here or the switch does nothing.
+ */
+function ShellBridge() {
+  const { toggleSidebar } = useSidebar();
+  return (
+    <>
+      <ShellShortcuts />
+      <CodexHostPanelBridge onToggle={toggleSidebar} />
+    </>
   );
 }

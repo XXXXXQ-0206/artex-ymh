@@ -54,6 +54,15 @@ export const CODEX_HOST_TYPES = {
   theme: "codex-host:theme",
   /** HOST -> GUEST: the shell asks the guest to navigate (guest decides how). */
   navigate: "codex-host:navigate",
+  /**
+   * HOST -> GUEST: the shell's 28x28 menu-bar "show/hide sidebar" switch.
+   *
+   * Why it exists: under the host shell the 288px panel belongs to the **guest** (the shell only
+   * draws the 36px menu bar + the 52px rail), so the shell's own toggle has nothing of its own to
+   * collapse — it has to drive the guest's panel. Payload: `{ toggle: true }`. A guest that does
+   * not know this type ignores it, which is exactly the v1 forward-compatibility rule.
+   */
+  panel: "codex-host:panel",
   /** HOST -> GUEST: liveness probe. */
   ping: "codex-host:ping",
   /** GUEST -> HOST: sent once mounted, and again after every full reload. */
@@ -77,6 +86,7 @@ export const CODEX_HOST_HOST_TO_GUEST_TYPES = [
   CODEX_HOST_TYPES.init,
   CODEX_HOST_TYPES.theme,
   CODEX_HOST_TYPES.navigate,
+  CODEX_HOST_TYPES.panel,
   CODEX_HOST_TYPES.ping,
 ] as const;
 
@@ -114,6 +124,16 @@ export type CodexHostThemePayload = CodexHostThemeState;
 export interface CodexHostNavigatePayload {
   /** App-absolute path (`/tasks?page=2`); the guest maps it onto its own router. */
   path: string;
+}
+
+/** `codex-host:panel` — the shell asking the guest to toggle its own panel. */
+export interface CodexHostPanelPayload {
+  /**
+   * `true` means "flip the panel" (the shell's switch is a toggle, not a set-target-state call).
+   * Kept as a named field, not a bare boolean payload, so a future `{ open: true }` variant can
+   * be added without breaking v1 senders.
+   */
+  toggle?: true;
 }
 
 export interface CodexHostPingPayload {
@@ -174,6 +194,7 @@ export type CodexHostHostMessage =
   | CodexHostTypedEnvelope<typeof CODEX_HOST_TYPES.init, CodexHostInitPayload>
   | CodexHostTypedEnvelope<typeof CODEX_HOST_TYPES.theme, CodexHostThemePayload>
   | CodexHostTypedEnvelope<typeof CODEX_HOST_TYPES.navigate, CodexHostNavigatePayload>
+  | CodexHostTypedEnvelope<typeof CODEX_HOST_TYPES.panel, CodexHostPanelPayload>
   | CodexHostTypedEnvelope<typeof CODEX_HOST_TYPES.ping, CodexHostPingPayload>;
 
 export type CodexHostGuestMessage =
