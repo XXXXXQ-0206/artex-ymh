@@ -2,29 +2,48 @@
 
 import * as React from "react";
 
-import { CpuIcon, KeyboardIcon, PaletteIcon, RadioTowerIcon, SearchIcon, ShieldAlertIcon } from "lucide-react";
-import { toast } from "sonner";
-
 import Link from "next/link";
 
-import { LayoutGridIcon } from "lucide-react";
+import { toast } from "sonner";
 
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
+import { SettingsCard, SettingsCardBody, SettingsRow, SettingsSection } from "@/codex-ui/codex/settings/SettingsRow";
+import { SettingsButton, SettingsField, SettingsSelect, SettingsSwitch } from "@/codex-ui/codex/settings/controls";
+import { Button, Input } from "@/codex-ui/codex/ui";
 import { api } from "@/lib/api";
 import { CHAT_SEND_MODE_OPTIONS, type ChatSendMode, setChatSendMode, useChatSendMode } from "@/lib/chat-send-mode";
-import { settingsPanelItems } from "@/navigation/sidebar/sidebar-items";
-import { AppearanceControls } from "@/app/(main)/_components/sidebar/layout-controls";
 import type { Settings } from "@/lib/types";
+import { settingsPanelItems } from "@/navigation/sidebar/sidebar-items";
+
+import { AppearanceControls } from "@/app/(main)/_components/sidebar/layout-controls";
 
 import "./codex-settings.css";
 
 import { UpdateCard } from "./_components/update-card";
 
+/**
+ * 网络搜索来源（原先是内联在 <SelectItem> 里的四行，抽成数据只为复用官方下拉触发器）。
+ * value 与旧实现逐字一致，行为不变。
+ */
+const SEARCH_BACKEND_OPTIONS: Array<{ value: string; label: string }> = [
+  { value: "ddgs", label: "DuckDuckGo（ddgs · 免费无 Key）" },
+  { value: "brave-free", label: "Brave（免费版 · 需 Key）" },
+  { value: "tavily", label: "Tavily（需 Key）" },
+  { value: "deepseek", label: "DeepSeek（官方）" },
+];
+
+/**
+ * ARTEX 设置页（/system/settings）。
+ *
+ * ★ 表现层 = **逐字节移植**的壳组件（web/src/codex-ui/codex/**，见 task-5）：
+ *   SettingsSection / SettingsCard / SettingsCardBody / SettingsRow（壳 src/settings/SettingsRow.tsx）
+ *   SettingsSwitch / SettingsSelect / SettingsButton / SettingsField（壳 src/settings/controls.tsx）
+ *   Button / Input（壳 src/ui/**）
+ *   页面骨架类 cx-settings__shell / __page / __header / __title / __column 与文本类
+ *   cx-settings-note / cx-settings-field__warn 全部来自壳的 settings.css 原文。
+ *   ★ 本文件**不含任何自写的尺寸 / 字号 / 颜色常量**：全部是数据接线与组件组合。
+ *
+ * 数据层（hooks / API / 开关状态）一个字没动：所有 setState / api.setSettings 调用与旧实现等价。
+ */
 export default function SystemSettingsPage() {
   // 面板换成 Codex 式设置导航（见 globals.css 的 html[data-settings-nav="on"] 规则）
   React.useEffect(() => {
@@ -32,16 +51,6 @@ export default function SystemSettingsPage() {
     return () => {
       delete document.documentElement.dataset.settingsNav;
     };
-  }, []);
-
-  // 分区说明默认不占视觉布局；挂到分区头的原生 title，保留悬停与读屏信息。
-  React.useEffect(() => {
-    const headers = document.querySelectorAll<HTMLElement>('[data-codex-settings] [data-slot="card-header"]');
-    for (const header of headers) {
-      const description = header.querySelector<HTMLElement>('[data-slot="card-description"]');
-      const text = description?.textContent?.replace(/\s+/g, " ").trim();
-      if (text) header.title = text;
-    }
   }, []);
 
   const [trafficCapture, setTrafficCapture] = React.useState(false);
@@ -159,7 +168,7 @@ export default function SystemSettingsPage() {
       })
       .catch((e) => {
         setAgentTrafficBinding(!v);
-        toast.error(`保存失败：${(e as Error).message}`);
+        toast.error("保存失败：" + (e as Error).message);
       })
       .finally(() => setSaving(false));
   };
@@ -253,7 +262,7 @@ export default function SystemSettingsPage() {
         tavily_search_api_key: tavilyKeyInput,
       })
       .then((r) => {
-        if (r.ok) toast.success(`搜索测试成功 · ${r.backend} 返回 ${r.count} 条结果`);
+        if (r.ok) toast.success("搜索测试成功 · " + r.backend + " 返回 " + r.count + " 条结果");
         else toast.error("搜索测试失败：" + (r.error || "未知错误"));
       })
       .catch((e) => toast.error("搜索测试失败：" + (e as Error).message))
@@ -264,471 +273,463 @@ export default function SystemSettingsPage() {
   const braveNeedsKey = webSearch && backend === "brave-free" && !braveKeySet;
 
   return (
-    // Codex 设置页实测：内容列 728px 居中；标题 28px/500；
-    // 分区标题 14px/500；卡片 #232323 / 圆角 20px；行高 64px。（详见 globals.css）
-    // 官方页面外层 768px 盒居中后加左右各 20px 内缩，实测内容列 [439,·,728]。
-    <div
-      data-codex-settings
-      className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-10 px-5 pb-10"
-    >
-      <div>
-        <h1 className="text-[28px] leading-[33.6px] font-medium tracking-normal">常规</h1>
+    // 骨架 = 壳 SettingsPage 的结构（cx-settings__shell ▸ __page ▸ __header/__title + __page ▸ __column）；
+    // 官方那 46px 空拖拽带由滚动容器的上内距承担（见 codex-settings.css 的说明）。
+    <div className="cx-settings" data-codex-settings>
+      <div className="cx-settings__shell">
+        <div className="cx-settings__page">
+          <header className="cx-settings__header">
+            <h1 className="cx-settings__title">常规</h1>
+          </header>
+        </div>
       </div>
 
-      {/* 单列设置卡片保留真实 ARTEX 配置能力，并按 Codex 的轻量分区节奏排列。 */}
-      <div className="flex flex-col gap-10">
-        {/* 外观：官方把「模式 / 字体 / 布局」这类偏好放在 设置 → 个人 → 外观；
-            ARTEX 原先放在主表面那条自造页头的 Popover 里，2026-10-12 撤页头后搬到这里，
-            控件与持久化逻辑原样复用（AppearanceControls）。 */}
-        <Card id="appearance" className="scroll-mt-6">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-base">
-              <PaletteIcon className="size-4" />
-              外观
-            </CardTitle>
-            <CardDescription>主题模式与预设、字体、页面布局、导航栏与侧边栏行为。</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <AppearanceControls />
-          </CardContent>
-        </Card>
+      <div className="cx-settings__page">
+        <div className="cx-settings__column">
+          {/* 外观：官方把「模式 / 字体 / 布局」这类偏好放在 设置 → 个人 → 外观；
+              控件与持久化逻辑原样复用（AppearanceControls）。 */}
+          <div id="appearance">
+            <SettingsSection title="外观">
+              <SettingsCard>
+                <AppearanceControls />
+              </SettingsCard>
+            </SettingsSection>
+          </div>
 
-        <div id="update" className="scroll-mt-6"><UpdateCard /></div>
+          <div id="update">
+            <SettingsSection title="版本与更新">
+              <UpdateCard />
+            </SettingsSection>
+          </div>
 
-        <Card id="traffic" className="scroll-mt-6">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-base">
-              <RadioTowerIcon className="size-4" />
-              流量捕获
-            </CardTitle>
-            <CardDescription>
-              开启后，所有 Agent 的 HTTP 流量经记录代理全量落库，并向 Agent 注入 traffic_search / traffic_get
-              工具与代理配置（提示词含代理说明）。
-              <br />
-              关闭（默认）时不记录任何流量：Agent
-              <b>不会</b>拿到代理配置与流量工具，提示词也<b>不含</b>代理相关内容。切换后会即时重建 Agent 生效。
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="flex items-center justify-between gap-4">
-            <Label htmlFor="traffic-capture" className="text-sm font-normal text-muted-foreground">
-              {trafficCapture ? "已开启 · 正在记录流量并注入代理" : "已关闭 · 不记录、不注入代理"}
-            </Label>
-            <Switch
-              id="traffic-capture"
-              checked={trafficCapture}
-              disabled={!loaded || saving}
-              onCheckedChange={toggleTraffic}
-            />
-          </CardContent>
-        </Card>
-
-        <Card id="auto-bind" className="scroll-mt-6">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-base">
-              <RadioTowerIcon className="size-4" />
-              Agent 自动绑定流量
-            </CardTitle>
-            <CardDescription id="agent-traffic-binding-description">
-              默认关闭。开启后，漏洞入库时触发的报告 Agent 会核对已有 HTTP 请求/响应，关联对应流量后再编写报告。
-              <b>查阅数据包及额外的工具调用会增加 Token 消耗。</b>
-              <br />
-              TCP、未抓包或没有匹配流量时仍可正常上报。此开关不影响流量捕获、人工绑定及已保存证据的查看。 对下一轮 Agent
-              生效；关闭后会立即拒绝新的自动绑定。
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="flex items-center justify-between gap-4">
-            <Label htmlFor="agent-traffic-binding" className="text-sm font-normal text-muted-foreground">
-              {agentTrafficBinding ? "已开启 · 会增加 Token 消耗" : "已关闭 · 可继续人工绑定"}
-            </Label>
-            <Switch
-              id="agent-traffic-binding"
-              aria-describedby="agent-traffic-binding-description"
-              checked={agentTrafficBinding}
-              disabled={!loaded || saving}
-              onCheckedChange={toggleAgentTrafficBinding}
-            />
-          </CardContent>
-        </Card>
-
-        <Card id="proxy" className="scroll-mt-6">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-base">
-              <RadioTowerIcon className="size-4" />
-              全局代理
-            </CardTitle>
-            <CardDescription>
-              所有 Agent 的<b>目标流量</b>经此代理出网（隐藏源 IP / 走跳板）。支持 <b>http / https / socks5</b>，可带{" "}
-              <code>user:pass</code> 认证。留空=直连。
-              <br />
-              开启<b>流量捕获</b>时，它作为记录代理的<b>上游</b>（流量仍全量落库，再经此代理出网）；关闭捕获时，直接注入
-              Agent 的 bash / WebFetch 出网。与网络搜索代理、LLM 代理相互独立。
-              <br />
-              <b>提示</b>：socks5 在<b>关闭捕获</b>时依赖各命令行工具对 <code>ALL_PROXY</code> 的支持（curl
-              可用，部分工具可能忽略）； 若主要用 socks5，建议开启流量捕获——此路径由 MITM
-              亲自拨号，工具无感知、稳定生效。
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="flex flex-col gap-2">
-            <Label htmlFor="global-proxy" className="text-sm font-normal text-muted-foreground">
-              代理地址
-            </Label>
-            <div className="flex items-center gap-2">
-              <Input
-                id="global-proxy"
-                autoComplete="off"
-                placeholder="socks5://user:pass@host:1080 或 http://host:port（留空=直连）"
-                value={globalProxyInput}
-                disabled={!loaded || savingGlobalProxy}
-                onChange={(e) => setGlobalProxyInput(e.target.value)}
-              />
-              <Button type="button" onClick={saveGlobalProxy} disabled={!loaded || savingGlobalProxy}>
-                保存
-              </Button>
-            </div>
-            <p className="text-muted-foreground text-xs">
-              {globalProxyInput.trim() ? "已配置 · 所有目标流量经此代理出网" : "未配置 · 目标流量直连出网"}
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card id="constraints" className="scroll-mt-6">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-base">
-              <ShieldAlertIcon className="size-4" />
-              操作约束注入
-            </CardTitle>
-            <CardDescription>
-              开启后，把每个任务的<b>操作约束</b>（在任务总览「操作约束」里维护的 allow/deny 条目）拼进对应 Agent
-              的系统提示，用来框定探索边界（如「仅测当前端口」「禁止爆破」）。
-              <br />
-              可分别控制注入到 <b>规划者（planner）</b>与 <b>执行者（worker）</b>
-              ；默认都开。切换即时生效（下一轮读取），无需重建 Agent。关闭后该 Agent 不再看到约束。
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="flex flex-col gap-4">
-            <div className="flex items-center justify-between gap-4">
-              <Label htmlFor="inject-planner" className="text-sm font-normal text-muted-foreground">
-                注入规划者（planner）{injectPlanner ? " · 已开启" : " · 已关闭"}
-              </Label>
-              <Switch
-                id="inject-planner"
-                checked={injectPlanner}
-                disabled={!loaded}
-                onCheckedChange={toggleInjectPlanner}
-              />
-            </div>
-            <div className="flex items-center justify-between gap-4">
-              <Label htmlFor="inject-worker" className="text-sm font-normal text-muted-foreground">
-                注入执行者（worker）{injectWorker ? " · 已开启" : " · 已关闭"}
-              </Label>
-              <Switch
-                id="inject-worker"
-                checked={injectWorker}
-                disabled={!loaded}
-                onCheckedChange={toggleInjectWorker}
-              />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card id="websearch" className="scroll-mt-6">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-base">
-              <SearchIcon className="size-4" />
-              网络搜索
-            </CardTitle>
-            <CardDescription>
-              这是网络搜索的<b>总开关 + 来源配置</b>。开启后，才能在<b>每个 Agent 的配置</b>里单独选择是否启用
-              <b>web_search</b>（仅返回标题/链接/摘要，不抓取正文；抓取由 WebFetch 负责）。网络搜索<b>不走</b>
-              记录代理，独立于流量捕获。
-              <br />
-              来源可选 <b>DuckDuckGo（ddgs）</b>（无需 Key）、<b>Brave（免费版）</b>（需填写 Brave API Key）、{" "}
-              <b>Tavily</b>（需填写 Tavily API Key）或 <b>DeepSeek</b>（复用当前 LLM 配置）。总开关关闭时，各
-              Agent 的网络搜索开关不可用。
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="flex flex-col gap-4">
-            <div className="flex items-center justify-between gap-4">
-              <Label htmlFor="web-search" className="text-sm font-normal text-muted-foreground">
-                {webSearch ? "总开关已开启 · 可在各 Agent 配置里单独启用" : "已关闭 · 各 Agent 无法启用网络搜索"}
-              </Label>
-              <Switch
-                id="web-search"
-                checked={webSearch}
-                disabled={!loaded || saving}
-                onCheckedChange={(v) => {
-                  setWebSearch(v); // optimistic
-                  saveWebSearch({ web_search_enabled: v });
-                }}
-              />
-            </div>
-
-            {webSearch && (
-              <div className="flex items-center justify-between gap-4">
-                <Label className="text-sm font-normal text-muted-foreground">搜索来源</Label>
-                <Select
-                  value={backend}
-                  disabled={!loaded || saving}
-                  onValueChange={(v) => {
-                    setBackend(v); // optimistic
-                    saveWebSearch({ web_search_backend: v });
-                  }}
-                >
-                  <SelectTrigger className="w-48 shrink-0">
-                    <SelectValue placeholder="选择来源" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="ddgs">DuckDuckGo（ddgs · 免费无 Key）</SelectItem>
-                    <SelectItem value="brave-free">Brave（免费版 · 需 Key）</SelectItem>
-                    <SelectItem value="tavily">Tavily（需 Key）</SelectItem>
-                    <SelectItem value="deepseek">DeepSeek（官方）</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-
-            {webSearch && backend === "deepseek" && (
-              <div className="border-border/60 bg-muted/30 flex flex-col gap-2 rounded-md border p-3">
-                <p className="text-sm font-medium">DeepSeek 官方联网搜索</p>
-                <p className="text-muted-foreground text-xs leading-relaxed">
-                  该来源直接复用<b>当前激活的 LLM 配置</b>。因此它
-                  <b>仅支持 DeepSeek 官方模型</b>，且该配置<b>必须使用 anthropic 协议</b>
-                  ——DeepSeek 的 OpenAI 协议端点不支持服务端搜索。切换 LLM 配置后此来源可能失效。
-                </p>
-                <p className="text-muted-foreground text-xs leading-relaxed">
-                  与其它来源不同，搜索由 <b>DeepSeek 服务端执行</b>：每次搜索会额外消耗一次模型调用（产生 Token
-                  费用），搜索请求<b>不经过上面的出口代理</b>，也<b>不计入流量留痕</b>；返回结果<b>只有标题和链接</b>
-                  （无摘要），需要正文时由 WebFetch 抓取。
-                </p>
-                <p className="text-muted-foreground text-xs leading-relaxed">
-                  是否满足上述条件由你自行确认，系统不做拦截；可用下方「测试搜索」按钮实际跑一次来验证。
-                </p>
-              </div>
-            )}
-
-            {webSearch && backend === "brave-free" && (
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="brave-key" className="text-sm font-normal text-muted-foreground">
-                  Brave Search API Key
-                  {braveKeySet && <span className="ml-2 text-xs text-emerald-500">已配置</span>}
-                </Label>
-                <div className="flex items-center gap-2">
-                  <Input
-                    id="brave-key"
-                    type="password"
-                    autoComplete="off"
-                    placeholder={braveKeySet ? "已配置（留空则不变）" : "输入 Brave API Key"}
-                    value={braveKeyInput}
-                    disabled={!loaded || savingKey}
-                    onChange={(e) => setBraveKeyInput(e.target.value)}
-                  />
-                  <Button
-                    type="button"
-                    onClick={saveBraveKey}
-                    disabled={!loaded || savingKey || braveKeyInput.trim() === ""}
-                  >
-                    保存
-                  </Button>
-                </div>
-                {braveNeedsKey && (
-                  <p className="text-xs text-amber-500">
-                    已选择 Brave 但尚未配置 Key —— 在保存 Key 之前，搜索工具不会启用。
+          <div id="traffic">
+            <SettingsSection title="流量捕获">
+              <SettingsCard>
+                <SettingsRow
+                  control={
+                    <SettingsSwitch
+                      checked={trafficCapture}
+                      disabled={!loaded || saving}
+                      label="流量捕获"
+                      onChange={toggleTraffic}
+                    />
+                  }
+                  description="开启后，所有 Agent 的 HTTP 流量经记录代理全量落库，并向 Agent 注入 traffic_search / traffic_get 工具与代理配置（提示词含代理说明）。切换后会即时重建 Agent 生效。"
+                  label="流量捕获"
+                />
+                <SettingsCardBody>
+                  <p className="cx-settings-note">
+                    关闭（默认）时不记录任何流量：Agent 不会拿到代理配置与流量工具，提示词也不含代理相关内容。
                   </p>
-                )}
-                <p className="text-muted-foreground text-xs">
-                  免费版额度约 2,000 次/月。前往 https://brave.com/search/api/ 获取 Key。
-                </p>
-              </div>
-            )}
+                </SettingsCardBody>
+              </SettingsCard>
+            </SettingsSection>
+          </div>
 
-            {webSearch && backend === "tavily" && (
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="tavily-key" className="text-sm font-normal text-muted-foreground">
-                  Tavily Search API Key
-                  {tavilyKeySet && <span className="ml-2 text-xs text-emerald-500">已配置</span>}
-                </Label>
-                <div className="flex items-center gap-2">
-                  <Input
-                    id="tavily-key"
-                    type="password"
-                    autoComplete="off"
-                    placeholder={tavilyKeySet ? "已配置（留空则不变）" : "输入 Tavily API Key（tvly-…）"}
-                    value={tavilyKeyInput}
-                    disabled={!loaded || savingTavilyKey}
-                    onChange={(e) => setTavilyKeyInput(e.target.value)}
-                  />
-                  <Button
-                    type="button"
-                    onClick={saveTavilyKey}
-                    disabled={!loaded || savingTavilyKey || tavilyKeyInput.trim() === ""}
-                  >
-                    保存
-                  </Button>
-                </div>
-                {webSearch && backend === "tavily" && !tavilyKeySet && (
-                  <p className="text-xs text-amber-500">
-                    已选择 Tavily 但尚未配置 Key —— 在保存 Key 之前，搜索工具不会启用。
+          <div id="auto-bind">
+            <SettingsSection title="Agent 自动绑定流量">
+              <SettingsCard>
+                <SettingsRow
+                  control={
+                    <SettingsSwitch
+                      checked={agentTrafficBinding}
+                      disabled={!loaded || saving}
+                      label="Agent 自动绑定流量"
+                      onChange={toggleAgentTrafficBinding}
+                    />
+                  }
+                  description="默认关闭。开启后，漏洞入库时触发的报告 Agent 会核对已有 HTTP 请求/响应，关联对应流量后再编写报告。查阅数据包及额外的工具调用会增加 Token 消耗。"
+                  label="Agent 自动绑定流量"
+                />
+                <SettingsCardBody>
+                  <p className="cx-settings-note">
+                    TCP、未抓包或没有匹配流量时仍可正常上报。此开关不影响流量捕获、人工绑定及已保存证据的查看。
+                    对下一轮 Agent 生效；关闭后会立即拒绝新的自动绑定。
                   </p>
-                )}
-                <p className="text-muted-foreground text-xs">前往 https://tavily.com 注册并获取 API Key。</p>
-              </div>
-            )}
+                </SettingsCardBody>
+              </SettingsCard>
+            </SettingsSection>
+          </div>
 
-            {webSearch && (
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="ws-proxy" className="text-sm font-normal text-muted-foreground">
-                  出口代理（可选）
-                </Label>
-                <div className="flex items-center gap-2">
-                  <Input
-                    id="ws-proxy"
-                    autoComplete="off"
-                    placeholder="http://host:port 或 socks5://host:port（留空=直连）"
-                    value={proxyInput}
-                    disabled={!loaded || savingProxy}
-                    onChange={(e) => setProxyInput(e.target.value)}
+          <div id="proxy">
+            <SettingsSection title="全局代理">
+              <SettingsCard>
+                <SettingsCardBody>
+                  <div className="cx-settings-fields">
+                    <SettingsField
+                      help="所有 Agent 的目标流量经此代理出网（隐藏源 IP / 走跳板）。支持 http / https / socks5，可带 user:pass 认证。留空=直连。"
+                      htmlFor="global-proxy"
+                      label="代理地址"
+                    >
+                      <Input
+                        autoComplete="off"
+                        disabled={!loaded || savingGlobalProxy}
+                        id="global-proxy"
+                        onChange={(e) => setGlobalProxyInput(e.target.value)}
+                        placeholder="socks5://user:pass@host:1080 或 http://host:port（留空=直连）"
+                        value={globalProxyInput}
+                      />
+                    </SettingsField>
+                  </div>
+                </SettingsCardBody>
+                <SettingsRow
+                  control={
+                    <SettingsButton disabled={!loaded || savingGlobalProxy} onClick={saveGlobalProxy}>
+                      保存
+                    </SettingsButton>
+                  }
+                  description={
+                    globalProxyInput.trim() ? "已配置 · 所有目标流量经此代理出网" : "未配置 · 目标流量直连出网"
+                  }
+                  label="保存代理设置"
+                />
+                <SettingsCardBody>
+                  <p className="cx-settings-note">
+                    开启流量捕获时，它作为记录代理的上游（流量仍全量落库，再经此代理出网）；关闭捕获时，直接注入 Agent 的
+                    bash / WebFetch 出网。与网络搜索代理、LLM 代理相互独立。
+                  </p>
+                  <p className="cx-settings-note">
+                    提示：socks5 在关闭捕获时依赖各命令行工具对 ALL_PROXY 的支持（curl 可用，部分工具可能忽略）；
+                    若主要用 socks5，建议开启流量捕获 —— 此路径由 MITM 亲自拨号，工具无感知、稳定生效。
+                  </p>
+                </SettingsCardBody>
+              </SettingsCard>
+            </SettingsSection>
+          </div>
+
+          <div id="constraints">
+            <SettingsSection title="操作约束注入">
+              <SettingsCard>
+                <SettingsRow
+                  control={
+                    <SettingsSwitch
+                      checked={injectPlanner}
+                      disabled={!loaded}
+                      label="注入规划者（planner）"
+                      onChange={toggleInjectPlanner}
+                    />
+                  }
+                  description="把每个任务的操作约束拼进规划者（planner）的系统提示，用来框定探索边界。"
+                  label="注入规划者（planner）"
+                />
+                <SettingsRow
+                  control={
+                    <SettingsSwitch
+                      checked={injectWorker}
+                      disabled={!loaded}
+                      label="注入执行者（worker）"
+                      onChange={toggleInjectWorker}
+                    />
+                  }
+                  description="把每个任务的操作约束拼进执行者（worker）的系统提示，用来框定探索边界。"
+                  label="注入执行者（worker）"
+                />
+                <SettingsCardBody>
+                  <p className="cx-settings-note">
+                    约束来自任务总览「操作约束」里维护的 allow/deny 条目（如「仅测当前端口」「禁止爆破」），默认都开。
+                    切换即时生效（下一轮读取），无需重建 Agent；关闭后该 Agent 不再看到约束。
+                  </p>
+                </SettingsCardBody>
+              </SettingsCard>
+            </SettingsSection>
+          </div>
+
+          <div id="websearch">
+            <SettingsSection title="网络搜索">
+              <SettingsCard>
+                <SettingsRow
+                  control={
+                    <SettingsSwitch
+                      checked={webSearch}
+                      disabled={!loaded || saving}
+                      label="网络搜索总开关"
+                      onChange={(v) => {
+                        setWebSearch(v); // optimistic
+                        saveWebSearch({ web_search_enabled: v });
+                      }}
+                    />
+                  }
+                  description="这是网络搜索的总开关 + 来源配置。开启后，才能在每个 Agent 的配置里单独选择是否启用 web_search（仅返回标题/链接/摘要，不抓取正文；抓取由 WebFetch 负责）。"
+                  label="总开关"
+                />
+
+                {webSearch && (
+                  <SettingsRow
+                    control={
+                      <SettingsSelect
+                        disabled={!loaded || saving}
+                        label="搜索来源"
+                        onChange={(v) => {
+                          setBackend(v); // optimistic
+                          saveWebSearch({ web_search_backend: v });
+                        }}
+                        options={SEARCH_BACKEND_OPTIONS}
+                        value={backend}
+                      />
+                    }
+                    description="网络搜索不走记录代理，独立于流量捕获。总开关关闭时，各 Agent 的网络搜索开关不可用。"
+                    label="搜索来源"
                   />
-                  <Button type="button" onClick={saveProxy} disabled={!loaded || savingProxy}>
-                    保存
-                  </Button>
-                </div>
-                <p className="text-muted-foreground text-xs">
-                  独立出口代理，仅用于访问搜索端点（VPN/SOCKS 等）。与记录流量的 MITM 代理无关；网络不通时经此代理访问。
-                </p>
-              </div>
-            )}
+                )}
 
-            {webSearch && (
-              <div className="flex items-center justify-between gap-4 border-t pt-4">
-                <p className="text-muted-foreground text-xs">
-                  用当前配置（来源 + 代理 + Key）实际搜索一次「test」，验证是否可用。
-                </p>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={runTest}
-                  disabled={!loaded || testing}
-                  className="shrink-0"
-                >
-                  {testing ? "测试中…" : "测试搜索"}
-                </Button>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                {webSearch && backend === "deepseek" && (
+                  <>
+                    <SettingsRow
+                      description="该来源直接复用当前激活的 LLM 配置，因此仅支持 DeepSeek 官方模型，且该配置必须使用 anthropic 协议 —— DeepSeek 的 OpenAI 协议端点不支持服务端搜索。切换 LLM 配置后此来源可能失效。"
+                      label="DeepSeek 官方联网搜索"
+                    />
+                    <SettingsCardBody>
+                      <p className="cx-settings-note">
+                        与其它来源不同，搜索由 DeepSeek 服务端执行：每次搜索会额外消耗一次模型调用（产生 Token
+                        费用），搜索请求不经过上面的出口代理，也不计入流量留痕；返回结果只有标题和链接（无摘要），需要正文时由
+                        WebFetch 抓取。
+                      </p>
+                      <p className="cx-settings-note">
+                        是否满足上述条件由你自行确认，系统不做拦截；可用下方「测试搜索」按钮实际跑一次来验证。
+                      </p>
+                    </SettingsCardBody>
+                  </>
+                )}
 
-        <Card id="python" className="scroll-mt-6">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-base">
-              <RadioTowerIcon className="size-4" />
-              自定义脚本 · Python 解释器
-            </CardTitle>
-            <CardDescription>
-              自定义 <b>script</b> 类型工具用它跑 Python。开机会自动检测（python3 优先）；此处可手填 venv /
-              特定版本的绝对路径，留空则运行时自动检测。
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="flex flex-col gap-3">
-            <div className="flex items-center gap-2">
-              <Input
-                className="font-mono text-sm"
-                placeholder="/usr/bin/python3（留空=自动检测）"
-                value={pyInterp}
-                disabled={!loaded || saving}
-                onChange={(e) => setPyInterp(e.target.value)}
-              />
-              <Button variant="outline" onClick={detectPython} disabled={!loaded || saving}>
-                重新检测
-              </Button>
-              <Button onClick={savePython} disabled={!loaded || saving}>
-                保存
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+                {webSearch && backend === "brave-free" && (
+                  <>
+                    <SettingsCardBody>
+                      <div className="cx-settings-fields">
+                        <SettingsField
+                          help={
+                            braveKeySet
+                              ? "已配置 · 免费版额度约 2,000 次/月"
+                              : "尚未配置 —— 在保存 Key 之前，搜索工具不会启用。免费版额度约 2,000 次/月"
+                          }
+                          htmlFor="brave-key"
+                          label="Brave Search API Key"
+                        >
+                          <Input
+                            autoComplete="off"
+                            disabled={!loaded || savingKey}
+                            id="brave-key"
+                            onChange={(e) => setBraveKeyInput(e.target.value)}
+                            placeholder={braveKeySet ? "已配置（留空则不变）" : "输入 Brave API Key"}
+                            type="password"
+                            value={braveKeyInput}
+                          />
+                        </SettingsField>
+                      </div>
+                      {braveNeedsKey ? (
+                        <p className="cx-settings-field__warn">
+                          已选择 Brave 但尚未配置 Key —— 在保存 Key 之前，搜索工具不会启用。
+                        </p>
+                      ) : null}
+                    </SettingsCardBody>
+                    <SettingsRow
+                      control={
+                        <SettingsButton
+                          disabled={!loaded || savingKey || braveKeyInput.trim() === ""}
+                          onClick={saveBraveKey}
+                        >
+                          保存
+                        </SettingsButton>
+                      }
+                      description="前往 https://brave.com/search/api/ 获取 Key。"
+                      label="保存 Brave Key"
+                    />
+                  </>
+                )}
 
-        <Card id="concurrency" className="scroll-mt-6">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-base">
-              <CpuIcon className="size-4" />
-              工作并发 · Work Agent 数
-            </CardTitle>
-            <CardDescription>
-              每个任务并发运行的工作 agent 数量（默认 3）。数值越大并发探测越多、消耗也越高。修改后
-              <b>对之后启动的任务生效</b>，正在运行的任务不受影响。
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="flex flex-col gap-3">
-            <div className="flex items-center gap-2">
-              <Input
-                type="number"
-                min={1}
-                className="w-32 font-mono text-sm"
-                placeholder="3"
-                value={workers}
-                disabled={!loaded || savingWorkers}
-                onChange={(e) => setWorkers(e.target.value)}
-              />
-              <Button onClick={saveWorkers} disabled={!loaded || savingWorkers}>
-                保存
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+                {webSearch && backend === "tavily" && (
+                  <>
+                    <SettingsCardBody>
+                      <div className="cx-settings-fields">
+                        <SettingsField
+                          help={tavilyKeySet ? "已配置" : "尚未配置 —— 在保存 Key 之前，搜索工具不会启用"}
+                          htmlFor="tavily-key"
+                          label="Tavily Search API Key"
+                        >
+                          <Input
+                            autoComplete="off"
+                            disabled={!loaded || savingTavilyKey}
+                            id="tavily-key"
+                            onChange={(e) => setTavilyKeyInput(e.target.value)}
+                            placeholder={tavilyKeySet ? "已配置（留空则不变）" : "输入 Tavily API Key（tvly-…）"}
+                            type="password"
+                            value={tavilyKeyInput}
+                          />
+                        </SettingsField>
+                      </div>
+                    </SettingsCardBody>
+                    <SettingsRow
+                      control={
+                        <SettingsButton
+                          disabled={!loaded || savingTavilyKey || tavilyKeyInput.trim() === ""}
+                          onClick={saveTavilyKey}
+                        >
+                          保存
+                        </SettingsButton>
+                      }
+                      description="前往 https://tavily.com 注册并获取 API Key。"
+                      label="保存 Tavily Key"
+                    />
+                  </>
+                )}
 
-        <Card id="sendkey" className="scroll-mt-6">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-base">
-              <KeyboardIcon className="size-4" />
-              会话输入框发送键位
-            </CardTitle>
-            <CardDescription>
-              对话页与任务详情的主 Agent 会话输入框共用此设置，选择后立即生效、无需保存。
-              <br />
-              该偏好<b>只存在本浏览器</b>，不随账号同步，换浏览器或清理站点数据后需重新设置。
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="flex items-center justify-between gap-4">
-            <Label htmlFor="chat-send-mode" className="text-sm font-normal text-muted-foreground">
-              发送方式
-            </Label>
-            <Select value={sendMode} onValueChange={(v) => setChatSendMode(v as ChatSendMode)}>
-              <SelectTrigger id="chat-send-mode" className="w-72">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {CHAT_SEND_MODE_OPTIONS.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
+                {webSearch && (
+                  <>
+                    <SettingsCardBody>
+                      <div className="cx-settings-fields">
+                        <SettingsField
+                          help="独立出口代理，仅用于访问搜索端点（VPN/SOCKS 等）。与记录流量的 MITM 代理无关；网络不通时经此代理访问。"
+                          htmlFor="ws-proxy"
+                          label="出口代理（可选）"
+                        >
+                          <Input
+                            autoComplete="off"
+                            disabled={!loaded || savingProxy}
+                            id="ws-proxy"
+                            onChange={(e) => setProxyInput(e.target.value)}
+                            placeholder="http://host:port 或 socks5://host:port（留空=直连）"
+                            value={proxyInput}
+                          />
+                        </SettingsField>
+                      </div>
+                    </SettingsCardBody>
+                    <SettingsRow
+                      control={
+                        <SettingsButton disabled={!loaded || savingProxy} onClick={saveProxy}>
+                          保存
+                        </SettingsButton>
+                      }
+                      description="留空即直连；保存后立即对下一次搜索生效。"
+                      label="保存出口代理"
+                    />
+                    <SettingsRow
+                      control={
+                        <SettingsButton disabled={!loaded || testing} onClick={runTest}>
+                          {testing ? "测试中…" : "测试搜索"}
+                        </SettingsButton>
+                      }
+                      description="用当前配置（来源 + 代理 + Key）实际搜索一次「test」，验证是否可用。"
+                      label="测试搜索"
+                    />
+                  </>
+                )}
+              </SettingsCard>
+            </SettingsSection>
+          </div>
+
+          <div id="python">
+            <SettingsSection title="自定义脚本 · Python 解释器">
+              <SettingsCard>
+                <SettingsCardBody>
+                  <div className="cx-settings-fields">
+                    <SettingsField
+                      help="自定义 script 类型工具用它跑 Python。开机会自动检测（python3 优先）；此处可手填 venv / 特定版本的绝对路径，留空则运行时自动检测。"
+                      htmlFor="python-interpreter"
+                      label="Python 解释器"
+                    >
+                      <Input
+                        disabled={!loaded || saving}
+                        id="python-interpreter"
+                        onChange={(e) => setPyInterp(e.target.value)}
+                        placeholder="/usr/bin/python3（留空=自动检测）"
+                        value={pyInterp}
+                      />
+                    </SettingsField>
+                  </div>
+                </SettingsCardBody>
+                <SettingsRow
+                  control={
+                    <>
+                      <SettingsButton disabled={!loaded || saving} onClick={detectPython}>
+                        重新检测
+                      </SettingsButton>
+                      <SettingsButton disabled={!loaded || saving} onClick={savePython}>
+                        保存
+                      </SettingsButton>
+                    </>
+                  }
+                  description="「重新检测」只把检测结果填回输入框，点「保存」才落库。"
+                  label="解释器操作"
+                />
+              </SettingsCard>
+            </SettingsSection>
+          </div>
+
+          <div id="concurrency">
+            <SettingsSection title="工作并发 · Work Agent 数">
+              <SettingsCard>
+                <SettingsCardBody>
+                  <div className="cx-settings-fields">
+                    <SettingsField
+                      help="每个任务并发运行的工作 agent 数量（默认 3）。数值越大并发探测越多、消耗也越高。修改后对之后启动的任务生效，正在运行的任务不受影响。"
+                      htmlFor="workers"
+                      label="Work Agent 数"
+                    >
+                      <Input
+                        disabled={!loaded || savingWorkers}
+                        id="workers"
+                        min={1}
+                        onChange={(e) => setWorkers(e.target.value)}
+                        placeholder="3"
+                        type="number"
+                        value={workers}
+                      />
+                    </SettingsField>
+                  </div>
+                </SettingsCardBody>
+                <SettingsRow
+                  control={
+                    <SettingsButton disabled={!loaded || savingWorkers} onClick={saveWorkers}>
+                      保存
+                    </SettingsButton>
+                  }
+                  description="必须是大于 0 的整数。"
+                  label="保存并发数"
+                />
+              </SettingsCard>
+            </SettingsSection>
+          </div>
+
+          <div id="sendkey">
+            <SettingsSection title="会话输入框发送键位">
+              <SettingsCard>
+                <SettingsRow
+                  control={
+                    <SettingsSelect
+                      label="发送方式"
+                      onChange={(v) => setChatSendMode(v as ChatSendMode)}
+                      options={CHAT_SEND_MODE_OPTIONS}
+                      value={sendMode}
+                    />
+                  }
+                  description="对话页与任务详情的主 Agent 会话输入框共用此设置，选择后立即生效、无需保存。该偏好只存在本浏览器，不随账号同步，换浏览器或清理站点数据后需重新设置。"
+                  label="发送方式"
+                />
+              </SettingsCard>
+            </SettingsSection>
+          </div>
+
+          {/* 平台入口仍保留给现有导航项，但放在真实运行时设置之后，避免抢占常规页首屏。 */}
+          <div id="panel">
+            <SettingsSection title="更多入口">
+              <SettingsCard>
+                {settingsPanelItems.map((p) => (
+                  <SettingsRow
+                    control={
+                      <Button asChild size="sm" variant="soft">
+                        <Link href={p.url} prefetch={false}>
+                          打开
+                        </Link>
+                      </Button>
+                    }
+                    description={p.url}
+                    key={p.id}
+                    label={p.title}
+                  />
                 ))}
-              </SelectContent>
-            </Select>
-          </CardContent>
-        </Card>
-
-        {/* 平台入口仍保留给现有导航项，但放在真实运行时设置之后，避免抢占常规页首屏。 */}
-        <Card id="panel" className="codex-settings-secondary-card scroll-mt-6">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-base">
-              <LayoutGridIcon className="size-4" />
-              更多入口
-            </CardTitle>
-            <CardDescription>打开 ARTEX 的任务、发现、内网和系统工具页面。</CardDescription>
-          </CardHeader>
-          <CardContent className="grid grid-cols-2 gap-2 md:grid-cols-3 lg:grid-cols-4">
-            {settingsPanelItems.map((p) => (
-              <Link
-                key={p.id}
-                href={p.url}
-                className="text-muted-foreground hover:bg-accent hover:text-accent-foreground flex items-center gap-2 rounded-md border px-3 py-2 text-sm transition-colors"
-              >
-                <p.icon className="size-4" />
-                {p.title}
-              </Link>
-            ))}
-          </CardContent>
-        </Card>
+              </SettingsCard>
+            </SettingsSection>
+          </div>
+        </div>
       </div>
     </div>
   );

@@ -4,7 +4,7 @@ import * as React from "react";
 
 import Link from "next/link";
 
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Button, Popover, PopoverContent, PopoverTrigger } from "@/codex-ui/codex/ui";
 import { api } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import type { InterceptRule } from "@/lib/types";
@@ -51,19 +51,16 @@ export function PermissionPill({ className }: { className?: string }) {
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <button
-          type="button"
-          className={cn(
-            "inline-flex h-7 shrink-0 items-center gap-1.5 rounded-full px-2 text-[13px] leading-[18px] font-normal",
-            "transition-colors hover:bg-[rgb(255_255_255_/_0.08)]",
-            open ? "text-[rgb(255_133_73)]" : "text-[color:var(--color-text-tertiary,rgb(255_255_255_/_0.498))]",
-            className,
-          )}
+        <Button
+          className={cn(className, !open && "text-codex-text-tertiary")}
+          color={open ? "danger" : "primary"}
+          pill
+          size="sm"
           title="拦截规则姿态"
           aria-label="拦截规则姿态"
         >
           {loading ? "拦截 · 读取中" : open ? "拦截已关闭 · 完全放开" : `拦截 · ${enabled.length} 条规则`}
-        </button>
+        </Button>
       </PopoverTrigger>
       <PopoverContent align="start" className="w-72 p-2">
         <p className="px-1 pb-1.5 text-[13px] font-medium">

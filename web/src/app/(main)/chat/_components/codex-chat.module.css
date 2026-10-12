@@ -296,50 +296,26 @@
   opacity: 0.4;
 }
 
-/* 发送键：实测 28×28 / 9999px / bg rgb(223,223,223) / 图标 rgb(45,45,45)
-   官方类：size-token-button-composer + rounded-full + transition-opacity
-   官方 transition: opacity .15s cubic-bezier(.4, 0, .2, 1) */
-.sendButton {
-  display: inline-flex;
-  width: var(--chat-control);
-  height: var(--chat-control);
-  flex-shrink: 0;
-  align-items: center;
-  justify-content: center;
-  border-radius: 9999px;
-  padding: 2px;
-  background-color: var(--chat-primary);
-  color: var(--chat-on-primary);
-  transition: opacity 0.15s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.sendButton:hover:not(:disabled) {
-  opacity: 0.9;
-}
-
-.sendButton:disabled {
-  /* 参考端实测：首页空输入时发送键 opacity 0.5 */
+/* 发送键 / 停止键：尺寸、药丸圆角、实心底、hover/disabled 全部由复制来的官方件承担
+   （.cx-btn · data-size=sm ⇒ 26 高 · data-pill ⇒ --radius-full + gutter×1.33 ·
+   variant=solid ⇒ --color-background-primary-solid / -hover / -active）。
+   这里只覆盖官方件本身不表达的**进度/禁用透明度**与危险档底色的两处页面语义。 */
+.sendButton.sendButton:disabled {
+  /* 官方件 ghost/transparent 档 disabled 才是 opacity .4；这里是实心键，
+     参考端实测空输入时为 0.5，与官方件默认档（不加透明度）不同，故页面显式给。 */
   opacity: 0.5;
 }
 
-/* 流式中：停止键（同尺寸，官方用 danger 实心圆 + 方形停止图标） */
-.stopButton {
-  display: inline-flex;
-  width: var(--chat-control);
-  height: var(--chat-control);
-  flex-shrink: 0;
-  align-items: center;
-  justify-content: center;
-  border-radius: 9999px;
-  padding: 2px;
-  background-color: var(--red-400, #fa423e);
-  color: var(--gray-0, #0d0d0d);
-  transition:
-    background-color var(--transition-duration-basic, 0.15s) ease,
-    opacity var(--transition-duration-basic, 0.15s) ease;
+.sendButton.sendButton:hover:not(:disabled) {
+  opacity: 0.9;
 }
 
-.stopButton:hover:not(:disabled) {
+.stopButton.stopButton {
+  --cx-btn-bg: var(--red-400, #fa423e);
+  --cx-btn-text: var(--gray-0, #0d0d0d);
+}
+
+.stopButton.stopButton:hover:not(:disabled) {
   opacity: 0.9;
 }
 
@@ -347,13 +323,6 @@
 .scope :focus-visible {
   outline: 2px solid var(--color-ring, #0285ff);
   outline-offset: 1px;
-}
-
-.sendButton:focus-visible,
-.stopButton:focus-visible,
-.composerTool:focus-visible {
-  outline: 2px solid var(--color-ring, #0285ff);
-  outline-offset: 2px;
 }
 
 /* ══════════════════════════════════════════════════════════════════════════
@@ -924,11 +893,12 @@
   opacity: 0.3;
 }
 
-/* ── 输入面板正上方的「选择项目」条 ──────────────────────────────────────
-   参考端实测：条 [453,660,710,42] bg rgb(40,40,40) padding 0 4px 4px；
-   内层 [457,660,702,38] padding 5px 0；芯片 [457,665,91,28] r9999 padding 0 8px gap 6px；
-   13px/18px/430 rgba(255,255,255,.498)。条与输入面板重叠 4px（面板 698..796，
-   条 660..702），所以条的下边被面板盖住，视觉上只有上圆角。 */
+/* ── 输入面板正上方的「选择项目」通栏行 ──────────────────────────────────
+   条本身的几何是参考端实测：710 宽、圆角 12、bg rgb(40,40,40)、内距 0 4px 4px，
+   下边被输入面板压住 4px（面板 698..794.67）⇒ 视觉上只有上圆角。
+   ⚠️ 行内触发器**不再是药丸芯片**：它的高度/圆角/内距/字号/字重/底色全部由复制来的
+   官方件的 .cx-select__trigger 承担（28 高 / 圆角 7.5 / 底 --input-soft-background-color /
+   13px / 500 / gutter 8px）。这里只留两条版面规则，不写任何控件数值。 */
 .projectBar {
   position: relative;
   z-index: 0;
@@ -945,46 +915,18 @@
   display: flex;
   min-width: 0;
   align-items: center;
-  gap: 0.5rem;
-  padding: 5px 0;
 }
 
+/* 官方那条行是**整行触发器**：吃满宽度、内容左对齐（不是收缩的 inline-flex 药丸）。 */
 .projectChip.projectChip {
-  display: inline-flex;
-  height: 1.75rem;
+  width: 100%;
   min-width: 0;
-  flex-shrink: 0;
-  align-items: center;
   justify-content: flex-start;
-  gap: 6px;
-  border-radius: 9999px;
-  padding: 0 8px;
-  /* 参考端「选择项目」芯片文字 = 主文字色 rgb(223,223,223)（探针实测外壳同位置
-     span 的 computed color；此前写的 tertiary 50% 白偏暗一档）。 */
-  color: var(--color-text, #dfdfdf);
-  font-size: 13px;
-  font-weight: var(--chat-body-weight);
-  line-height: 1.125rem;
-  transition:
-    background-color var(--transition-duration-basic, 0.15s) var(--ease-move, ease),
-    color var(--transition-duration-basic, 0.15s) var(--ease-move, ease);
 }
 
-.projectChip.projectChip:hover {
-  background-color: color-mix(in oklab, var(--color-text, #dfdfdf) 12%, transparent);
-  color: var(--color-text, #dfdfdf);
-}
-
-/* SelectTrigger 默认带一个尾部 chevron；参考端「选择项目」芯片只有文件夹图标。 */
+/* 复制件的 SelectTrigger 自带尾部 chevron；官方的「选择项目」行只有前置文件夹图标。 */
 .projectChip.projectChip svg:last-child {
   display: none;
-}
-
-.projectChipLabel {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 /* 有「选择项目」条时输入面板上移 4px 与条重叠（条下边被面板盖住） */

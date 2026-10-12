@@ -2,13 +2,12 @@
 
 import type * as React from "react";
 
-import { Settings } from "lucide-react";
+import { Settings as SettingsIcon } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { SettingsCard, SettingsRow } from "@/codex-ui/codex/settings/SettingsRow";
+import { SettingsButton, SettingsSegmented, SettingsSelect } from "@/codex-ui/codex/settings/controls";
+import { Button, Popover, PopoverContent, PopoverTrigger } from "@/codex-ui/codex/ui";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/codex-ui/codex/ui";
 import { type FontKey, fontOptions } from "@/lib/fonts/registry";
 import type { ContentLayout, NavbarStyle, SidebarCollapsible, SidebarVariant } from "@/lib/preferences/layout";
 import {
@@ -27,44 +26,18 @@ import { usePreferencesStore } from "@/stores/preferences/preferences-provider";
 /**
  * 外观控件本体（主题模式/预设、字体、页面布局、导航栏行为、侧边栏样式与折叠方式、恢复默认）。
  *
- * 从原 `LayoutControls` 的 Popover 里抽出来，是因为 2026-10-12 撤掉了 ARTEX 自造的全局页头：
- * 官方这些偏好在**设置页**里（设置 → 个人 → 外观），所以控件搬进设置页的「外观」卡片，
- * 逻辑与持久化一个字没改，只是换了个挂载点。Popover 版 `LayoutControls` 保留给需要的地方。
- */
-/**
- * 官方设置行范式：**左「标签 + 说明」/ 右「控件」**。
+ * 从原 LayoutControls 的 Popover 里抽出来，是因为 2026-10-12 撤掉了 ARTEX 自造的全局页头：
+ * 官方这些偏好在**设置页**里（设置 → 个人 → 外观），所以控件搬进设置页的「外观」分区，
+ * 逻辑与持久化一个字没改，只是换了个挂载点。Popover 版 LayoutControls 保留给需要的地方。
  *
- * 官方实测（1280×816，codex-1to1-settings.png）：行 min-height 64、padding-block 12、左右 gap 24、
- * 行间分隔线 1px 白 8%（末行无）；标签 13/500/18.57，说明 12/430/16 且用次级色。
- * 行盒模型由 codex-settings.css 的 `[data-slot="card-content"] > div.flex` 规则提供，
- * 所以这里的根节点**必须**是 `div.flex`，而且因为读取的是直接子选择器（`>`），
- * AppearanceControls 必须用 Fragment 返回（Fragment 不产生 DOM），行才落成 CardContent 的直接子节点。
+ * ★ 表现层 = **逐字节移植**的壳组件（web/src/codex-ui/codex/**，见 task-5）：
+ *   SettingsRow（壳 src/settings/SettingsRow.tsx）、SettingsSegmented / SettingsSelect /
+ *   SettingsButton（壳 src/settings/controls.tsx）、Select / Button / Popover（壳 src/ui/**）、
+ *   色板圆点用壳 settings.css 原文的 .cx-settings-swatch__chip。
+ *   ★ 本文件不含任何自写样式常量。
+ * ⚠️ 返回值必须是 Fragment：行的盒模型来自 .cx-settings-card 的**直接子元素**规则
+ *    （分隔线是 .cx-settings-row + .cx-settings-row::before），多包一层 div 就不成立。
  */
-function AppearanceRow({
-  label,
-  description,
-  htmlFor,
-  children,
-}: {
-  label: string;
-  description?: string;
-  htmlFor?: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="flex items-center justify-between gap-6">
-      <div className="min-w-0">
-        <Label htmlFor={htmlFor} className="block text-[13px] font-medium leading-[18.57px]">
-          {label}
-        </Label>
-        {description ? (
-          <p className="mt-0.5 text-[12px] font-[430] leading-4 text-muted-foreground">{description}</p>
-        ) : null}
-      </div>
-      <div className="flex shrink-0 items-center">{children}</div>
-    </div>
-  );
-}
 export function AppearanceControls() {
   const themeMode = usePreferencesStore((s) => s.themeMode);
   const resolvedThemeMode = usePreferencesStore((s) => s.resolvedThemeMode);
@@ -141,17 +114,20 @@ export function AppearanceControls() {
 
   return (
     <>
-      <AppearanceRow label="主题预设" htmlFor="appearance-preset" description="界面配色的预设色板。">
-        <Select value={themePreset} onValueChange={onThemePresetChange}>
-          <SelectTrigger id="appearance-preset" size="sm" className="w-[180px] text-xs">
-            <SelectValue placeholder="预设" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectGroup>
+      {/* 主题预设：选项里带一枚色板圆点（官方 .cx-settings-swatch__chip），所以这一行的
+          下拉用壳 ui 的 Select 原语自己拼；触发器样式由壳 settings.css 的
+          .cx-settings .cx-select__trigger 提供，不需要额外 class。 */}
+      <SettingsRow
+        control={
+          <Select onValueChange={onThemePresetChange} value={themePreset}>
+            <SelectTrigger aria-label="主题预设">
+              <SelectValue placeholder="预设" />
+            </SelectTrigger>
+            <SelectContent>
               {THEME_PRESET_OPTIONS.map((preset) => (
-                <SelectItem key={preset.value} className="text-xs" value={preset.value}>
+                <SelectItem key={preset.value} value={preset.value}>
                   <span
-                    className="size-2.5 rounded-full"
+                    className="cx-settings-swatch__chip"
                     style={{
                       backgroundColor:
                         (resolvedThemeMode ?? "light") === "dark" ? preset.primary.dark : preset.primary.light,
@@ -160,134 +136,113 @@ export function AppearanceControls() {
                   {preset.label}
                 </SelectItem>
               ))}
-            </SelectGroup>
-          </SelectContent>
-        </Select>
-      </AppearanceRow>
+            </SelectContent>
+          </Select>
+        }
+        description="界面配色的预设色板。"
+        label="主题预设"
+      />
 
-      <AppearanceRow label="字体" htmlFor="appearance-font" description="界面文字所使用的字体族。">
-        <Select value={font} onValueChange={onFontChange}>
-          <SelectTrigger id="appearance-font" size="sm" className="w-[180px] text-xs">
-            <SelectValue placeholder="选择字体" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectGroup>
-              {fontOptions.map((fontOption) => (
-                <SelectItem key={fontOption.key} className="text-xs" value={fontOption.key}>
-                  {fontOption.label}
-                </SelectItem>
-              ))}
-            </SelectGroup>
-          </SelectContent>
-        </Select>
-      </AppearanceRow>
+      <SettingsRow
+        control={
+          <SettingsSelect
+            label="字体"
+            onChange={onFontChange}
+            options={fontOptions.map((option) => ({ value: option.key, label: option.label }))}
+            value={font}
+          />
+        }
+        description="界面文字所使用的字体族。"
+        label="字体"
+      />
 
-      <AppearanceRow label="模式" description="浅色 / 深色 / 跟随系统。">
-        <ToggleGroup
-          size="sm"
-          spacing={0}
-          variant="outline"
-          type="single"
-          value={themeMode}
-          onValueChange={onThemeModeChange}
-          className="w-[248px] **:data-[slot=toggle-group-item]:flex-1 **:data-[slot=toggle-group-item]:text-xs"
-        >
-          <ToggleGroupItem value="light" aria-label="浅色">
-            浅色
-          </ToggleGroupItem>
-          <ToggleGroupItem value="dark" aria-label="深色">
-            深色
-          </ToggleGroupItem>
-          <ToggleGroupItem value="system" aria-label="跟随系统">
-            跟随系统
-          </ToggleGroupItem>
-        </ToggleGroup>
-      </AppearanceRow>
+      <SettingsRow
+        control={
+          <SettingsSegmented
+            label="模式"
+            onChange={onThemeModeChange}
+            options={[
+              { value: "light", label: "浅色" },
+              { value: "dark", label: "深色" },
+              { value: "system", label: "跟随系统" },
+            ]}
+            value={themeMode}
+          />
+        }
+        description="浅色 / 深色 / 跟随系统。"
+        label="模式"
+      />
 
-      <AppearanceRow label="页面布局" description="主内容居中限宽或铺满整行。">
-        <ToggleGroup
-          size="sm"
-          spacing={0}
-          variant="outline"
-          type="single"
-          value={contentLayout}
-          onValueChange={onContentLayoutChange}
-          className="w-[180px] **:data-[slot=toggle-group-item]:flex-1 **:data-[slot=toggle-group-item]:text-xs"
-        >
-          <ToggleGroupItem value="centered" aria-label="内容居中">
-            居中
-          </ToggleGroupItem>
-          <ToggleGroupItem value="full-width" aria-label="内容全宽">
-            全宽
-          </ToggleGroupItem>
-        </ToggleGroup>
-      </AppearanceRow>
+      <SettingsRow
+        control={
+          <SettingsSegmented
+            label="页面布局"
+            onChange={onContentLayoutChange}
+            options={[
+              { value: "centered", label: "居中" },
+              { value: "full-width", label: "全宽" },
+            ]}
+            value={contentLayout}
+          />
+        }
+        description="主内容居中限宽或铺满整行。"
+        label="页面布局"
+      />
 
-      <AppearanceRow label="导航栏行为" description="顶栏固定在顶部或随内容滚动。">
-        <ToggleGroup
-          size="sm"
-          spacing={0}
-          variant="outline"
-          type="single"
-          value={navbarStyle}
-          onValueChange={onNavbarStyleChange}
-          className="w-[180px] **:data-[slot=toggle-group-item]:flex-1 **:data-[slot=toggle-group-item]:text-xs"
-        >
-          <ToggleGroupItem value="sticky" aria-label="固定">
-            固定
-          </ToggleGroupItem>
-          <ToggleGroupItem value="scroll" aria-label="随滚动">
-            随滚动
-          </ToggleGroupItem>
-        </ToggleGroup>
-      </AppearanceRow>
+      <SettingsRow
+        control={
+          <SettingsSegmented
+            label="导航栏行为"
+            onChange={onNavbarStyleChange}
+            options={[
+              { value: "sticky", label: "固定" },
+              { value: "scroll", label: "随滚动" },
+            ]}
+            value={navbarStyle}
+          />
+        }
+        description="顶栏固定在顶部或随内容滚动。"
+        label="导航栏行为"
+      />
 
-      <AppearanceRow label="侧边栏样式" description="内嵌、并列或浮动面板。">
-        <ToggleGroup
-          size="sm"
-          spacing={0}
-          variant="outline"
-          type="single"
-          value={variant}
-          onValueChange={onSidebarStyleChange}
-          className="w-[248px] **:data-[slot=toggle-group-item]:flex-1 **:data-[slot=toggle-group-item]:text-xs"
-        >
-          <ToggleGroupItem value="inset" aria-label="内嵌">
-            内嵌
-          </ToggleGroupItem>
-          <ToggleGroupItem value="sidebar" aria-label="并列">
-            并列
-          </ToggleGroupItem>
-          <ToggleGroupItem value="floating" aria-label="浮动">
-            浮动
-          </ToggleGroupItem>
-        </ToggleGroup>
-      </AppearanceRow>
+      <SettingsRow
+        control={
+          <SettingsSegmented
+            label="侧边栏样式"
+            onChange={onSidebarStyleChange}
+            options={[
+              { value: "inset", label: "内嵌" },
+              { value: "sidebar", label: "并列" },
+              { value: "floating", label: "浮动" },
+            ]}
+            value={variant}
+          />
+        }
+        description="内嵌、并列或浮动面板。"
+        label="侧边栏样式"
+      />
 
-      <AppearanceRow label="侧边栏折叠方式" description="折叠成图标栏或整块收起。">
-        <ToggleGroup
-          size="sm"
-          spacing={0}
-          variant="outline"
-          type="single"
-          value={collapsible}
-          onValueChange={onSidebarCollapseModeChange}
-          className="w-[180px] **:data-[slot=toggle-group-item]:flex-1 **:data-[slot=toggle-group-item]:text-xs"
-        >
-          <ToggleGroupItem value="icon" aria-label="折叠成图标">
-            折叠成图标
-          </ToggleGroupItem>
-          <ToggleGroupItem value="offcanvas" aria-label="整块收起">
-            整块收起
-          </ToggleGroupItem>
-        </ToggleGroup>
-      </AppearanceRow>
+      <SettingsRow
+        control={
+          <SettingsSegmented
+            label="侧边栏折叠方式"
+            onChange={onSidebarCollapseModeChange}
+            options={[
+              { value: "icon", label: "折叠成图标" },
+              { value: "offcanvas", label: "整块收起" },
+            ]}
+            value={collapsible}
+          />
+        }
+        description="折叠成图标栏或整块收起。"
+        label="侧边栏折叠方式"
+      />
 
-      <AppearanceRow label="恢复默认外观" description="把上面全部偏好重置为默认值。">
-        <Button type="button" size="sm" variant="outline" className="text-xs" onClick={handleRestore}>
-          恢复默认
-        </Button>
-      </AppearanceRow>
+      <SettingsRow
+        control={<SettingsButton onClick={handleRestore}>恢复默认</SettingsButton>}
+        description="把上面全部偏好重置为默认值。"
+        label="恢复默认外观"
+      />
     </>
   );
 }
@@ -297,15 +252,19 @@ export function LayoutControls() {
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button size="icon" aria-label="外观设置" title="外观设置">
-          <Settings />
+        <Button aria-label="外观设置" size="sm" title="外观设置" uniform variant="soft">
+          <SettingsIcon aria-hidden />
         </Button>
       </PopoverTrigger>
-      {/* 行式范式是给设置页卡片设计的（行的盒模型来自 codex-settings.css 的 card-content 直接子规则）；
-          Popover 里没有那套规则，所以自己补竖向间距，并把宽度放到能容纳「左标签 + 右控件」的 24rem。 */}
-      <PopoverContent align="end" className="w-96">
-        <div className="flex flex-col gap-4">
-          <AppearanceControls />
+      {/* 内容用官方卡片包住（同一份外观控件在设置页里就是卡片内的行）。
+          ⚠️ .cx-settings 带 height:100%：必须包在 Radix content **里面**的普通块上
+          （对 auto 高的父级按 auto 解析），不能直接挂到 content 本身
+          （绝对/固定定位元素的百分比高度会去量外层 popper 包裹块）。 */}
+      <PopoverContent align="end">
+        <div className="cx-settings">
+          <SettingsCard>
+            <AppearanceControls />
+          </SettingsCard>
         </div>
       </PopoverContent>
     </Popover>

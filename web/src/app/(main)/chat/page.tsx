@@ -31,24 +31,27 @@ import { MentionTextarea } from "@/components/mention-textarea";
 import { SideQuestionButton, SideQuestionWorkspace } from "@/components/side-question-workspace";
 import { TodoPopover } from "@/components/todo-popover";
 import { ApprovalExecutionFocus, useApprovalFocus, useApprovalHistory } from "@/components/approval-execution-focus";
+import { useSidebar } from "@/components/ui/sidebar";
 import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useSidebar } from "@/components/ui/sidebar";
-import { Spinner } from "@/components/ui/spinner";
+  Badge,
+  Button,
+  Checkbox,
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+  ScrollArea,
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+  Spinner,
+} from "@/codex-ui/codex/ui";
 import { useSideQuestions } from "@/hooks/use-side-questions";
 import { mergeActivities } from "@/lib/activity-merge";
 import { api } from "@/lib/api";
@@ -274,40 +277,47 @@ function Composer({
         <div />
         <div className={styles.composerFooterEnd}>
           {running && allowBtw && isBtwCommand(value) && (
-            <button
-              type="button"
-              className={styles.sendButton}
-              onClick={onSend}
+            <Button
               aria-label="发送旁路问题"
+              className={styles.sendButton}
+              pill
+              size="sm"
               title="发送旁路问题"
+              variant="solid"
+              onClick={onSend}
             >
               <CodexArrowUp size={16} />
-            </button>
+            </Button>
           )}
           {footerSlot}
           {running ? (
             // 流式中：发送键换成停止键（只中断本次运行，触发队列不受影响）
-            <button
-              type="button"
-              className={styles.stopButton}
-              onClick={onStop}
-              disabled={stopDisabled}
-              title="停止本次运行"
+            <Button
               aria-label="停止生成"
+              className={styles.stopButton}
+              color="danger"
+              disabled={stopDisabled}
+              pill
+              size="sm"
+              title="停止本次运行"
+              variant="solid"
+              onClick={onStop}
             >
               <span className="block size-3 rounded-[3px] bg-current" />
-            </button>
+            </Button>
           ) : (
-            <button
-              type="button"
-              className={styles.sendButton}
-              onClick={onSend}
-              disabled={disabled || (!value.trim() && atts.length === 0)}
-              title="发送消息"
+            <Button
               aria-label="发送消息"
+              className={styles.sendButton}
+              disabled={disabled || (!value.trim() && atts.length === 0)}
+              pill
+              size="sm"
+              title="发送消息"
+              variant="solid"
+              onClick={onSend}
             >
               <CodexArrowUp size={16} />
-            </button>
+            </Button>
           )}
         </div>
       </div>
@@ -457,11 +467,7 @@ function DraftChat({
 
   const agentPicker = (
     <Select value={agentKey} onValueChange={setAgentKey}>
-      <SelectTrigger
-        size="sm"
-        aria-label="选择 Agent"
-        className={cn(styles.projectChip, "!h-7 w-auto border-0 bg-transparent shadow-none")}
-      >
+      <SelectTrigger aria-label="选择 Agent" className={styles.projectChip}>
         <CodexFolder size={16} />
         <SelectValue placeholder="选择项目" />
       </SelectTrigger>
@@ -472,11 +478,7 @@ function DraftChat({
               <span className="flex items-center gap-2">
                 <Bot className="size-3.5" />
                 {a.name}
-                {!a.builtin && (
-                  <Badge variant="outline" className="px-1 py-0 text-[9px]">
-                    自定义
-                  </Badge>
-                )}
+                {!a.builtin && <Badge size="sm">自定义</Badge>}
               </span>
             </SelectItem>
           ))}
@@ -492,15 +494,16 @@ function DraftChat({
           否则标题块会整体高 52px（实测踩过这个坑）。 */}
       <div className={styles.threadHeader} data-slot="codex-home-header">
         <div className={styles.threadActions}>
-          <button
-            type="button"
+          <Button
             className={styles.threadAction}
+            size="sm"
+            uniform
             title="显示/隐藏面板"
             aria-label="显示/隐藏面板"
             onClick={toggleSidebar}
           >
             <CodexSidebar size={16} />
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -845,9 +848,9 @@ function ChatView({
         <div className={styles.threadActions}>
           <Popover>
             <PopoverTrigger asChild>
-              <button type="button" className={styles.threadAction} title="会话信息" aria-label="会话信息">
+              <Button className={styles.threadAction} size="sm" uniform title="会话信息" aria-label="会话信息">
                 <CodexEllipsis size={16} />
-              </button>
+              </Button>
             </PopoverTrigger>
             <PopoverContent align="end" className="w-60 p-3 text-xs">
               <p className="text-muted-foreground mb-1 font-medium">本会话用量</p>
@@ -859,18 +862,21 @@ function ChatView({
               </p>
             </PopoverContent>
           </Popover>
-          <a className={styles.threadAction} href="/system/settings/" title="设置" aria-label="设置">
-            <CodexGear size={16} />
-          </a>
-          <button
-            type="button"
+          <Button asChild className={styles.threadAction} size="sm" uniform title="设置" aria-label="设置">
+            <a href="/system/settings/">
+              <CodexGear size={16} />
+            </a>
+          </Button>
+          <Button
             className={styles.threadAction}
+            size="sm"
+            uniform
             title="显示/隐藏面板"
             aria-label="显示/隐藏面板"
             onClick={toggleSidebar}
           >
             <CodexSidebar size={16} />
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -1031,8 +1037,8 @@ const ConversationItem = React.memo(function ConversationItem({
             {pinned && <PinIcon className="text-primary size-3 shrink-0" aria-label="已置顶" />}
             <div className="codex-history-item-title truncate text-sm">{conv.title || "新对话"}</div>
             {conv.running ? (
-              <Badge variant="secondary" className="shrink-0 gap-1" title="Agent 正在运行">
-                <Spinner className="size-3" aria-hidden="true" />
+              <Badge title="Agent 正在运行">
+                <Spinner aria-hidden="true" size="sm" />
                 运行中
               </Badge>
             ) : null}
@@ -1060,18 +1066,18 @@ const ConversationItem = React.memo(function ConversationItem({
       {/* 参考端行尾是 2 个 20×20 图标按钮（置顶 / 删除）；悬停或当前选中时出现。 */}
       <div className="codex-history-actions flex shrink-0 items-center justify-center">
         <Button
-          variant="ghost"
-          size="icon-sm"
           className="codex-history-action text-muted-foreground"
+          size="sm"
+          uniform
           aria-label={pinned ? `取消置顶「${conv.title || "新对话"}」` : `置顶「${conv.title || "新对话"}」`}
           onClick={() => onTogglePinned(conv)}
         >
           {pinned ? <PinOffIcon /> : <PinIcon />}
         </Button>
         <Button
-          variant="ghost"
-          size="icon-sm"
           className="codex-history-action text-muted-foreground hover:text-destructive"
+          size="sm"
+          uniform
           aria-label={`删除对话「${conv.title || "新对话"}」`}
           onClick={() => setDeleteOpen(true)}
         >
@@ -1079,16 +1085,24 @@ const ConversationItem = React.memo(function ConversationItem({
         </Button>
       </div>
       <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>删除对话「{conv.title || "新对话"}」？</AlertDialogTitle>
-            <AlertDialogDescription>此操作不可撤销。</AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>取消</AlertDialogCancel>
-            <AlertDialogAction onClick={() => onDelete(conv.id)}>删除</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
+        <AlertDialogContent
+          title={`删除对话「${conv.title || "新对话"}」？`}
+          description="此操作不可撤销。"
+          footer={
+            <>
+              <AlertDialogCancel asChild>
+                <Button size="sm" variant="ghost">
+                  取消
+                </Button>
+              </AlertDialogCancel>
+              <AlertDialogAction asChild>
+                <Button color="danger" size="sm" variant="solid" onClick={() => onDelete(conv.id)}>
+                  删除
+                </Button>
+              </AlertDialogAction>
+            </>
+          }
+        />
       </AlertDialog>
     </div>
   );
@@ -1478,7 +1492,7 @@ export default function ChatPage() {
               onValueChange={(value) => changeAgentFilter(value === "all" ? null : value.slice(6))}
               disabled={bulkDeleting}
             >
-              <SelectTrigger size="sm" className="codex-history-agent-filter w-full min-w-0" aria-label="按 Agent 筛选对话">
+              <SelectTrigger className="codex-history-agent-filter w-full min-w-0" aria-label="按 Agent 筛选对话">
                 <Bot />
                 <SelectValue placeholder="全部 Agent" />
               </SelectTrigger>
@@ -1507,12 +1521,13 @@ export default function ChatPage() {
                   </span>
                   {selectedConversationCount > 0 && (
                     <Button
-                      size="sm"
-                      variant="destructive"
+                      color="danger"
                       disabled={bulkDeleting}
+                      size="sm"
+                      variant="soft"
                       onClick={() => setBulkDeleteOpen(true)}
                     >
-                      <Trash2Icon data-icon="inline-start" />
+                      <Trash2Icon />
                       删除
                     </Button>
                   )}
@@ -1668,26 +1683,34 @@ export default function ChatPage() {
         </div>
       </div>
       <AlertDialog open={bulkDeleteOpen} onOpenChange={setBulkDeleteOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>删除选中的 {selectedConversationCount} 个对话？</AlertDialogTitle>
-            <AlertDialogDescription>对话消息和执行记录将一并删除，此操作不可撤销。</AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={bulkDeleting}>取消</AlertDialogCancel>
-            <AlertDialogAction
-              variant="destructive"
-              disabled={bulkDeleting || selectedConversationCount === 0}
-              onClick={(event) => {
-                event.preventDefault();
-                void deleteSelectedConversations();
-              }}
-            >
-              {bulkDeleting && <Loader2Icon data-icon="inline-start" className="animate-spin" />}
-              {bulkDeleting ? "删除中" : "确认删除"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
+        <AlertDialogContent
+          title={`删除选中的 ${selectedConversationCount} 个对话？`}
+          description="对话消息和执行记录将一并删除，此操作不可撤销。"
+          footer={
+            <>
+              <AlertDialogCancel asChild>
+                <Button disabled={bulkDeleting} size="sm" variant="ghost">
+                  取消
+                </Button>
+              </AlertDialogCancel>
+              <AlertDialogAction asChild>
+                <Button
+                  color="danger"
+                  disabled={bulkDeleting || selectedConversationCount === 0}
+                  size="sm"
+                  variant="solid"
+                  onClick={(event) => {
+                    event.preventDefault();
+                    void deleteSelectedConversations();
+                  }}
+                >
+                  {bulkDeleting && <Loader2Icon className="animate-spin" />}
+                  {bulkDeleting ? "删除中" : "确认删除"}
+                </Button>
+              </AlertDialogAction>
+            </>
+          }
+        />
       </AlertDialog>
     </div>
   );
