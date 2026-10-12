@@ -25,13 +25,17 @@ function isFullBleed(pathname: string) {
   return /^\/function\/tasks\/detail(\/|$)/.test(p);
 }
 
-export function MainContent({ children }: { children: ReactNode }) {
+export function MainContent({ children, hosted = false }: { children: ReactNode; hosted?: boolean }) {
   const pathname = usePathname();
   const { open, isMobile } = useSidebar();
 
   // 左侧 288px 面板是「浮」在主表面之上的，不占布局宽度（Codex 实测几何）。
   // 所以主内容必须自己让开这段宽度，否则每页左侧 288px 会被面板盖住。
-  const panelOpen = open && !isMobile;
+  // 被外壳托管（desktop 的 /artex 宿主）时，面板让位由**主表面的 margin** 承担
+  // （见 codex-shell.css 的 [data-codex-embedded] .codex-surface）：官方的不透明主表面
+  // 就是从面板右缘起、面板浮在透明 PageSurface 上，这样面板那一列才不会被主表面垫亮 8/255。
+  // 这里再加一层 padding-left 会让内容再右移一个面板宽。
+  const panelOpen = open && !isMobile && !hosted;
   // 注意：带 data-content-padding=false 的页面（如 /chat）会被 `md:has-data-[...]:p-0` 把
   // 内边距整体清零，而它的变体数比 `md:pl-*` 多、在 Tailwind 里排在后面 —— 所以
   // 让开面板这件事必须两种形态都写一遍，否则 chat 路由上会被 p-0 吃掉。

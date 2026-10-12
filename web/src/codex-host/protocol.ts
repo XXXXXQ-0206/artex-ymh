@@ -67,6 +67,16 @@ export const CODEX_HOST_TYPES = {
   ping: "codex-host:ping",
   /** GUEST -> HOST: sent once mounted, and again after every full reload. */
   ready: "codex-host:ready",
+  /**
+   * GUEST -> HOST: the console’s access token, pushed right after `ready`.
+   *
+   * 为什么要有这条：桌面端从「宿主控制台」转向「外壳自己渲染页面 + 直连 ARTEX API」
+   * 之后，外壳需要 Bearer token 才能访问 `http://127.0.0.1:8787/api/**`（后端 CORS = `*`，
+   * 见 server/server.go 的 cors()）。token 只存在**控制台 origin 的 localStorage**
+   * （`artex_token`），外壳读不到；桥是两边唯一的共识面，所以由访客主动推。
+   * 通道本身已校验「消息必须来自配置的宿主 origin 且来自那个 iframe」，token 不会外流。
+   */
+  token: "codex-host:token",
   /** GUEST -> HOST: SPA route and/or document title changed. */
   route: "codex-host:route",
   /** GUEST -> HOST: "re-send `init`, I missed it" (e.g. after a client-side theme reset). */
@@ -93,6 +103,7 @@ export const CODEX_HOST_HOST_TO_GUEST_TYPES = [
 /** Guest -> host types. The host must ignore the rest; the guest never acts on these either. */
 export const CODEX_HOST_GUEST_TO_HOST_TYPES = [
   CODEX_HOST_TYPES.ready,
+  CODEX_HOST_TYPES.token,
   CODEX_HOST_TYPES.route,
   CODEX_HOST_TYPES.themeRequest,
   CODEX_HOST_TYPES.notify,
@@ -151,6 +162,11 @@ export interface CodexHostReadyPayload {
   title: string;
 }
 
+/** `codex-host:token` — access token for the host’s direct API calls ("" = not logged in). */
+export interface CodexHostTokenPayload {
+  token: string;
+}
+
 export interface CodexHostRoutePayload {
   /** `pathname + search` after the route change. */
   path: string;
@@ -199,6 +215,7 @@ export type CodexHostHostMessage =
 
 export type CodexHostGuestMessage =
   | CodexHostTypedEnvelope<typeof CODEX_HOST_TYPES.ready, CodexHostReadyPayload>
+  | CodexHostTypedEnvelope<typeof CODEX_HOST_TYPES.token, CodexHostTokenPayload>
   | CodexHostTypedEnvelope<typeof CODEX_HOST_TYPES.route, CodexHostRoutePayload>
   | CodexHostTypedEnvelope<typeof CODEX_HOST_TYPES.themeRequest, CodexHostThemeRequestPayload>
   | CodexHostTypedEnvelope<typeof CODEX_HOST_TYPES.notify, CodexHostNotifyPayload>

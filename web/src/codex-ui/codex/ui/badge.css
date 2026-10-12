@@ -1,0 +1,95 @@
+/* ============================================================================
+ * Badge —— 官方 **没有** Badge 组件的 CSS 模块（壳源码 src/ui/** 与官方 CSS 里都查无
+ *   ._Badge_* / badge 类名），但官方 token 层提供了完整的一组 --badge-* 规格：
+ *   token 出处 web/src/styles/codex/official-tokens.css（官方原文 @layer theme）：
+ *     --badge-size-sm/md/lg        calc(--control-size-3xs - 2px) / --control-size-3xs / --control-size-2xs
+ *                                  = 20 / 22 / 24 px
+ *     --badge-gutter-sm/md/lg      calc(--control-gutter-2xs - 1px) / --control-gutter-2xs / --control-gutter-xs
+ *                                  = 5 / 6 / 8 px
+ *     --badge-radius-sm/md/lg      --radius-xs / --radius-xs / --radius-sm   = 5 / 5 / 7.5 px
+ *     --badge-font-size-sm/md/lg   --font-text-xs-size / -sm-size / -sm-size  = 12 / 13 / 13 px
+ *     --badge-font-weight-*        --font-weight-semibold = 600
+ *     --badge-tracking-sm/md/lg    --tracking-wide / --tracking-normal / --tracking-normal
+ *     --badge-icon-font-size-* / --badge-indicator-size-*  = 图标与指示点尺寸
+ *   ⇒ 本文件是**对官方 token 的直译**，不含任何手写数值。
+ * 底色：官方 --color-background-primary-soft-alpha（dark = 白 12%）/
+ *   --color-background-danger-soft-alpha / --color-text-danger；描边走 --color-border。
+ * ========================================================================== */
+
+.cx-badge {
+  --cx-badge-h: var(--badge-size-sm);
+  --cx-badge-px: var(--badge-gutter-sm);
+  --cx-badge-radius: var(--badge-radius-sm);
+  --cx-badge-font-size: var(--badge-font-size-sm);
+  --cx-badge-font-weight: var(--badge-font-weight-sm);
+  --cx-badge-tracking: var(--badge-tracking-sm);
+  --cx-badge-icon-size: var(--badge-icon-font-size-sm);
+  --cx-badge-indicator-size: var(--badge-indicator-size-sm);
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  gap: var(--badge-indicator-gap, var(--input-gap-xs));
+  height: var(--cx-badge-h);
+  padding: 0 var(--cx-badge-px);
+  border: 0;
+  border-radius: var(--cx-badge-radius);
+  background-color: var(--cx-badge-bg, var(--color-background-primary-soft-alpha));
+  color: var(--cx-badge-text, var(--color-text));
+  font-family: var(--font-sans);
+  font-size: var(--cx-badge-font-size);
+  font-weight: var(--cx-badge-font-weight);
+  letter-spacing: var(--cx-badge-tracking);
+  line-height: 1;
+  white-space: nowrap;
+  user-select: none;
+}
+
+.cx-badge[data-size="md"] {
+  --cx-badge-h: var(--badge-size-md);
+  --cx-badge-px: var(--badge-gutter-md);
+  --cx-badge-radius: var(--badge-radius-md);
+  --cx-badge-font-size: var(--badge-font-size-md);
+  --cx-badge-font-weight: var(--badge-font-weight-md);
+  --cx-badge-tracking: var(--badge-tracking-md);
+  --cx-badge-icon-size: var(--badge-icon-font-size-md);
+  --cx-badge-indicator-size: var(--badge-indicator-size-md);
+}
+
+.cx-badge[data-size="lg"] {
+  --cx-badge-h: var(--badge-size-lg);
+  --cx-badge-px: var(--badge-gutter-lg);
+  --cx-badge-radius: var(--badge-radius-lg);
+  --cx-badge-font-size: var(--badge-font-size-lg);
+  --cx-badge-font-weight: var(--badge-font-weight-lg);
+  --cx-badge-tracking: var(--badge-tracking-lg);
+  --cx-badge-icon-size: var(--badge-icon-font-size-lg);
+  --cx-badge-indicator-size: var(--badge-indicator-size-lg);
+}
+
+/* tone：全部落在官方语义 token 上，不写十六进制 */
+.cx-badge[data-tone="muted"] {
+  --cx-badge-bg: transparent;
+  --cx-badge-text: var(--color-text-tertiary);
+}
+
+.cx-badge[data-tone="danger"] {
+  --cx-badge-bg: var(--color-background-danger-soft-alpha);
+  --cx-badge-text: var(--color-text-danger);
+}
+
+/* 前导图标 / 指示点：尺寸走 --badge-icon-* / --badge-indicator-* */
+.cx-badge > svg {
+  width: var(--cx-badge-icon-size);
+  height: var(--cx-badge-icon-size);
+  flex-shrink: 0;
+  pointer-events: none;
+}
+
+.cx-badge__indicator {
+  width: var(--cx-badge-indicator-size);
+  height: var(--cx-badge-indicator-size);
+  flex-shrink: 0;
+  border-radius: var(--radius-full);
+  background-color: currentcolor;
+}

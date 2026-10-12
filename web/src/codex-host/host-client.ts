@@ -34,6 +34,9 @@ import {
 } from "./protocol";
 
 /** Router bursts (pushState + replaceState + popstate) must collapse into one route report. */
+/** localStorage key the console stores its access token under (src/lib/auth.ts: TOKEN_KEY). */
+const DEFAULT_TOKEN_KEY = "artex_token";
+
 const DEFAULT_ROUTE_DEBOUNCE_MS = 150;
 
 /** Error storms (render loops, retry storms) must not flood the shell channel. */
@@ -85,6 +88,12 @@ export interface CodexHostClientOptions {
    * requests are ignored instead of guessed at.
    */
   onNavigate?: (path: string) => void;
+  /**
+   * Access token handed to the shell (see `codex-host:token` in protocol.ts). Default: read
+   * `artex_token` from localStorage — the shell cannot read another origin’s storage, and it
+   * needs the bearer token to call the ARTEX API directly after login.
+   */
+  getToken?: () => string | null;
 }
 
 /**
@@ -102,6 +111,8 @@ export interface CodexHostClient {
   requestTheme(): void;
   /** Sends a user-facing message to the shell. */
   notify(level: CodexHostNotifyLevel, message: string): void;
+  /** pushes the current access token to the shell (call after login / logout). */
+  sendToken(): boolean;
   /** Reports an error to the shell (throttling applies to automatic forwarding, not to this call). */
   reportError(message: string, source?: string): void;
 }
@@ -157,6 +168,9 @@ export function createCodexHostClient(options: CodexHostClientOptions = {}): Cod
     // on the first router call that changes nothing.
     lastRouteToken = routeToken(route, title);
     post(CODEX_HOST_TYPES.ready, { version: readyVersion, route, title });
+    // Right after `ready`, hand the shell the access token it needs to call the API itself
+    // (see protocol.ts `token`). Empty string means "not logged in" — the shell must not guess.
+    postToken();
   }
 
   function dispose(): void {
@@ -180,6 +194,29 @@ export function createCodexHostClient(options: CodexHostClientOptions = {}): Cod
     allowedOrigins = [];
     allowAnyOrigin = false;
     targetOrigin = ANY_ORIGIN;
+  }
+
+  /** Hands the shell the current access token; safe to call any time (login, logout, refresh). */
+  function postToken(): boolean {
+    return post(CODEX_HOST_TYPES.token, { token: readToken() ?? "" });
+  }
+
+  function readToken(): string | null {
+    const fromOption = options.getToken;
+    if (fromOption) {
+      try {
+        const value = fromOption();
+        if (typeof value === "string") return value;
+      } catch (error) {
+        noteInternalFailure(error);
+      }
+    }
+    try {
+      return getWindow()?.localStorage?.getItem(DEFAULT_TOKEN_KEY) ?? null;
+    } catch (error) {
+      noteInternalFailure(error);
+      return null;
+    }
   }
 
   /** Posts one envelope to the shell. Returns false when the bridge is inert or the post failed. */
@@ -400,6 +437,7 @@ export function createCodexHostClient(options: CodexHostClientOptions = {}): Cod
     start,
     dispose,
     requestTheme,
+    sendToken: postToken,
     notify,
     reportError,
   };

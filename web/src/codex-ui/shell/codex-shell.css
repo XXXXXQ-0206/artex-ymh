@@ -660,3 +660,23 @@ html[data-panel-resizing="true"] [data-slot="sidebar-container"] {
   [data-slot="sidebar-container"][data-side="left"] {
   left: calc(-1 * var(--sidebar-width));
 }
+/* ── 被托管时：主表面按面板宽度让位（官方面板列不垫亮）────────────────────────
+   官方拓扑：PageSurface [52,44,1224,768] 透明，不透明主表面 _MainContentSurface_ 从**面板右缘**
+   起（展开态 = 面板宽 288），面板 rgba(25,25,25,.651) 浮在透明层上、合成到窗口底 = rgb(16,16,16)。
+   我们此前把不透明主表面铺满整宽、面板压在它上面 ⇒ 面板列合成 rgb(24,24,24)（整体亮 8/255，
+   1280×816 并排截图里肉眼可辨）。
+   这里改成与外壳同构：展开态 margin-inline-start = 面板宽、左两角方角；收起态归零、左两角 12px。
+   内容不再需要自己让位（MainContent 在托管态不再加 padding-left，见 main-content.tsx）。 */
+[data-codex-embedded] .codex-surface {
+  margin-inline-start: var(--sidebar-width);
+  border-start-start-radius: 0;
+  border-end-start-radius: 0;
+  transition: margin-inline-start var(--codex-sidebar-collapse-duration, 245ms)
+    var(--codex-sidebar-collapse-ease, cubic-bezier(.19, 1, .22, 1));
+}
+
+[data-codex-embedded] [data-slot="sidebar"][data-state="collapsed"] ~ .codex-surface {
+  margin-inline-start: 0;
+  border-start-start-radius: 0.75rem;
+  border-end-start-radius: 0.75rem;
+}

@@ -85,7 +85,7 @@ export default function Layout({ children }: Readonly<{ children: ReactNode }>) 
                 "min-w-0 overflow-x-hidden",
               )}
             >
-              <MainContent>{children}</MainContent>
+              <MainContent hosted>{children}</MainContent>
             </SidebarInset>
           </div>
         </SidebarProvider>
