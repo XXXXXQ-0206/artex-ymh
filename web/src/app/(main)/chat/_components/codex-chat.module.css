@@ -685,7 +685,10 @@
   font-size: inherit;
 }
 
-/* ── 推理 / 思考块（折叠）：官方 ActivityText 风格；折叠行 13px·430 次要色 ── */
+/* ── 推理 / 思考块（折叠）──────────────────────────────────────────────────
+   官方实测（外壳 c1「已完成思考」叶子）：14px / 行高 21 / 字重 430 /
+   颜色 = 白 **30%**（oklab(0.903646 … / 0.3)），且**无内边距**（叶子 x=440 = 列左缘、行高 21）。
+   此前写的 13px / 18 / 白 49.8% + 4px 内边距，三项都不对。 */
 .reasoning {
   min-width: 0;
   border-radius: var(--radius-lg, 12.5px);
@@ -696,11 +699,11 @@
   width: 100%;
   align-items: center;
   gap: 0.375rem;
-  padding: 0.25rem 0.375rem;
+  padding: 0;
   border-radius: var(--radius-lg, 12.5px);
-  color: var(--color-text-tertiary, rgb(255 255 255 / 0.498));
-  font-size: 13px;
-  line-height: 1.125rem;
+  color: oklab(0.903646 0.0000412762 0.0000180602 / 0.3);
+  font-size: 14px;
+  line-height: 1.3125rem; /* 21px */
   font-weight: var(--chat-body-weight);
   text-align: left;
   transition:
@@ -731,15 +734,14 @@
   overflow-wrap: anywhere;
 }
 
-/* ── 工具调用块：折叠行 + 展开体，卡片底 = surface + 细边框 ───────────────── */
+/* ── 工具调用块：折叠行 + 展开体 ────────────────────────────────────────────
+   官方实测（外壳 c1「读取 docs/ARCHITECTURE.md」叶子）：14px / 行高 21 / 字重 430 /
+   颜色 = 白 **60%**，**没有卡片**（无边框、无底色、无圆角）—— 此前做成了带边框底色的卡片，
+   行高也因此从 21 撑到 40。这里按官方去掉卡片，只留纯行 + 可展开。 */
 .toolCall {
   min-width: 0;
   margin-block: 0.25rem;
-  border: 1px solid var(--color-border, rgb(255 255 255 / 0.084));
-  border-radius: var(--radius-lg, 12.5px);
-  background-color: color-mix(in oklab, var(--color-text, #dfdfdf) 3%, transparent);
   overflow: hidden;
-  corner-shape: superellipse(1.1);
 }
 
 .toolToggle {
@@ -748,11 +750,11 @@
   min-width: 0;
   align-items: center;
   gap: 0.375rem;
-  padding: 0.375rem 0.5rem;
+  padding: 0;
   text-align: left;
-  color: var(--color-text-secondary, rgb(255 255 255 / 0.65));
-  font-size: 13px;
-  line-height: 1.125rem;
+  color: oklab(0.903646 0.0000412762 0.0000180602 / 0.6);
+  font-size: 14px;
+  line-height: 1.3125rem; /* 21px */
   transition: background-color var(--transition-duration-basic, 0.15s) var(--cubic-move, ease);
 }
 
@@ -762,8 +764,8 @@
 
 .toolName {
   flex-shrink: 0;
-  font-weight: var(--font-weight-medium, 500);
-  color: var(--color-text, #dfdfdf);
+  font-weight: var(--chat-body-weight);
+  color: inherit;
 }
 
 .toolCmd {
@@ -773,8 +775,8 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   font-family: var(--font-mono);
-  font-size: 12px;
-  color: var(--color-text-tertiary, rgb(255 255 255 / 0.498));
+  font-size: 14px;
+  color: inherit;
 }
 
 .toolStatus {
