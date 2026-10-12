@@ -198,8 +198,8 @@ export function UpdateCard() {
   const changelogHref = safeHref(info?.html_url);
 
   return (
-    // 设置页是多列瀑布流布局，卡片自己负责行间距并禁止跨列断开（见 page.tsx 的注释）。
-    <Card className="mb-4 break-inside-avoid md:mb-6">
+    // 设置页是单列 flex-col gap-10（官方分区间距 40px），间距交给容器，卡片自己不留下边距。
+    <Card className="break-inside-avoid">
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-base">
           <DownloadIcon className="size-4" />

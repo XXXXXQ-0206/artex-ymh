@@ -815,7 +815,10 @@ export default function FindingsPage() {
   );
 
   return (
-    <div className="flex flex-1 flex-col gap-4 md:gap-6">
+    <div
+      data-codex-workspace-page="findings"
+      className="codex-workspace-page flex flex-1 flex-col gap-4 md:gap-6"
+    >
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-xl font-semibold tracking-tight">发现</h1>

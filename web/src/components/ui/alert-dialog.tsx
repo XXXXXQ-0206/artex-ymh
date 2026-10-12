@@ -4,6 +4,8 @@ import * as React from "react"
 import { AlertDialog as AlertDialogPrimitive } from "radix-ui"
 
 import { cn } from "@/lib/utils"
+
+import "./codex-overlays.css"
 import { Button } from "@/components/ui/button"
 
 function AlertDialog({
@@ -91,7 +93,8 @@ function AlertDialogFooter({
     <div
       data-slot="alert-dialog-footer"
       className={cn(
-        "-mx-4 -mb-4 flex flex-col-reverse gap-2 rounded-b-xl border-t bg-muted/50 p-4 group-data-[size=sm]/alert-dialog-content:grid group-data-[size=sm]/alert-dialog-content:grid-cols-2 sm:flex-row sm:justify-end",
+        // 内边距 20px / 圆角 var(--dialog-radius)：页脚按同样的出血量走
+        "-mx-5 -mb-5 flex flex-col-reverse gap-2 rounded-b-[var(--dialog-radius)] border-t border-[color:var(--color-border)] bg-transparent p-5 group-data-[size=sm]/alert-dialog-content:grid group-data-[size=sm]/alert-dialog-content:grid-cols-2 sm:flex-row sm:justify-end",
         className
       )}
       {...props}

@@ -20,6 +20,8 @@ import { CHAT_SEND_MODE_OPTIONS, type ChatSendMode, setChatSendMode, useChatSend
 import { settingsPanelItems } from "@/navigation/sidebar/sidebar-items";
 import type { Settings } from "@/lib/types";
 
+import "./codex-settings.css";
+
 import { UpdateCard } from "./_components/update-card";
 
 export default function SystemSettingsPage() {
@@ -29,6 +31,16 @@ export default function SystemSettingsPage() {
     return () => {
       delete document.documentElement.dataset.settingsNav;
     };
+  }, []);
+
+  // 分区说明默认不占视觉布局；挂到分区头的原生 title，保留悬停与读屏信息。
+  React.useEffect(() => {
+    const headers = document.querySelectorAll<HTMLElement>('[data-codex-settings] [data-slot="card-header"]');
+    for (const header of headers) {
+      const description = header.querySelector<HTMLElement>('[data-slot="card-description"]');
+      const text = description?.textContent?.replace(/\s+/g, " ").trim();
+      if (text) header.title = text;
+    }
   }, []);
 
   const [trafficCapture, setTrafficCapture] = React.useState(false);
@@ -253,41 +265,17 @@ export default function SystemSettingsPage() {
   return (
     // Codex 设置页实测：内容列 728px 居中；标题 28px/500；
     // 分区标题 14px/500；卡片 #232323 / 圆角 20px；行高 64px。（详见 globals.css）
-    <div data-codex-settings className="mx-auto flex w-full max-w-[728px] flex-1 flex-col gap-6">
+    // 官方页面外层 768px 盒居中后加左右各 20px 内缩，实测内容列 [439,·,728]。
+    <div
+      data-codex-settings
+      className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-10 px-5 pb-10"
+    >
       <div>
-        <h1 className="text-[28px] leading-[34px] font-medium tracking-[-0.36px]">系统配置</h1>
-        <p className="text-muted-foreground mt-1 text-[13px] leading-[18px]">全局运行时开关</p>
+        <h1 className="text-[28px] leading-[33.6px] font-medium tracking-normal">常规</h1>
       </div>
 
-      {/* 面板：Codex 式外壳把平台面板从侧边栏移到这里（侧边栏只留 agent 相关入口） */}
-      <Card id="panel" className="scroll-mt-6">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-base">
-            <LayoutGridIcon className="size-4" />
-            面板
-          </CardTitle>
-          <CardDescription>平台功能入口（已从侧边栏移入设置）</CardDescription>
-        </CardHeader>
-        <CardContent className="grid grid-cols-2 gap-2 md:grid-cols-3 lg:grid-cols-4">
-          {settingsPanelItems.map((p) => (
-            <Link
-              key={p.id}
-              href={p.url}
-              className="text-muted-foreground hover:bg-accent hover:text-accent-foreground flex items-center gap-2 rounded-md border px-3 py-2 text-sm transition-colors"
-            >
-              <p.icon className="size-4" />
-              {p.title}
-            </Link>
-          ))}
-        </CardContent>
-      </Card>
-
-      {/* 多列而非 grid：网络搜索卡片比其余高数倍，且高度随所选后端变化（brave/tavily
-          的 key 输入是条件渲染）。grid 会按最高的一张撑满整行、在旁边留下大片空白，
-          多列则自动按内容高度平衡填充。卡片间距靠 mb 而非 gap——多列布局下
-          column-gap 只管列间距，行间距要由子元素自己给。 */}
-      {/* Codex 设置页是单列；多列 masonry 是 ARTEX 自己的排版，这里收掉 */}
-      <div className="flex flex-col gap-6">
+      {/* 单列设置卡片保留真实 ARTEX 配置能力，并按 Codex 的轻量分区节奏排列。 */}
+      <div className="flex flex-col gap-10">
         <div id="update" className="scroll-mt-6"><UpdateCard /></div>
 
         <Card id="traffic" className="scroll-mt-6">
@@ -699,6 +687,29 @@ export default function SystemSettingsPage() {
                 ))}
               </SelectContent>
             </Select>
+          </CardContent>
+        </Card>
+
+        {/* 平台入口仍保留给现有导航项，但放在真实运行时设置之后，避免抢占常规页首屏。 */}
+        <Card id="panel" className="codex-settings-secondary-card scroll-mt-6">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <LayoutGridIcon className="size-4" />
+              更多入口
+            </CardTitle>
+            <CardDescription>打开 ARTEX 的任务、发现、内网和系统工具页面。</CardDescription>
+          </CardHeader>
+          <CardContent className="grid grid-cols-2 gap-2 md:grid-cols-3 lg:grid-cols-4">
+            {settingsPanelItems.map((p) => (
+              <Link
+                key={p.id}
+                href={p.url}
+                className="text-muted-foreground hover:bg-accent hover:text-accent-foreground flex items-center gap-2 rounded-md border px-3 py-2 text-sm transition-colors"
+              >
+                <p.icon className="size-4" />
+                {p.title}
+              </Link>
+            ))}
           </CardContent>
         </Card>
       </div>

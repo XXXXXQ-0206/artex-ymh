@@ -655,6 +655,52 @@ button,
   line-height: 16px;
 }
 
+/* ── 数据表格（ARTEX 自有页面）对齐 Codex 设计语言 ──────────────────────────────
+   官方包里没有通用"数据表格"组件（._Table*_ 那套是 markdown 表格的），所以这里不抄某个
+   组件，而是把**已实测的设计语言**套上去：正文 13px/430、表头 13px/500 次要色 49.8%、
+   发丝分隔线 = 白 8%、行 hover = 白 4%、行高 44px（与官方列表行同节奏）。
+   作用面挂在 [data-slot="table"] 上，全站表格一处生效。 */
+[data-slot="table"] {
+  font-size: 13px;
+  line-height: 18px;
+  font-weight: var(--codex-fw-normal);
+}
+
+[data-slot="table-head"] {
+  height: 36px;
+  padding: 8px 12px;
+  font-size: 13px;
+  font-weight: var(--codex-fw-medium);
+  color: var(--codex-text-secondary);
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+[data-slot="table-cell"] {
+  padding: 10px 12px;
+  vertical-align: middle;
+}
+
+[data-slot="table-body"] [data-slot="table-row"] {
+  height: 44px;
+  border-color: rgb(255 255 255 / 0.06);
+}
+
+[data-slot="table-body"] [data-slot="table-row"]:hover {
+  background-color: rgb(255 255 255 / 0.04);
+}
+
+[data-slot="table-header"] [data-slot="table-row"] {
+  border-color: rgb(255 255 255 / 0.08);
+}
+
+/* 表格/列表里的次要说明文字统一 12px（官方提示档） */
+[data-slot="table-cell"] .text-muted-foreground,
+[data-slot="table-cell"] [class*="text-xs"] {
+  font-size: 12px;
+  line-height: 16px;
+}
+
 /* 对话框标题：官方 line-height 28px（heading-dialog） */
 [data-slot="alert-dialog-title"],
 [data-slot="dialog-title"] {

@@ -4,7 +4,6 @@ import * as React from "react"
 import { cva, type VariantProps } from "class-variance-authority"
 import { Slot } from "radix-ui"
 
-import { useIsMobile } from "@/hooks/use-mobile"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -26,12 +25,38 @@ import { PanelLeftIcon } from "lucide-react"
 
 const SIDEBAR_COOKIE_NAME = "sidebar_state"
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7
-// Codex Desktop 复刻（实测）：面板 288px（18rem），图标态 52px（3.25rem）；
-// 面板左侧另有常驻 52px 图标导轨（见 codex-rail.tsx），故左面板合计 340px。
-const SIDEBAR_WIDTH = "18rem"
+// Codex Desktop 复刻（参考端 1280×816 实测）：对话面板列 288px，图标态 52px（3.25rem）；
+// 面板左侧另有常驻 52px 图标导轨（见 codex-rail.tsx），故左面板合计 340px
+// （= 官方 --spacing-token-sidebar clamp(240px, 340px, min(520px, 100vw - 320px)) 在 1280 宽下的取值）。
+const SIDEBAR_WIDTH_PX = 288
+const SIDEBAR_MIN_WIDTH_PX = 200
+const SIDEBAR_MAX_WIDTH_PX = 480
+const SIDEBAR_WIDTH_STORAGE_KEY = "artex_panel_width"
+const SIDEBAR_WIDTH = `${SIDEBAR_WIDTH_PX}px`
 const SIDEBAR_WIDTH_MOBILE = "18rem"
 const SIDEBAR_WIDTH_ICON = "3.25rem"
 const SIDEBAR_KEYBOARD_SHORTCUT = "b"
+// 参考端在窄窗口（< 900px）下把 288px 面板整块收起、52px 导轨保留；
+// shadcn 默认断点 768px 与参考端行为不一致，这里单独用一个本地断点。
+const SIDEBAR_COMPACT_BREAKPOINT = 900
+
+function clampPanelWidth(width: number) {
+  return Math.min(SIDEBAR_MAX_WIDTH_PX, Math.max(SIDEBAR_MIN_WIDTH_PX, Math.round(width)))
+}
+
+function useIsCompactShell() {
+  const [compact, setCompact] = React.useState(false)
+
+  React.useEffect(() => {
+    const query = window.matchMedia(`(max-width: ${SIDEBAR_COMPACT_BREAKPOINT - 1}px)`)
+    const onChange = () => setCompact(query.matches)
+    onChange()
+    query.addEventListener("change", onChange)
+    return () => query.removeEventListener("change", onChange)
+  }, [])
+
+  return compact
+}
 
 type SidebarContextProps = {
   state: "expanded" | "collapsed"
@@ -41,6 +66,12 @@ type SidebarContextProps = {
   setOpenMobile: (open: boolean) => void
   isMobile: boolean
   toggleSidebar: () => void
+  /** 面板列宽（px）。参考端 1280×816 实测 288；可拖拽右缘 resizer 改宽、双击复位。 */
+  panelWidth: number
+  setPanelWidth: (width: number) => void
+  resetPanelWidth: () => void
+  resizing: boolean
+  setResizing: (resizing: boolean) => void
 }
 
 const SidebarContext = React.createContext<SidebarContextProps | null>(null)
@@ -67,8 +98,39 @@ function SidebarProvider({
   open?: boolean
   onOpenChange?: (open: boolean) => void
 }) {
-  const isMobile = useIsMobile()
+  const isMobile = useIsCompactShell()
   const [openMobile, setOpenMobile] = React.useState(false)
+  const [panelWidth, setPanelWidthState] = React.useState(SIDEBAR_WIDTH_PX)
+  const [resizing, setResizing] = React.useState(false)
+
+  // 面板宽度存 localStorage（静态导出下没有服务端渲染，放 effect 里读，避免水合不一致）
+  React.useEffect(() => {
+    try {
+      const stored = Number(window.localStorage.getItem(SIDEBAR_WIDTH_STORAGE_KEY))
+      if (Number.isFinite(stored) && stored > 0) setPanelWidthState(clampPanelWidth(stored))
+    } catch {
+      /* localStorage 不可用时用默认值 */
+    }
+  }, [])
+
+  const setPanelWidth = React.useCallback((width: number) => {
+    const next = clampPanelWidth(width)
+    setPanelWidthState(next)
+    try {
+      window.localStorage.setItem(SIDEBAR_WIDTH_STORAGE_KEY, String(next))
+    } catch {
+      /* ignore */
+    }
+  }, [])
+
+  const resetPanelWidth = React.useCallback(() => {
+    setPanelWidthState(SIDEBAR_WIDTH_PX)
+    try {
+      window.localStorage.removeItem(SIDEBAR_WIDTH_STORAGE_KEY)
+    } catch {
+      /* ignore */
+    }
+  }, [])
 
   // This is the internal state of the sidebar.
   // We use openProp and setOpenProp for control from outside the component.
@@ -123,8 +185,25 @@ function SidebarProvider({
       openMobile,
       setOpenMobile,
       toggleSidebar,
+      panelWidth,
+      setPanelWidth,
+      resetPanelWidth,
+      resizing,
+      setResizing,
     }),
-    [state, open, setOpen, isMobile, openMobile, setOpenMobile, toggleSidebar]
+    [
+      state,
+      open,
+      setOpen,
+      isMobile,
+      openMobile,
+      setOpenMobile,
+      toggleSidebar,
+      panelWidth,
+      setPanelWidth,
+      resetPanelWidth,
+      resizing,
+    ]
   )
 
   return (
@@ -133,7 +212,7 @@ function SidebarProvider({
         data-slot="sidebar-wrapper"
         style={
           {
-            "--sidebar-width": SIDEBAR_WIDTH,
+            "--sidebar-width": `${panelWidth}px`,
             "--sidebar-width-icon": SIDEBAR_WIDTH_ICON,
             ...style,
           } as React.CSSProperties
@@ -154,6 +233,7 @@ function Sidebar({
   side = "left",
   variant = "sidebar",
   collapsible = "offcanvas",
+  resizable = false,
   className,
   children,
   dir,
@@ -162,6 +242,8 @@ function Sidebar({
   side?: "left" | "right"
   variant?: "sidebar" | "floating" | "inset"
   collapsible?: "offcanvas" | "icon" | "none"
+  /** 右缘 16px 拖拽条（参考端 panel-resizer 16×768 @ x=332）：拖拽改宽、双击复位 */
+  resizable?: boolean
 }) {
   const { isMobile, state, openMobile, setOpenMobile } = useSidebar()
 
@@ -246,9 +328,74 @@ function Sidebar({
           className="flex size-full flex-col bg-sidebar group-data-[variant=floating]:rounded-lg group-data-[variant=floating]:shadow-sm group-data-[variant=floating]:ring-1 group-data-[variant=floating]:ring-sidebar-border"
         >
           {children}
+          {resizable ? <SidebarResizer /> : null}
         </div>
       </div>
     </div>
+  )
+}
+
+/**
+ * 面板右缘 16px resizer（参考端 panel-resizer = 16 × 768 @ x=332，
+ * 即中心落在面板右缘 x=340 上）。拖拽改宽，双击复位到 288px；
+ * 拖拽期间关掉宽度过渡（html[data-panel-resizing] 见 codex-shell.css）。
+ */
+function SidebarResizer({ className, ...props }: React.ComponentProps<"div">) {
+  const { panelWidth, setPanelWidth, resetPanelWidth, resizing, setResizing } = useSidebar()
+  const drag = React.useRef<{ startX: number; startWidth: number } | null>(null)
+
+  const endDrag = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (!drag.current) return
+    drag.current = null
+    setResizing(false)
+    delete document.documentElement.dataset.panelResizing
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId)
+    }
+  }
+
+  return (
+    <div
+      data-slot="sidebar-resizer"
+      data-resizing={resizing ? "true" : undefined}
+      role="separator"
+      aria-orientation="vertical"
+      aria-label="调整面板宽度"
+      aria-valuenow={panelWidth}
+      aria-valuemin={SIDEBAR_MIN_WIDTH_PX}
+      aria-valuemax={SIDEBAR_MAX_WIDTH_PX}
+      tabIndex={0}
+      onPointerDown={(event) => {
+        if (event.button !== 0) return
+        event.preventDefault()
+        event.currentTarget.setPointerCapture(event.pointerId)
+        drag.current = { startX: event.clientX, startWidth: panelWidth }
+        setResizing(true)
+        document.documentElement.dataset.panelResizing = "true"
+      }}
+      onPointerMove={(event) => {
+        const state = drag.current
+        if (!state) return
+        setPanelWidth(state.startWidth + (event.clientX - state.startX))
+      }}
+      onPointerUp={endDrag}
+      onPointerCancel={endDrag}
+      onDoubleClick={() => resetPanelWidth()}
+      onKeyDown={(event) => {
+        if (event.key === "ArrowLeft") {
+          event.preventDefault()
+          setPanelWidth(panelWidth - 16)
+        } else if (event.key === "ArrowRight") {
+          event.preventDefault()
+          setPanelWidth(panelWidth + 16)
+        } else if (event.key === "Home") {
+          event.preventDefault()
+          resetPanelWidth()
+        }
+      }}
+      className={cn("codex-panel-resizer", className)}
+      {...props}
+    />
   )
 }
 
@@ -698,6 +845,7 @@ export {
   SidebarMenuSubItem,
   SidebarProvider,
   SidebarRail,
+  SidebarResizer,
   SidebarSeparator,
   SidebarTrigger,
   useSidebar,

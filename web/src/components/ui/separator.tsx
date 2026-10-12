@@ -5,6 +5,8 @@ import { Separator as SeparatorPrimitive } from "radix-ui"
 
 import { cn } from "@/lib/utils"
 
+import "./codex-overlays.css"
+
 function Separator({
   className,
   orientation = "horizontal",

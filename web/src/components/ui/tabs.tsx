@@ -6,6 +6,8 @@ import { Tabs as TabsPrimitive } from "radix-ui"
 
 import { cn } from "@/lib/utils"
 
+import "./codex-overlays.css"
+
 function Tabs({
   className,
   orientation = "horizontal",

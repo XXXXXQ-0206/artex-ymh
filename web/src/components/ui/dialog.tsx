@@ -4,6 +4,8 @@ import * as React from "react"
 import { Dialog as DialogPrimitive } from "radix-ui"
 
 import { cn, radixOverlayWasOpenAtPointerDown } from "@/lib/utils"
+
+import "./codex-overlays.css"
 import { Button } from "@/components/ui/button"
 import { XIcon } from "lucide-react"
 
@@ -84,11 +86,10 @@ function DialogContent({
           <DialogPrimitive.Close data-slot="dialog-close" asChild>
             <Button
               variant="ghost"
-              className="absolute top-2 right-2"
+              className="absolute top-4 right-4 size-6 p-1"
               size="icon-sm"
             >
-              <XIcon
-              />
+              <XIcon className="size-4" />
               <span className="sr-only">Close</span>
             </Button>
           </DialogPrimitive.Close>
@@ -120,7 +121,9 @@ function DialogFooter({
     <div
       data-slot="dialog-footer"
       className={cn(
-        "-mx-4 -mb-4 flex flex-col-reverse gap-2 rounded-b-xl border-t bg-muted/50 p-4 sm:flex-row sm:justify-end",
+        // 对话框内边距是 20px（官方 600 宽弹窗实测），页脚要按 20px 出血，
+        // 否则 -16px 会在左右各留 4px 缝、圆角也对不上 25px。
+        "-mx-5 -mb-5 flex flex-col-reverse gap-2 rounded-b-[25px] border-t border-[color:var(--color-border)] bg-transparent p-5 sm:flex-row sm:justify-end",
         className
       )}
       {...props}

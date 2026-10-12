@@ -1,5 +1,7 @@
 import { cn } from "@/lib/utils"
 
+import "./codex-overlays.css"
+
 function Kbd({ className, ...props }: React.ComponentProps<"kbd">) {
   return (
     <kbd

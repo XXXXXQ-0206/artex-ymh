@@ -14,6 +14,7 @@ export function applyThemeMode(mode: ThemeMode): ResolvedThemeMode {
   doc.setAttribute("data-theme-mode", mode);
   doc.classList.add("disable-transitions");
   doc.classList.toggle("dark", resolved === "dark");
+  doc.setAttribute("data-theme", resolved);
   doc.style.colorScheme = resolved;
   requestAnimationFrame(() => {
     doc.classList.remove("disable-transitions");

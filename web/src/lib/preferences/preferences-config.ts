@@ -66,13 +66,17 @@ type PreferencePersistenceConfig = {
  * Default preference values on first load.
  */
 export const PREFERENCE_DEFAULTS: PreferenceValueMap = {
-  theme_mode: "light",
+  // Codex Desktop's reference surface is dark; keep a fresh ARTEX session
+  // deterministic for the desktop replica and pixel captures.
+  theme_mode: "dark",
   theme_preset: "default",
   font: "geist",
   content_layout: "full-width",
   navbar_style: "sticky",
   sidebar_variant: "floating",
-  sidebar_collapsible: "icon",
+  // Codex shell uses offcanvas collapse: the 288px panel slides away and the
+  // 52px rail remains, instead of squeezing panel content into icon width.
+  sidebar_collapsible: "offcanvas",
 };
 
 /**

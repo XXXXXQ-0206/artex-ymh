@@ -17,6 +17,11 @@ import { ThemeSwitcher } from "./sidebar/theme-switcher";
 import { UpdateBadge } from "./update-badge";
 
 // 任务详情页保持原样：它自带头部/Tabs 与内边距，这里不再叠加全局头部和 padding。
+//
+// ⚠️ 判定必须**精确到详情段**，不能用 `startsWith("/function/tasks/")`：
+// 静态导出开了 trailingSlash，列表页的 pathname 是 "/function/tasks/"（带尾斜杠），
+// 于是列表页也被当成全出血页 ⇒ 既不叠加页头、也拿不到让开 288px 面板的内边距，
+// 结果整页内容被面板压住（2026-10-12 实测：页面根 [53,45,1222,481]，工具条顶到 x=53）。
 function isFullBleed(pathname: string) {
   const p = (() => {
     try {
@@ -25,7 +30,8 @@ function isFullBleed(pathname: string) {
       return pathname;
     }
   })();
-  return p.startsWith("/function/tasks/");
+  // 只认详情页：/function/tasks/detail 或 /function/tasks/detail/…
+  return /^\/function\/tasks\/detail(\/|$)/.test(p);
 }
 
 // /chat 是 Codex 的对话面：参考端主表面上方没有 ARTEX 式全局头部

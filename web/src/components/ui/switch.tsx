@@ -5,6 +5,8 @@ import { Switch as SwitchPrimitive } from "radix-ui"
 
 import { cn } from "@/lib/utils"
 
+import "./codex-overlays.css"
+
 function Switch({
   className,
   size = "default",

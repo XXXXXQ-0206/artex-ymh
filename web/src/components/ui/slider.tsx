@@ -5,6 +5,8 @@ import { Slider as SliderPrimitive } from "radix-ui"
 
 import { cn } from "@/lib/utils"
 
+import "./codex-overlays.css"
+
 function Slider({
   className,
   defaultValue,

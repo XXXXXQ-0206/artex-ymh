@@ -776,7 +776,12 @@ export default function TasksPage() {
   );
 
   return (
-    <Tabs value={activeTab} onValueChange={setActiveTab} className="gap-4">
+    <Tabs
+      value={activeTab}
+      onValueChange={setActiveTab}
+      data-codex-workspace-page="tasks"
+      className="codex-workspace-page gap-4"
+    >
       <TabsList className="mx-4 lg:mx-6">
         <TabsTrigger value="current">当前任务</TabsTrigger>
         <TabsTrigger value="archived">已归档</TabsTrigger>
